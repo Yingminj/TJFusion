@@ -1,7 +1,5 @@
 # 您的项目名称
-
-![Marvin System Terminal](./FusionDocker/assets/logo.png)
-
+<img src="./FusionDocker/assets/logo.png" alt="MARVIN" width="520" />
 # DockerModel
 
 ## 前提条件
