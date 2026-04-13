@@ -121,6 +121,6 @@ FusionDocker/configs/docker_launch.yaml
 1. 安装 Docker
 2. 如果需要 GPU，再安装 Docker GPU 支持
 3. 给 Docker 配置代理
-4. 修改 `FusionDocker/configs/docker_launch.yaml`
+4. 配置`DOCKER_MODEL_ROOT`环境变量以及修改 `FusionDocker/configs/docker_launch.yaml`
 5. 修改 `下载模型并修改Docker各自的config.yaml`
 6. 运行FusionDocker下面的run.sh
