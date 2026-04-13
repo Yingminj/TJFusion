@@ -1,5 +1,5 @@
 docker_launcher:
-  docker_model_root: /home/yang/Desktop/DockerModel
+  docker_model_root: ${DOCKER_MODEL_ROOT}
   tmux: true
   monitor: true
   replace_session: true
@@ -28,21 +28,21 @@ docker_launcher:
   docker_targets:
   - name: Fast-FoundationSteroDocker
     group: vision
-    location: local
-    docker_model_root: /home/yang/Desktop/DockerModel
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: Sam3Docker
     group: vision
-    location: local
-    docker_model_root: /home/yang/Desktop/DockerModel
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: FlowPoseDocker
     group: vision
-    location: local
-    docker_model_root: /home/yang/Desktop/DockerModel
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: SiglipDocker
     group: inference
-    location: local
-    docker_model_root: /home/yang/Desktop/DockerModel
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: MarvinDocker
     group: action
-    location: local
-    docker_model_root: /home/yang/Desktop/DockerModel
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
