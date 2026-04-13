@@ -1,6 +1,6 @@
 # 您的项目名称
-  <img src="./FusionDocker/assets/logo.png" alt="MARVIN" width="520" />
-# DockerModel
+ <img src="https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/FusionDocker/assets/logo.png" alt="MARVIN"
+  width="520" /># DockerModel
 
 ## 前提条件
 
@@ -92,11 +92,14 @@ chmod +x run.sh
 ### 2. 通过配置文件统一构建和运行
 
 项目支持通过配置文件统一指定要构建和运行的 Docker。
+配置TJDocker路径:
+```bash
+export DOCKER_MODEL_ROOT=Path To TJDocker
+```
 
 配置文件路径：
 
 ```bash
-export DOCKER_MODEL_ROOT=Path To TJDocker
 FusionDocker/configs/docker_launch.yaml
 ```
 
