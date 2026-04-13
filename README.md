@@ -1,6 +1,7 @@
 # Marvin Robot System
  <img src="https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/FusionDocker/assets/logo.png" alt="MARVIN"
   width="520" />
+
 # DockerModel
 
 ## 前提条件
@@ -104,7 +105,7 @@ export DOCKER_MODEL_ROOT=Path To TJDocker
 FusionDocker/configs/docker_launch.yaml
 ```
 
-先修改这个配置文件，选择需要启用的 Docker。然后使用项目提供的统一启动方式，系统会自动帮助构建所有要运行的 Docker。
+先修改这个配置文件，选择需要启用的 Docker。然后启动FusionDocker中的run.sh，系统会自动帮助构建所有要运行的 Docker。
 
 ### 3. 模型文件说明
 
