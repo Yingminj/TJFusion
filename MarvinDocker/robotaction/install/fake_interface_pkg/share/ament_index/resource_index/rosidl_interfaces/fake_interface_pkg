@@ -1,0 +1,12 @@
+msg/Action.idl
+msg/Action.msg
+msg/ActionPlan.idl
+msg/ActionPlan.msg
+msg/KeypointPose.idl
+msg/KeypointPose.msg
+msg/KeypointPoseArray.idl
+msg/KeypointPoseArray.msg
+msg/ObjectPose.idl
+msg/ObjectPose.msg
+msg/Pose.idl
+msg/Pose.msg

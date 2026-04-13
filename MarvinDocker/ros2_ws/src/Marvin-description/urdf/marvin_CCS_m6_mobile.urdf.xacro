@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<robot name="marvin_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Define mesh path as a Xacro property -->
+  <xacro:include filename="$(find marvin_description)/urdf/M6-S-L-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/M6-S-R-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/mobile_base.urdf.xacro" />
+  <xacro:M6-S-L-CCS-696-V4 />
+  <xacro:M6-S-R-CCS-696-V4 />
+  <xacro:mobile_base />
+  <!-- base Link -->
+  <joint name="base_to_left_arm" type="fixed">
+    <parent link="base_link"/>
+    <child link="Base_L"/>
+    <origin xyz="0 0.037 0.140" rpy="-1.57 0 0"/>
+  </joint>
+
+  <joint name="base_to_right_arm" type="fixed">
+    <parent link="base_link"/>
+    <child link="Base_R"/>
+    <origin xyz="0 -0.037 0.140" rpy="1.57 0 0"/>
+  </joint>
+  
+  <link name="left_tool" />
+  <joint name="left_tool_joint" type="fixed">
+    <parent link="flange_L"/>
+    <child link="left_tool"/>
+    <origin rpy="3.14 -1.57 0" xyz="0 0.00 .145"/>
+  </joint>
+  <link name="right_tool" />
+  <joint name="right_tool_joint" type="fixed">
+    <parent link="flange_R"/>
+    <child link="right_tool"/>
+    <origin rpy="-3.14 -1.57 0" xyz="0 -0.00 .145"/>
+  </joint>
+
+  <link name="head_yaw_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia
+        ixx="1e-4" ixy="0" ixz="0"
+        iyy="1e-4" iyz="0"
+        izz="1e-4"/>
+    </inertial>
+
+    <!-- 可视化：球 -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.05"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.4 0.9 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="head_yaw_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="head_yaw_link"/>
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0" effort="50" velocity="2.0"/>
+  </joint>
+
+  <link name="head_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia
+        ixx="1e-4" ixy="0" ixz="0"
+        iyy="1e-4" iyz="0"
+        izz="1e-4"/>
+    </inertial>
+
+    <!-- 可视化：球 -->
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.15"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.4 0.9 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="head_pitch_joint" type="revolute">
+    <parent link="head_yaw_link"/>
+    <child link="head_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.0" upper="1.0" effort="50" velocity="2.0"/>
+  </joint>
+
+</robot>
+
+

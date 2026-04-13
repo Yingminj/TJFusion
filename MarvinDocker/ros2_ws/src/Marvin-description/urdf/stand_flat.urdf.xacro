@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot name="marvin_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+ <xacro:macro  name="stand">
+  <!-- Define mesh path as a Xacro property -->
+  <!-- base Link -->
+  <link
+      name="base_link">
+      <inertial>
+        <origin
+          xyz="6.8101E-06 5.7901E-11 0.068902"
+          rpy="0 0 0" />
+        <mass
+          value="1.21" />
+        <inertia
+          ixx="0.00393"
+          ixy="1.5099E-09"
+          ixz="-3.4422E-07"
+          iyy="0.0047631"
+          iyz="8.9145E-13"
+          izz="0.0034321" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://marvin_description/meshes/base/base_link.STL" />
+        </geometry>
+        <material
+          name="">
+          <color
+            rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://marvin_description/meshes/base/base_link.STL" />
+        </geometry>
+      </collision>
+    </link>
+  
+  <link name="tracking_base_link"/>
+  <joint name="base_to_tracking_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="tracking_base_link"/>
+    <origin xyz="0 0 -1" rpy="0 0 0"/>
+  </joint>
+
+  <link name="column_link">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="meshes/stand.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.89804 0.91765 0.92941 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="/meshes/stand.STL" />
+      </geometry>
+    </collision>
+  </link>
+  </link>
+  <joint name="base_to_column" type="fixed">
+    <parent link="base_link"/>
+    <child link="column_link"/>
+    <origin xyz="0 0 -0.50" rpy="0 0 0"/>
+  </joint>  
+  
+  <link name="camera_link"/>
+    <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin rpy="-1.57 0.0 -1.57" xyz="0.022 0.032 0.28"/>
+  </joint>
+  
+</xacro:macro>
+</robot>
+

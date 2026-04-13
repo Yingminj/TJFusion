@@ -1,0 +1,7 @@
+server:
+  host: "0.0.0.0"
+  port: 5555
+
+sam3:
+  checkpoint_path: "/workspace/sam3-main/sam3_files/sam3.pt"
+  score_threshold: 0.4

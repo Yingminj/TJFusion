@@ -1,0 +1,144 @@
+{
+  "nodes": [
+    {
+      "node_id": "001",
+      "state_description": "box free and closed",
+      "next_action": [
+        { 
+          "target": "green small box",
+          "action_name": "hold",
+          "arm": "left",
+          "speed": 0.8,
+          "correction_mode": "forward"
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "002",
+      "state_description": "box fixed and closed",
+      "next_action": [
+        { 
+          "target": "orange small object",
+          "action_name": "pull",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "003",
+      "state_description": "box fixed and opening",
+      "next_action": [
+        { 
+          "target": "orange small object",
+          "action_name": "pull",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "004",
+      "state_description": "box open and toy free",
+      "next_action": [
+        { 
+          "target": "toy car",
+          "action_name": "pick",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward"
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "005",
+      "state_description": "toy in hand and outside box",
+      "next_action": [
+        { 
+          "target": "orange small object",
+          "action_name": "place",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "006",
+      "state_description": "toy in box and box opened",
+      "next_action": [
+        { 
+          "target": "orange small object",
+          "action_name": "push",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "007",
+      "state_description": "toy in box and closing",
+      "next_action": [
+        { 
+          "target": "orange small object",
+          "action_name": "push",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "008",
+      "state_description": "toy in box and box on table",
+      "next_action": [
+        { 
+          "target": "red box",
+          "action_name": "place",
+          "arm": "left",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "009",
+      "state_description": "toy in box and box in hand",
+      "next_action": "home",
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "010",
+      "state_description": "gift has been packaged",
+      "next_action": "home",
+      "parents": null,
+      "center_feature": null
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+docker:
+  image: "senyun"
+  container_name: "${image}_tmp"
+
+server:
+  host: "0.0.0.0"
+  port: 5559
+
+source:
+  ws_url: "ws://192.168.11.123:8555/quad_tile"
+  frame_timeout_ms: 3000
+  expected_width: 2560
+  expected_height: 1984
+  use_undistort: false
+
+zmq:
+  jpg_quality: 80
+  multi_view_jpeg: true
+
+visualization:
+  enable: false
+  window_name: "WebRTC Forward Preview"

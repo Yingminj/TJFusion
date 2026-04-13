@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "input.schema.json",
+  "title": "FlowPose Server Input Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Optional request identifier."
+    },
+    "rgb_image": {
+      "type": "string",
+      "description": "Base64-encoded RGB image."
+    },
+    "depth_image": {
+      "type": "string",
+      "description": "Base64-encoded depth image."
+    },
+    "combined_mask": {
+      "type": "string",
+      "description": "Base64-encoded combined grayscale mask image."
+    },
+    "obj_ids": {
+      "type": "array",
+      "description": "Optional object id list passed to FlowPose inferencer.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": [
+                "integer",
+                "number",
+                "string",
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "type": "object"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "default": []
+    },
+    "class_names": {
+      "type": "array",
+      "description": "Optional class names aligned with obj_ids.",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "instance_names": {
+      "type": "array",
+      "description": "Optional instance names aligned with obj_ids.",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "rgb_image",
+    "depth_image",
+    "combined_mask"
+  ]
+}

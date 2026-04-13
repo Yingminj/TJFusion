@@ -1,0 +1,29 @@
+object_type: cup
+display_name: Cup
+template_key: cup_handle
+aliases:
+  - mug
+
+attributes:
+  category: kitchenware
+  affordances:
+    - pick
+  grasp_target: handle
+
+states:
+  default: idle
+  aliases:
+    idle:
+      - idle
+      - stable
+    occupied:
+      - occupied
+      - holding_liquid
+    empty:
+      - empty
+
+action_rules:
+  - when:
+      goal: pick
+    action: pick
+

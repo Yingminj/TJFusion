@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "prompts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rgb_image": {
+      "type": "string"
+    }
+  },
+  "required": ["rgb_image", "prompts"],
+  "additionalProperties": false
+}

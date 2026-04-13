@@ -1,0 +1,11 @@
+docker:
+  image: siglip2
+  container_name: SiglipDocker
+server:
+  host: 0.0.0.0
+  port: 7777
+  mode: single
+model:
+  path: /workspace/model/siglip2-so400m-patch14-224
+  checkpoint: /workspace/model/best.pt
+  graph_info_file: /workspace/model/graph_info.json

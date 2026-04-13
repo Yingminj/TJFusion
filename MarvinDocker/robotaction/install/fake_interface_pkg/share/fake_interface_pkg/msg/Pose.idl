@@ -1,0 +1,22 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from fake_interface_pkg/msg/Pose.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Point.idl"
+#include "geometry_msgs/msg/Quaternion.idl"
+
+module fake_interface_pkg {
+  module msg {
+    @verbatim (language="comment", text=
+      "Pose.msg")
+    struct Pose {
+      geometry_msgs::msg::Point position;
+
+      geometry_msgs::msg::Quaternion orientation;
+
+      int32 obj_id;
+
+      string obj_name;
+    };
+  };
+};

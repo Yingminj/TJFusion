@@ -1,0 +1,23 @@
+client:
+  sam3_server_addr: "tcp://127.0.0.1:5555"
+  downstream_server_addr: "tcp://127.0.0.1:6666"
+  zmq_source_addr: "tcp://127.0.0.1:4444"
+
+
+  rgb_path: "/workspace/test/rgb/000013.png"
+  depth_path: "/workspace/test/depth/000013.png"
+
+  prompts:
+    - red cup
+    - toy car
+    - drawer handle
+
+
+  return_masks: true
+  clear_previous: true
+  output_json: "response_sam3.json"
+
+  obj_id_map:
+    red cup: 1
+    toy car: 2
+    drawer handle: 3

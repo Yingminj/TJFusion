@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "output.schema.json",
+  "title": "Single-View SigLIP Output Schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "best_category": {
+          "type": "string"
+        },
+        "best_similarity": {
+          "type": "number"
+        },
+        "topk": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "similarity": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "category",
+              "similarity"
+            ]
+          }
+        },
+        "total_category": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "node_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "node_id",
+              "name",
+              "category"
+            ]
+          }
+        }
+      },
+      "required": [
+        "ok",
+        "best_category",
+        "best_similarity",
+        "topk",
+        "total_category"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "error"
+      ]
+    }
+  ]
+}

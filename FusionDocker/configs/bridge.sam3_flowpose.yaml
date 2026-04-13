@@ -1,0 +1,12 @@
+bridge:
+  type: sam3_flowpose
+  source_mode: zmq_source
+  zmq_source_addr: tcp://127.0.0.1:4444
+  prompts:
+    - toy car
+    - cup
+sam3:
+  server_addr: tcp://127.0.0.1:5562
+  timeout_ms: 5000
+flowpose:
+  server_addr: tcp://127.0.0.1:6667

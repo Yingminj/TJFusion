@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot name="marvin_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Define mesh path as a Xacro property -->
+  <xacro:include filename="$(find marvin_description)/urdf/M6-S-L-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/M6-S-R-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/stand_cam.urdf.xacro" />
+  <xacro:M6-S-L-CCS-696-V4 />
+  <xacro:M6-S-R-CCS-696-V4 />
+  <xacro:stand />
+  <!-- base Link -->
+  <joint name="base_to_left_arm" type="fixed">
+    <parent link="base_link"/>
+    <child link="Base_L"/>
+    <origin xyz="0 0.037 0.140" rpy="-1.57 0 0"/>
+  </joint>
+
+  <joint name="base_to_right_arm" type="fixed">
+    <parent link="base_link"/>
+    <child link="Base_R"/>
+    <origin xyz="0 -0.037 0.140" rpy="1.57 0 0"/>
+  </joint>
+  
+  <link name="left_tool" />
+  <joint name="left_tool_joint" type="fixed">
+    <parent link="flange_L"/>
+    <child link="left_tool"/>
+    <origin rpy="3.14 -1.57 0" xyz="0 0.00 .145"/>
+  </joint>
+  <link name="right_tool" />
+  <joint name="right_tool_joint" type="fixed">
+    <parent link="flange_R"/>
+    <child link="right_tool"/>
+    <origin rpy="-3.14 -1.57 0" xyz="0 -0.00 .145"/>
+  </joint>
+
+</robot>
+

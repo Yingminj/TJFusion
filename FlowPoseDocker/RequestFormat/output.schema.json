@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "output.schema.json",
+  "title": "FlowPose Server Output Schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "pose": {
+                "type": [
+                  "array",
+                  "number",
+                  "object",
+                  "null"
+                ]
+              },
+              "length": {
+                "type": [
+                  "array",
+                  "number",
+                  "object",
+                  "null"
+                ]
+              },
+              "obj_id": {
+                "oneOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "box_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "pose",
+              "length",
+              "obj_id",
+              "box_id"
+            ]
+          }
+        },
+        "elapsed_sec": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "status",
+        "request_id",
+        "objects",
+        "elapsed_sec"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "error"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "traceback": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "request_id",
+        "message",
+        "traceback"
+      ]
+    }
+  ]
+}

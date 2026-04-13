@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "output.schema.json",
+  "title": "Stereo Publisher Output Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "frame_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing frame index."
+    },
+    "depth_shape": {
+      "type": "array",
+      "description": "Depth image shape as [height, width].",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "rgb": {
+      "type": "string",
+      "description": "Base64-encoded JPG RGB image."
+    },
+    "depth": {
+      "type": "string",
+      "description": "Base64-encoded raw uint16 depth bytes in millimeters."
+    }
+  },
+  "required": [
+    "frame_id",
+    "depth_shape",
+    "rgb",
+    "depth"
+  ]
+}

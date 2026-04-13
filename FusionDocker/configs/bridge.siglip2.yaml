@@ -1,0 +1,6 @@
+bridge:
+  type: siglip2_bridge
+  source_mode: zmq_source
+  zmq_source_addr: tcp://127.0.0.1:4444
+siglip2:
+  server_addr: tcp://127.0.0.1:7777

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "input.schema.json",
+  "title": "Single-View SigLIP Input Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "可选请求 ID，会在响应中原样返回。"
+    },
+    "image_b64": {
+      "type": "string",
+      "description": "输入图片的 base64 编码字符串。"
+    }
+  },
+  "required": ["image_b64"]
+}

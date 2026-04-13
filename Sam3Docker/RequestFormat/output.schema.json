@@ -1,0 +1,44 @@
+{
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": { "const": "ok" },
+        "request_id": { "type": "string" },
+        "detections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "label": { "type": "string" },
+              "score": { "type": "number" },
+              "bbox": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "mask_png_b64": {
+                "type": "string"
+              }
+            },
+            "required": ["id", "label", "score", "bbox", "mask_png_b64"]
+          }
+        },
+        "elapsed_sec": { "type": "number" }
+      },
+      "required": ["status", "request_id", "detections", "elapsed_sec"]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": { "const": "error" },
+        "request_id": { "type": "string" },
+        "message": { "type": "string" },
+        "elapsed_sec": { "type": "number" }
+      },
+      "required": ["status", "request_id", "message", "elapsed_sec"]
+    }
+  ]
+}

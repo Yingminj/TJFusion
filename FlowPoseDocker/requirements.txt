@@ -1,0 +1,7 @@
+numpy==1.26.3
+opencv-python==4.9.0.80
+scikit-learn==1.7.2
+webdataset==1.0.2
+zmq
+ipdb
+tensorboardX

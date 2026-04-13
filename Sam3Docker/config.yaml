@@ -1,0 +1,18 @@
+docker:
+  image: sam3
+  container_name: Sam3Docker
+
+server:
+  host: 0.0.0.0
+  port: 5562
+
+sam3:
+  checkpoint_path: /workspace/model/sam3.pt
+  score_threshold: 0.4
+
+efficient_sam3:
+  checkpoint_path: "/workspace/model/put your checkpoint name here, e.g., efficient_sam3_image_encoder_mobileclip_s0_ctx16.pt"
+  text_encoder_type: "MobileCLIP-S0"
+  text_encoder_context_length: 16
+  score_threshold: 0.4
+  enable_segmentation: true

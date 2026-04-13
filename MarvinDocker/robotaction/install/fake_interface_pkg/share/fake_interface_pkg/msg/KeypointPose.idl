@@ -1,0 +1,42 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from fake_interface_pkg/msg/KeypointPose.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Pose.idl"
+
+module fake_interface_pkg {
+  module msg {
+    typedef float float__3[3];
+    @verbatim (language="comment", text=
+      "用于描述一个关键点")
+    struct KeypointPose {
+      @verbatim (language="comment", text=
+        "关键点名称")
+      string name;
+
+      @verbatim (language="comment", text=
+        "使用的机械臂，left/right")
+      string arm;
+
+      @verbatim (language="comment", text=
+        "位姿信息")
+      sequence<geometry_msgs::msg::Pose> poses;
+
+      @verbatim (language="comment", text=
+        "约束和速度" "\n"
+        "xyz旋转约束")
+      float__3 constraints;
+
+      @verbatim (language="comment", text=
+        "移动速度")
+      float speed;
+
+      @verbatim (language="comment", text=
+        "手爪控制" "\n"
+        "手爪开闭程度")
+      sequence<float> gripper_value;
+
+      sequence<float> time;
+    };
+  };
+};
