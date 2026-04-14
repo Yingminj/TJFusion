@@ -126,3 +126,5 @@ FusionDocker/configs/docker_launch.yaml
 4. 配置`DOCKER_MODEL_ROOT`环境变量以及修改 `FusionDocker/configs/docker_launch.yaml`
 5. 修改 `下载模型并修改Docker各自的config.yaml`
 6. 运行FusionDocker下面的run.sh
+
+Tips:机器人ip在MarvinDocker的run.sh里面配置
