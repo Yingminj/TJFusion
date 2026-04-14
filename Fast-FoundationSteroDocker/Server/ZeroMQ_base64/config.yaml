@@ -1,0 +1,24 @@
+model:
+  ckpt_dir: "/workspace/Fast-FoundationStereo-master/weights/20-30-48/model_best_bp2_serialize.pth"
+  valid_iters: 8
+
+paths:
+  out_dir: "./output"
+
+camera:
+  width: 640
+  height: 480
+  fps: 30
+  disable_emitter: 0   # 0=关闭红外发射器, 1=开启
+
+runtime:
+  scale: 1.0
+  z_far: 10.0
+  remove_invisible: 1
+
+zmq:
+  pub_addr: "tcp://*:4444"
+  jpg_quality: 90
+
+visualization:
+  show: true
