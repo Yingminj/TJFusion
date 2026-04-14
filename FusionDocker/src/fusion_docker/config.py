@@ -44,6 +44,10 @@ def get_docker_launch_config_path() -> Path:
     )
 
 
+def _expand_config_path_value(value: str) -> str:
+    return os.path.expanduser(os.path.expandvars(value))
+
+
 def load_yaml_file(path: str | Path) -> dict[str, Any]:
     resolved = Path(path)
     if not resolved.exists():
@@ -90,6 +94,12 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
         prompts = []
     if not isinstance(prompts, list):
         raise ValueError("bridge.prompts must be a list")
+
+    obj_ids = bridge_raw.get("obj_ids", [])
+    if obj_ids is None:
+        obj_ids = []
+    if not isinstance(obj_ids, list):
+        raise ValueError("bridge.obj_ids must be a list")
 
     obj_id_map = bridge_raw.get("obj_id_map", {})
     if obj_id_map is None:
@@ -201,6 +211,7 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
         input_mapping=input_mapping,
         schema_check=schema_check,
         prompts=[str(prompt) for prompt in prompts],
+        obj_ids=list(obj_ids),
         obj_id_map={str(key): value for key, value in obj_id_map.items()},
         return_masks=bool(bridge_raw.get("return_masks", True)),
         clear_previous=bool(bridge_raw.get("clear_previous", True)),
@@ -303,7 +314,7 @@ def _parse_bridge_schema_check(
 
     docker_model_root = str(raw_schema_check.get("docker_model_root", "")).strip()
     if docker_model_root:
-        docker_model_root_path = Path(docker_model_root).expanduser()
+        docker_model_root_path = Path(_expand_config_path_value(docker_model_root))
         if not docker_model_root_path.is_absolute():
             docker_model_root_path = (config_dir / docker_model_root_path).resolve()
         docker_model_root = str(docker_model_root_path)
@@ -402,6 +413,8 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
     docker_model_root = launch_raw.get("docker_model_root")
     if docker_model_root is not None:
         docker_model_root = str(docker_model_root).strip() or None
+        if docker_model_root is not None:
+            docker_model_root = _expand_config_path_value(docker_model_root)
     docker_targets = _parse_docker_target_entries(
         launch_raw,
         default_docker_model_root=docker_model_root,
@@ -598,6 +611,8 @@ def _parse_docker_target_entries(
             docker_model_root = default_docker_model_root
         if docker_model_root is not None:
             docker_model_root = str(docker_model_root).strip() or None
+            if docker_model_root is not None:
+                docker_model_root = _expand_config_path_value(docker_model_root)
 
         remote_raw = raw_target.get("remote", {})
         if remote_raw is None:
@@ -736,6 +751,8 @@ def _parse_remote_settings(
             ),
         )
     ).strip() or None
+    if remote_docker_model_root is not None:
+        remote_docker_model_root = _expand_config_path_value(remote_docker_model_root)
 
     ssh_port_raw = remote_raw.get("ssh_port", launch_raw.get("remote_ssh_port", 22))
     remote_ssh_port = int(ssh_port_raw)

@@ -215,7 +215,7 @@ def discover_docker_targets(
             remote_password=remote_password,
         )
 
-    resolved_root = Path(root).expanduser().resolve()
+    resolved_root = Path(os.path.expanduser(os.path.expandvars(str(root)))).resolve()
     if not resolved_root.exists():
         raise FileNotFoundError(f"DockerModel path does not exist: {resolved_root}")
     if not resolved_root.is_dir():
