@@ -1,0 +1,18 @@
+docker:
+  image: flowpose
+  container_name: FlowposeDocker
+server:
+  host: 0.0.0.0
+  port: 6667
+paths:
+  py_runner_path: /workspace/FlowPose/py_runners
+  pretrained_flow_model_path: /workspace/model/scorenet.pth
+  pretrained_scale_model_path: /workspace/model/scalenet.pth
+visualization:
+  fx: 606.9654541015625
+  fy: 606.133056640625
+  cx: 323.8822937011719
+  cy: 257.6228332519531
+  axis_len: 0.08
+  width: 640
+  height: 480
