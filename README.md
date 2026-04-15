@@ -73,7 +73,16 @@ systemctl show --property=Environment docker
 
 ## 构建和运行 Docker
 
-### 1. 逐个构建和运行
+### 1. 添加和运行 Fusion 时，建议使用单独的 conda 环境，避免与系统或其他项目依赖冲突。
+
+```bash
+conda create -n fusion python=3.10
+conda activate fusion
+cd FusionDocker
+pip install -r requirement.txt
+```
+
+### 2. 逐个构建和运行
 
 如果某个 Docker 目录中有 `build.sh`，执行：
 
@@ -91,7 +100,7 @@ chmod +x run.sh
 ./run.sh
 ```
 
-### 2. 通过配置文件统一构建和运行
+### 3. 通过配置文件统一构建和运行
 
 项目支持通过配置文件统一指定要构建和运行的 Docker。
 配置TJDocker路径:
@@ -107,7 +116,7 @@ FusionDocker/configs/docker_launch.yaml
 
 先修改这个配置文件，选择需要启用的 Docker。然后启动FusionDocker中的run.sh，系统会自动帮助构建所有要运行的 Docker。
 
-### 3. 模型文件说明
+### 4. 模型文件说明
 
   Docker 目录下会有一个 `model` 文件夹，里面包含 `download.sh` 脚本。
 
@@ -123,8 +132,9 @@ FusionDocker/configs/docker_launch.yaml
 1. 安装 Docker
 2. 如果需要 GPU，再安装 Docker GPU 支持
 3. 给 Docker 配置代理
-4. 配置`DOCKER_MODEL_ROOT`环境变量以及修改 `FusionDocker/configs/docker_launch.yaml`
-5. 修改 `下载模型并修改Docker各自的config.yaml`
-6. 运行FusionDocker下面的run.sh
+4. 安装Fusion的conda环境
+5. 配置`DOCKER_MODEL_ROOT`环境变量以及修改 `FusionDocker/configs/docker_launch.yaml`
+6. 修改 `下载模型并修改Docker各自的config.yaml`
+7. 运行FusionDocker下面的run.sh
 
 Tips:机器人ip在MarvinDocker的run.sh里面配置
