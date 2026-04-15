@@ -82,7 +82,7 @@ cd FusionDocker
 pip install -r requirement.txt
 ```
 
-### 2. 逐个构建和运行
+### 2. 逐个构建和运行(除了FusionDocker)
 
 如果某个 Docker 目录中有 `build.sh`，执行：
 
