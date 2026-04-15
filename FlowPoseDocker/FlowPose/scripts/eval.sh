@@ -1,0 +1,11 @@
+python py_runners/eval.py \
+  --pretrained_flow_model_path results/ckpts/FlowNet/ckpt_epoch2.pth \
+  --pretrained_scale_model_path results/ckpts/ScaleNet/ckpt_epoch1.pth \
+  --device cuda \
+  --seed 0 \
+  --frame_gap_threshold 10 \
+  --batch_size 128 \
+  --dino pointwise \
+  --num_worker 16 \
+  --drop_step 50 \
+  --retain_ratio 1 \

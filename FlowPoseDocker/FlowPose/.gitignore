@@ -1,0 +1,9 @@
+*.pyc
+0000_meta.json
+/results/*
+.vscode/
+utils.py
+webdataset_creation.py
+Fast-FoundationStereo
+*.bak
+requirements.txt

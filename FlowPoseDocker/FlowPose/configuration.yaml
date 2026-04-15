@@ -1,0 +1,14 @@
+version: 0.1
+
+models:
+  flow_model_path: results/ckpts/FlowNet/rope_fixed_v2.pth
+  scale_model_path: results/ckpts/ScaleNet/scalenet.pth
+
+inference:
+  device: cuda
+  tracking: true
+
+debug:
+  seed: 0
+  log_dir: results/logs
+  result_dir: results
