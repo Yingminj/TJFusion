@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 2555a80d7bef914165c16b5aede56737481daedb tianhao-liu <thliu9809@gmail.com> 1765435369 +0800	clone: from github.com:KLMmotion/marvin_ros2_control.git
+2555a80d7bef914165c16b5aede56737481daedb 49000ce2cbb6ffa1eaa46c4cc99ad739ff3e6fa5 tianhao-liu <thliu9809@gmail.com> 1766399700 +0800	commit: opt null joint angle
+49000ce2cbb6ffa1eaa46c4cc99ad739ff3e6fa5 61f459860566fe6795d6a8573a8f46d6cac2e983 tianhao-liu <thliu9809@gmail.com> 1767753285 +0800	commit: Refactor and remove deprecated files from NspEdit; update marvin_robot and marvin_robot_node for improved logging and state management; add rotation limiting functionality in rot_limit.py; introduce new launch files for M3 and M6 configurations.
+61f459860566fe6795d6a8573a8f46d6cac2e983 1cf6bd5c51909272007c07dedeacb9489478e386 tianhao-liu <thliu9809@gmail.com> 1767753671 +0800	commit (merge): Merge remote-tracking branch 'origin/control_only' into tool-com-forward
+1cf6bd5c51909272007c07dedeacb9489478e386 d91a69ffd9646cd3c421c76c7f6877867fc187fd tianhao-liu <thliu9809@gmail.com> 1767769685 +0800	commit: update drag

@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 3288abf6a038fbec468bd976d9369f2de492e9a8 tianhao-liu <thliu9809@gmail.com> 1767837021 +0800	branch: Created from HEAD
+3288abf6a038fbec468bd976d9369f2de492e9a8 fb4e68b3403d69f339fc9abd4911e7947238026a tianhao-liu <thliu9809@gmail.com> 1767840283 +0800	commit: Remove deprecated install_van.sh script and comment out unused CMake configurations

@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 2555a80d7bef914165c16b5aede56737481daedb tianhao-liu <thliu9809@gmail.com> 1765435369 +0800	clone: from github.com:KLMmotion/marvin_ros2_control.git
+2555a80d7bef914165c16b5aede56737481daedb 49000ce2cbb6ffa1eaa46c4cc99ad739ff3e6fa5 tianhao-liu <thliu9809@gmail.com> 1766399700 +0800	commit: opt null joint angle
+49000ce2cbb6ffa1eaa46c4cc99ad739ff3e6fa5 51f1266d5de331c5de754ebba6c6c1bc5814a116 tianhao-liu <thliu9809@gmail.com> 1767836019 +0800	commit: Add initial implementation of fx_sdk including robot control and dynamics
+51f1266d5de331c5de754ebba6c6c1bc5814a116 3288abf6a038fbec468bd976d9369f2de492e9a8 tianhao-liu <thliu9809@gmail.com> 1767836980 +0800	rebase (continue) (finish): refs/heads/tool-com-forward onto d91a69ffd9646cd3c421c76c7f6877867fc187fd

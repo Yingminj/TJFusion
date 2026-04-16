@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 30c884254819dd51c39d6a439e8fd7a4ea3c7472 Tianhao <thliu9809@gmail.com> 1752284087 +0800	commit (initial): Add initial implementation of marvin_msgs package with message and service definitions
+30c884254819dd51c39d6a439e8fd7a4ea3c7472 5c9b041af18c242c95a5a2c70c51778af97a9dc6 tianhao <tianhao@tianji.com> 1756102545 +1000	commit: Add geometry_msgs dependency and new message definitions for Jointfeedback and Collimarker
+5c9b041af18c242c95a5a2c70c51778af97a9dc6 efdeb907f4e941bef32e85b1b62ba274bc312c19 tianhao <tianhao@tianji.com> 1756102548 +1000	commit: add message in response

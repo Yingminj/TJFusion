@@ -1,0 +1,9 @@
+# pack-refs with: peeled fully-peeled sorted 
+1c3d8b183d03c7aa97122d873ad282930236e0ea refs/remotes/origin/hardware_interface
+142f5dae236cc46f213d4b474dba339af6ec94b4 refs/remotes/origin/main
+715cb62187e8cd127b4e48f7b3b3ed54d33a90b1 refs/remotes/origin/ros2_control
+2555a80d7bef914165c16b5aede56737481daedb refs/remotes/origin/tool-com-forward
+fea939d804fd671d217382ae532f517447739e47 refs/remotes/origin/v1.1
+a0439b9dbeed9d58a844f1b54e368aa114f93876 refs/tags/V0.1.1
+f6d5e155d3c9770e97292f5bfca99023943472db refs/tags/v0.2.1
+^90096e044709622ad67ad70cb37f13d452bb5b7e

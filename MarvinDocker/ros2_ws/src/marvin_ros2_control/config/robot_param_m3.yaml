@@ -1,0 +1,32 @@
+/**:
+  ros__parameters:
+    robot_ip: 192.168.11.190
+    left_joints:
+      - Joint1_L
+      - Joint2_L
+      - Joint3_L
+      - Joint4_L
+      - Joint5_L
+      - Joint6_L
+      - Joint7_L
+    right_joints:
+      - Joint1_R
+      - Joint2_R
+      - Joint3_R
+      - Joint4_R
+      - Joint5_R
+      - Joint6_R
+      - Joint7_R
+    left_base_name: Base_L
+    right_base_name: Base_R
+    eef_name_left: Joint7_L
+    eef_name_right: Joint7_R
+    elbow_ref_dir: [0.0, 0.75, 0.75]
+    left_kd:
+      k: [2.0,2.0,2.0,1.6,0.5,1.0,1.0]
+      d: [0.6,0.6,0.6,0.4,0.2,0.2,0.2]
+    right_kd:
+      k: [2.0,2.0,2.0,1.6,0.5,1.0,1.0]
+      d: [0.6,0.6,0.6,0.4,0.2,0.2,0.2]
+    left_tool: [0.6, 0.0, 0.0, 50.0, 0.004, 0.0, 0.0, 0.004, 0.0, 0.03]
+    right_tool: [0.6, 0.0, 0.0, 50.0, 0.004, 0.0, 0.0, 0.004, 0.0, 0.03]

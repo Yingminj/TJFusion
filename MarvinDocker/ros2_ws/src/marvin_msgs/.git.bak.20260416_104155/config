@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "remote"]
+	url = git@github.com:KLMmotion/Marvin_msgs.git
+	fetch = +refs/heads/*:refs/remotes/remote/*
+[branch "main"]
+	remote = remote
+	merge = refs/heads/main

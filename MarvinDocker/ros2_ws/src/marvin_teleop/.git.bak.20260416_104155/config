@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[branch "tool-com-forward"]
+	vscode-merge-base = origin/tool-com-forward
+[branch "wbd"]
+	vscode-merge-base = origin/tool-com-forward
+	remote = origin
+	merge = refs/heads/wbd
+[remote "origin"]
+	url = git@github.com:KLMmotion/marvin_teleop.git
+	fetch = +refs/heads/*:refs/remotes/origin/*

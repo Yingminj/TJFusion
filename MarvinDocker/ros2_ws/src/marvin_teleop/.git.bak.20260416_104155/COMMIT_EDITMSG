@@ -1,0 +1,1 @@
+Remove deprecated install_van.sh script and comment out unused CMake configurations

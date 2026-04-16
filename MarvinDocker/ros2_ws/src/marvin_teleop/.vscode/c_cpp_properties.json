@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/marvin/ros2_ws/install/marvin_teleop/include/**",
+        "/home/marvin/ros2_ws/install/marvin_msgs/include/**",
+        "/home/marvin/ros2_ws/install/dm_bot/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/marvin/ros2_ws/src/dm_bot/include/**",
+        "/home/marvin/ros2_ws/src/marvin_hardware_interface/include/**",
+        "/home/marvin/ros2_ws/src/marvin_msgs/include/**",
+        "/home/marvin/ros2_ws/src/marvin_teleop/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-arm64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
