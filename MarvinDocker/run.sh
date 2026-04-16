@@ -12,7 +12,8 @@ docker run -it --rm \
   -e QT_X11_NO_MITSHM=1 \
   -e TERM=xterm-256color \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-  -v "./ros2_ws:/ros2_ws" \
+  -v "$PWD/ros2_ws/src":/ros2_ws/src \
+  -v "$PWD/scripts":/scripts \
   -v "./robotaction:/robotaction" \
   -w /ros2_ws \
   --name marvin_dev \
@@ -27,5 +28,5 @@ cat >> ~/.bashrc <<'EOF'
 [ -f /opt/ros/humble/setup.bash ] && source /opt/ros/humble/setup.bash
 [ -f /ros2_ws/install/setup.bash ] && source /ros2_ws/install/setup.bash
 EOF
-/ros2_ws/StartAll.sh '"${IP}"'
+/scripts/StartAll.sh '"${IP}"'
 '
