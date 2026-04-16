@@ -1,0 +1,41 @@
+Task:
+  name: drawer_open_put_mug
+  description: Open the drawer and place the mug inside.
+
+keypoints:
+    - name: gripper_open
+      gripper_value: 0.3
+    - name: pre_grasp
+      poses: [[0.62, 0.0, 0.13, -0.7071068, 0.0, 0.0, 0.7071068],[0.65, 0.4, 0.13, -0.7071068, 0.0, 0.0, 0.7071068],[0.78, 0.3, 0.43, 0.0, 0.0, 0.0, 1.0]]
+      constraints: [1, 1, 1]
+      speed: 0.5
+    - name: drawer_handle
+      poses: [[0.65, 0.0, 0.12,0.7071068, 0.0, 0.0, 0.7071068]]
+      constraints: [1, 1, 1]
+      speed: 0.3
+    
+    # - name: gripper_close
+    #   gripper_value: 1.0
+
+    # - name: drawer_handle_opened
+    #   position: [0.45, 0.0, 0.12]
+    #   orientation: [0.7071068, 0.0, 0.0, 0.7071068]
+    #   constraints: [1, 1, 1]
+    #   speed: 0.2
+    # - name: gripper_open
+    #   gripper_value: 0.5
+
+    # - name: drawer_push_point_opened
+    #   position: [0.45, 0.08, 0.12]
+    #   orientation: [0.7071068, 0.0, 0.0, 0.7071068]
+    #   constraints: [1, 1, 1]
+    #   speed: 0.8
+    # - name: gripper_close
+    #   gripper_value: 1.0
+    # - name: drawer_push_point_closed
+    #   position: [0.62, 0.08, 0.12]
+    #   orientation: [0.7071068, 0.0, 0.0, 0.7071068]
+    #   constraints: [1, 1, 1]
+    #   speed: 1.0
+    # - name: home
+

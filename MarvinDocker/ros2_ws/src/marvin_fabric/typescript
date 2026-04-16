@@ -1,0 +1,3331 @@
+Script started on 2025-11-23 18:32:08+08:00 [TERM="xterm-256color" TTY="/dev/pts/10" COLUMNS="96" LINES="24"]
+bash: alias: colcon build --packages-select: 未找到
+bash: alias: colcon build --symlink_install --packages-select : 未找到
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric[00m$ ./MARVIN_APP-ubuntu2204-1013 s[Kcdm[K scripts/
+[?2004l[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ ls
+[?2004l 6dof_maker.py              IK_viewer.py        pub_constrain.py    test_task_execution.py
+ camera_link_pub.py         __init__.py         task_manger.py      [0m[01;34mtorch_fabrics[0m
+ [01;32mcontroller_udp.py[0m          [01;34mlog[0m                'testj_67 copy.py'   traj_interpolate.py
+ dummpy_tf_broadcaster.py   marvin_example.py   testj_67.py         [01;34mworld[0m
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ pytho3n [K[K[Kn3 6dof_maker.py 
+[?2004l[0m[INFO] [1763893943.659970927] [dual_6dof_marker_publisher]: ✅ Dual 6DOF interactive markers (left & right) ready.[0m
+[0m[INFO] [1763893952.734178236] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.500, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.735455452] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.500, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.767551064] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.500, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.798588842] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.500, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.830679506] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.500, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.863540406] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.486, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.894698566] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.454, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.927194724] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.959830684] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893952.992099833] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893953.022637436] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893953.055307381] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893953.086825324] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893953.119074151] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893953.135988542] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893959.831990723] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893959.839711581] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.202)[0m
+[0m[INFO] [1763893959.870396726] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.202)[0m
+[0m[INFO] [1763893959.902519997] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.198)[0m
+[0m[INFO] [1763893959.934564318] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.179)[0m
+[0m[INFO] [1763893959.966639246] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.154)[0m
+[0m[INFO] [1763893959.998704167] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.124)[0m
+[0m[INFO] [1763893960.030968185] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.101)[0m
+[0m[INFO] [1763893960.063369417] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.079)[0m
+[0m[INFO] [1763893960.095501334] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.053)[0m
+[0m[INFO] [1763893960.128545520] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.023)[0m
+[0m[INFO] [1763893960.159201606] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.007)[0m
+[0m[INFO] [1763893960.191477992] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.048)[0m
+[0m[INFO] [1763893960.222434129] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.081)[0m
+[0m[INFO] [1763893960.254549569] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.104)[0m
+[0m[INFO] [1763893960.286433958] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.111)[0m
+[0m[INFO] [1763893960.319136858] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.111)[0m
+[0m[INFO] [1763893960.351292416] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.111)[0m
+[0m[INFO] [1763893960.382681526] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.096)[0m
+[0m[INFO] [1763893960.414691149] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, -0.020)[0m
+[0m[INFO] [1763893960.448020191] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.075)[0m
+[0m[INFO] [1763893960.479018588] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.114)[0m
+[0m[INFO] [1763893960.511715353] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.128)[0m
+[0m[INFO] [1763893960.543344199] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.576083715] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.606514192] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.638610495] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.670707838] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.703231485] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.735361141] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.766918140] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.132)[0m
+[0m[INFO] [1763893960.798692879] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893960.830838111] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.150)[0m
+[0m[INFO] [1763893960.862593032] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.190)[0m
+[0m[INFO] [1763893960.895819686] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.213)[0m
+[0m[INFO] [1763893960.928148403] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.215)[0m
+[0m[INFO] [1763893960.960198032] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.215)[0m
+[0m[INFO] [1763893960.991833044] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.215)[0m
+[0m[INFO] [1763893961.023188583] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.200)[0m
+[0m[INFO] [1763893961.055350293] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.169)[0m
+[0m[INFO] [1763893961.086584146] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.144)[0m
+[0m[INFO] [1763893961.118654071] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.151682628] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.183081831] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.214960966] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.247504369] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.279105895] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.311621539] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.323301834] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.852538821] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.854402567] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.886532521] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.918815126] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.951377987] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893961.982644498] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.014966565] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.046561682] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.078431575] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.110757657] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.142542523] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.175505437] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.207454574] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.239701895] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.271102901] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.304094339] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.334440040] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.366622006] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.398482461] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.431301299] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.463659727] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.495354555] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.527624792] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.559816158] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.591756729] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.623378351] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.656543373] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.686680045] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.719112371] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.751091638] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.783458591] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.814692604] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.846773382] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.878858894] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.911599069] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.943441556] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893962.975305077] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.008007327] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.038657561] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.070752791] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.102618133] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.134811030] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.166721567] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.198868749] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.230426971] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.263472386] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.295491745] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.328238474] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.360321278] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.391282556] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.423292683] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.454426391] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.486921586] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.518717082] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.551253651] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.582472408] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.615288998] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.646661465] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.679097908] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.711455394] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.743221814] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.775578165] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.806744014] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.839011112] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.871256005] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.903366131] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.934724694] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.966435209] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893963.998786334] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.030654069] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.062869975] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.094774214] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.126872272] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.159047344] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.190997301] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.223029990] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.255304592] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.287392736] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.318957013] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.351288556] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.382630706] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.415985765] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.447101415] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.479207302] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.512160261] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.543460907] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.575177026] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.606461388] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.638540757] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.670760558] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.702555618] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.734447228] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.766711058] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.798912729] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.832062820] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.863706229] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.895280653] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.928358405] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.960105642] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893964.990411902] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.023654445] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.054798518] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.086747195] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.118719431] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.150789790] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.182562381] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.214521318] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.246442740] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.278670142] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.310716674] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.342740673] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.375566838] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.407710877] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.438945990] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.471028762] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.502316631] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.534450888] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.566497774] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.599065502] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.630788002] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.663075985] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.694525471] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.727714116] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.758836002] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.791376459] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.823875957] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.855709940] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.888470428] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.919274744] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.950895502] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893965.982622575] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.014435576] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.046479377] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.078695585] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.110834631] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.142663856] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.174713982] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.207517160] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.238997294] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.271502783] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.302881045] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.334664242] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.366671475] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.398615930] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.431316055] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.463362301] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.496328412] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.528015485] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.560492912] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.592281683] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.623085545] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.654714916] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.686544318] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.718362090] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.751064379] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.782699852] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.815970764] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.846585047] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.878751779] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.911781310] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.942891443] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893966.975974688] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.007811878] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.039707770] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.070732750] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.103886915] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.134333104] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.166584238] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.199443617] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.230501067] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.262715762] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.295421737] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.328077539] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.359998464] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.392424174] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.424054195] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.454457629] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.486425723] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.518818898] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.550805518] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.582482583] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.614516347] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.646731902] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.679258282] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.713214413] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.742920034] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.775886992] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.807781169] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.839903522] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.872818534] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.903748137] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.935741022] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.966605431] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893967.998814993] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.031910412] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.062920784] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.094892957] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.127737076] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.160111456] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.191547860] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.223919268] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.255561870] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.288283478] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.319089294] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.351008293] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.382758648] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.414504510] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.447718183] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.478935458] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.511229045] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.544455461] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.576056572] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.608405491] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.640086587] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.671719969] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.702678056] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.735412458] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.766588804] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.799347093] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.831697699] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.863578033] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.895627353] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.928209848] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.960384781] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893968.990676192] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.022819218] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.055558501] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.087219540] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.118801013] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.151021131] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.182735130] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.215652701] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.247511987] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.280005082] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.312191186] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.344396604] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.376829278] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.406399502] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.438649359] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.471211105] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.503071120] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.534679722] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.567467131] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.599284670] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.631644416] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.662863506] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.695595846] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.727771878] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.759577850] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.791779972] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.822503542] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.855088194] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.886762955] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.918417688] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.951416268] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893969.983340943] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.015656809] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.047380504] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.079759159] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.112350390] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.144421897] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.176751805] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.207572699] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.239118334] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.270710536] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.302851712] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.334633403] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.366834898] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.399049958] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.432496475] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.462738599] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.495446290] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.528289439] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.560347143] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.591525973] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.622956057] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.654889842] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.686924745] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.718438148] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.750472286] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.783072985] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.815006290] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.849511057] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.879312619] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.911842245] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.944189282] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893970.951542170] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893974.383646642] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893974.399286136] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893974.430984691] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.429, 0.300, 0.126)[0m
+[0m[INFO] [1763893974.463749829] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.423, 0.300, 0.107)[0m
+[0m[INFO] [1763893974.494885015] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.417, 0.300, 0.089)[0m
+[0m[INFO] [1763893974.528295527] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.412, 0.300, 0.074)[0m
+[0m[INFO] [1763893974.559797598] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.408, 0.300, 0.063)[0m
+[0m[INFO] [1763893974.592059325] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.403, 0.300, 0.048)[0m
+[0m[INFO] [1763893974.623787519] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.400, 0.300, 0.037)[0m
+[0m[INFO] [1763893974.655544881] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.395, 0.300, 0.022)[0m
+[0m[INFO] [1763893974.687418236] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.388, 0.300, 0.001)[0m
+[0m[INFO] [1763893974.718918988] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.383, 0.300, -0.014)[0m
+[0m[INFO] [1763893974.751231214] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.378, 0.300, -0.028)[0m
+[0m[INFO] [1763893974.783864097] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.374, 0.300, -0.039)[0m
+[0m[INFO] [1763893974.815482195] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.370, 0.300, -0.053)[0m
+[0m[INFO] [1763893974.846596505] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.363, 0.300, -0.072)[0m
+[0m[INFO] [1763893974.878924344] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.357, 0.300, -0.090)[0m
+[0m[INFO] [1763893974.911881668] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.352, 0.300, -0.105)[0m
+[0m[INFO] [1763893974.942987179] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.346, 0.300, -0.125)[0m
+[0m[INFO] [1763893974.976961078] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.340, 0.300, -0.142)[0m
+[0m[INFO] [1763893975.008041844] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.334, 0.300, -0.161)[0m
+[0m[INFO] [1763893975.039231171] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.189)[0m
+[0m[INFO] [1763893975.071314352] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.316, 0.300, -0.215)[0m
+[0m[INFO] [1763893975.103208700] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.308, 0.300, -0.239)[0m
+[0m[INFO] [1763893975.135325021] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.299, 0.300, -0.264)[0m
+[0m[INFO] [1763893975.166665861] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.279)[0m
+[0m[INFO] [1763893975.198965757] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.279)[0m
+[0m[INFO] [1763893975.231864560] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.279)[0m
+[0m[INFO] [1763893975.263192532] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.279)[0m
+[0m[INFO] [1763893975.295569484] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.318, 0.300, -0.208)[0m
+[0m[INFO] [1763893975.327648849] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.360, 0.300, -0.083)[0m
+[0m[INFO] [1763893975.360150251] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.391, 0.300, 0.011)[0m
+[0m[INFO] [1763893975.391996132] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.415, 0.300, 0.083)[0m
+[0m[INFO] [1763893975.423302458] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.429, 0.300, 0.124)[0m
+[0m[INFO] [1763893975.455351801] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.439, 0.300, 0.155)[0m
+[0m[INFO] [1763893975.487510109] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.447, 0.300, 0.179)[0m
+[0m[INFO] [1763893975.519488909] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.454, 0.300, 0.199)[0m
+[0m[INFO] [1763893975.550670240] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.458, 0.300, 0.212)[0m
+[0m[INFO] [1763893975.583955964] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.463, 0.300, 0.226)[0m
+[0m[INFO] [1763893975.614642777] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.465, 0.300, 0.234)[0m
+[0m[INFO] [1763893975.647560226] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.466, 0.300, 0.238)[0m
+[0m[INFO] [1763893975.679518862] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.468, 0.300, 0.243)[0m
+[0m[INFO] [1763893975.711963035] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.471, 0.300, 0.252)[0m
+[0m[INFO] [1763893975.744573079] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.474, 0.300, 0.262)[0m
+[0m[INFO] [1763893975.775502506] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.477, 0.300, 0.270)[0m
+[0m[INFO] [1763893975.807519833] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.479, 0.300, 0.276)[0m
+[0m[INFO] [1763893975.839237500] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.482, 0.300, 0.285)[0m
+[0m[INFO] [1763893975.871227702] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.485, 0.300, 0.294)[0m
+[0m[INFO] [1763893975.903340829] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.489, 0.300, 0.306)[0m
+[0m[INFO] [1763893975.935608291] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.494, 0.300, 0.320)[0m
+[0m[INFO] [1763893975.967110785] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.498, 0.300, 0.332)[0m
+[0m[INFO] [1763893975.999862142] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.501, 0.300, 0.343)[0m
+[0m[INFO] [1763893976.032017116] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.505, 0.300, 0.353)[0m
+[0m[INFO] [1763893976.063188435] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.508, 0.300, 0.362)[0m
+[0m[INFO] [1763893976.096437233] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.511, 0.300, 0.370)[0m
+[0m[INFO] [1763893976.128137135] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.515, 0.300, 0.382)[0m
+[0m[INFO] [1763893976.160892223] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.517, 0.300, 0.390)[0m
+[0m[INFO] [1763893976.191742310] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.519, 0.300, 0.395)[0m
+[0m[INFO] [1763893976.223697698] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.519, 0.300, 0.397)[0m
+[0m[INFO] [1763893976.255573351] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.519, 0.300, 0.397)[0m
+[0m[INFO] [1763893976.287268238] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.519, 0.300, 0.397)[0m
+[0m[INFO] [1763893976.318514496] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.519, 0.300, 0.397)[0m
+[0m[INFO] [1763893976.350880524] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.517, 0.300, 0.390)[0m
+[0m[INFO] [1763893976.383312281] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.488, 0.300, 0.304)[0m
+[0m[INFO] [1763893976.415405707] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.454, 0.300, 0.202)[0m
+[0m[INFO] [1763893976.446842576] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.419, 0.300, 0.096)[0m
+[0m[INFO] [1763893976.479356977] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.393, 0.300, 0.017)[0m
+[0m[INFO] [1763893976.511647854] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.375, 0.300, -0.037)[0m
+[0m[INFO] [1763893976.543910863] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.362, 0.300, -0.076)[0m
+[0m[INFO] [1763893976.576466356] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.351, 0.300, -0.111)[0m
+[0m[INFO] [1763893976.607179068] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.341, 0.300, -0.140)[0m
+[0m[INFO] [1763893976.639231594] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.335, 0.300, -0.157)[0m
+[0m[INFO] [1763893976.671478517] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.330, 0.300, -0.171)[0m
+[0m[INFO] [1763893976.702421406] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.189)[0m
+[0m[INFO] [1763893976.735407614] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.320, 0.300, -0.202)[0m
+[0m[INFO] [1763893976.766866062] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.314, 0.300, -0.219)[0m
+[0m[INFO] [1763893976.798385986] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.308, 0.300, -0.237)[0m
+[0m[INFO] [1763893976.831374125] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.304, 0.300, -0.249)[0m
+[0m[INFO] [1763893976.863061662] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.301, 0.300, -0.260)[0m
+[0m[INFO] [1763893976.895022859] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.299, 0.300, -0.267)[0m
+[0m[INFO] [1763893976.927745083] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.277)[0m
+[0m[INFO] [1763893976.959753940] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.291, 0.300, -0.290)[0m
+[0m[INFO] [1763893976.991482225] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.284, 0.300, -0.309)[0m
+[0m[INFO] [1763893977.023226692] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.275, 0.300, -0.337)[0m
+[0m[INFO] [1763893977.055710648] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.252, 0.300, -0.406)[0m
+[0m[INFO] [1763893977.087277910] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.227, 0.300, -0.481)[0m
+[0m[INFO] [1763893977.118577205] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.211, 0.300, -0.531)[0m
+[0m[INFO] [1763893977.150819250] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.205, 0.300, -0.549)[0m
+[0m[INFO] [1763893977.182696826] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.199, 0.300, -0.565)[0m
+[0m[INFO] [1763893977.214631304] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.195, 0.300, -0.577)[0m
+[0m[INFO] [1763893977.246697780] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.191, 0.300, -0.591)[0m
+[0m[INFO] [1763893977.279563944] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.185, 0.300, -0.607)[0m
+[0m[INFO] [1763893977.311546442] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.185, 0.300, -0.607)[0m
+[0m[INFO] [1763893977.343929736] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.185, 0.300, -0.607)[0m
+[0m[INFO] [1763893977.374612800] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.185, 0.300, -0.607)[0m
+[0m[INFO] [1763893977.406987427] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.185, 0.300, -0.607)[0m
+[0m[INFO] [1763893977.439427682] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.210, 0.300, -0.533)[0m
+[0m[INFO] [1763893977.471350178] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.268, 0.300, -0.357)[0m
+[0m[INFO] [1763893977.503129837] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.319, 0.300, -0.204)[0m
+[0m[INFO] [1763893977.535402084] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.351, 0.300, -0.108)[0m
+[0m[INFO] [1763893977.567412455] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.373, 0.300, -0.044)[0m
+[0m[INFO] [1763893977.599670227] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.388, 0.300, 0.001)[0m
+[0m[INFO] [1763893977.630704127] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.399, 0.300, 0.036)[0m
+[0m[INFO] [1763893977.662649046] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.410, 0.300, 0.069)[0m
+[0m[INFO] [1763893977.694903998] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.421, 0.300, 0.101)[0m
+[0m[INFO] [1763893977.727723282] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.430, 0.300, 0.127)[0m
+[0m[INFO] [1763893977.759287364] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.440, 0.300, 0.158)[0m
+[0m[INFO] [1763893977.791812116] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.449, 0.300, 0.184)[0m
+[0m[INFO] [1763893977.823756966] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.454, 0.300, 0.200)[0m
+[0m[INFO] [1763893977.854823072] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.455, 0.300, 0.204)[0m
+[0m[INFO] [1763893977.886835320] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.456, 0.300, 0.205)[0m
+[0m[INFO] [1763893977.919000772] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.456, 0.300, 0.205)[0m
+[0m[INFO] [1763893977.950986346] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.449, 0.300, 0.184)[0m
+[0m[INFO] [1763893977.983551919] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.135)[0m
+[0m[INFO] [1763893978.015661022] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.419, 0.300, 0.096)[0m
+[0m[INFO] [1763893978.047623376] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.092)[0m
+[0m[INFO] [1763893978.078810315] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.092)[0m
+[0m[INFO] [1763893978.110460032] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.092)[0m
+[0m[INFO] [1763893983.155175850] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.092)[0m
+[0m[INFO] [1763893983.167263844] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.093)[0m
+[0m[INFO] [1763893983.199255889] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.093)[0m
+[0m[INFO] [1763893983.231334774] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.418, 0.300, 0.093)[0m
+[0m[INFO] [1763893983.262918344] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.417, 0.300, 0.089)[0m
+[0m[INFO] [1763893983.295756077] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.410, 0.300, 0.068)[0m
+[0m[INFO] [1763893983.328339748] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.403, 0.300, 0.046)[0m
+[0m[INFO] [1763893983.360901239] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.395, 0.300, 0.024)[0m
+[0m[INFO] [1763893983.392089070] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.391, 0.300, 0.011)[0m
+[0m[INFO] [1763893983.423455391] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.388, 0.300, 0.003)[0m
+[0m[INFO] [1763893983.455263921] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.384, 0.300, -0.009)[0m
+[0m[INFO] [1763893983.486766086] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.379, 0.300, -0.026)[0m
+[0m[INFO] [1763893983.519532273] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.373, 0.300, -0.045)[0m
+[0m[INFO] [1763893983.551054786] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.366, 0.300, -0.065)[0m
+[0m[INFO] [1763893983.582896731] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.362, 0.300, -0.077)[0m
+[0m[INFO] [1763893983.615628347] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.356, 0.300, -0.094)[0m
+[0m[INFO] [1763893983.647297717] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.353, 0.300, -0.105)[0m
+[0m[INFO] [1763893983.679455038] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.350, 0.300, -0.111)[0m
+[0m[INFO] [1763893983.711682342] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.350, 0.300, -0.111)[0m
+[0m[INFO] [1763893983.743806650] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.350, 0.300, -0.111)[0m
+[0m[INFO] [1763893983.775739194] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.349, 0.300, -0.116)[0m
+[0m[INFO] [1763893983.807189590] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.347, 0.300, -0.121)[0m
+[0m[INFO] [1763893983.839354658] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.346, 0.300, -0.124)[0m
+[0m[INFO] [1763893983.870710021] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.345, 0.300, -0.127)[0m
+[0m[INFO] [1763893983.902978640] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.345, 0.300, -0.127)[0m
+[0m[INFO] [1763893983.934573431] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.356, 0.300, -0.096)[0m
+[0m[INFO] [1763893983.966495508] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.381, 0.300, -0.020)[0m
+[0m[INFO] [1763893983.999320779] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.396, 0.300, 0.025)[0m
+[0m[INFO] [1763893984.030517781] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.400, 0.300, 0.038)[0m
+[0m[INFO] [1763893984.063355439] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.402, 0.300, 0.044)[0m
+[0m[INFO] [1763893984.095846442] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.405, 0.300, 0.054)[0m
+[0m[INFO] [1763893984.127743953] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.411, 0.300, 0.071)[0m
+[0m[INFO] [1763893984.159249060] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.419, 0.300, 0.095)[0m
+[0m[INFO] [1763893984.191986004] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893984.223642585] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.446, 0.300, 0.177)[0m
+[0m[INFO] [1763893984.254896951] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.455, 0.300, 0.202)[0m
+[0m[INFO] [1763893984.287537560] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.461, 0.300, 0.221)[0m
+[0m[INFO] [1763893984.319754674] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.465, 0.300, 0.233)[0m
+[0m[INFO] [1763893984.350663328] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.469, 0.300, 0.245)[0m
+[0m[INFO] [1763893984.383747100] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.473, 0.300, 0.256)[0m
+[0m[INFO] [1763893984.414696110] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.477, 0.300, 0.269)[0m
+[0m[INFO] [1763893984.448037775] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.483, 0.300, 0.287)[0m
+[0m[INFO] [1763893984.480022311] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.487, 0.300, 0.298)[0m
+[0m[INFO] [1763893984.512240106] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.491, 0.300, 0.311)[0m
+[0m[INFO] [1763893984.544531596] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.494, 0.300, 0.322)[0m
+[0m[INFO] [1763893984.575794401] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.495, 0.300, 0.324)[0m
+[0m[INFO] [1763893984.607829363] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.496, 0.300, 0.328)[0m
+[0m[INFO] [1763893984.639107769] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.496, 0.300, 0.328)[0m
+[0m[INFO] [1763893984.670769933] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.496, 0.300, 0.328)[0m
+[0m[INFO] [1763893984.703531549] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.494, 0.300, 0.321)[0m
+[0m[INFO] [1763893984.735455946] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.482, 0.300, 0.286)[0m
+[0m[INFO] [1763893984.766722962] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.467, 0.300, 0.240)[0m
+[0m[INFO] [1763893984.799750042] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.450, 0.300, 0.189)[0m
+[0m[INFO] [1763893984.831070341] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.442, 0.300, 0.165)[0m
+[0m[INFO] [1763893984.863826653] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.437, 0.300, 0.150)[0m
+[0m[INFO] [1763893984.895737873] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.434, 0.300, 0.141)[0m
+[0m[INFO] [1763893984.928175737] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893984.959631101] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893984.990617563] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.022370444] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.054815008] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.086661097] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.119360779] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.150781120] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.183421343] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.433, 0.300, 0.137)[0m
+[0m[INFO] [1763893985.215728782] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.432, 0.300, 0.134)[0m
+[0m[INFO] [1763893985.247647409] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.426, 0.300, 0.115)[0m
+[0m[INFO] [1763893985.279650444] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.417, 0.300, 0.089)[0m
+[0m[INFO] [1763893985.312034197] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.408, 0.300, 0.063)[0m
+[0m[INFO] [1763893985.343327343] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.401, 0.300, 0.040)[0m
+[0m[INFO] [1763893985.375350709] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.394, 0.300, 0.021)[0m
+[0m[INFO] [1763893985.407766260] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.389, 0.300, 0.004)[0m
+[0m[INFO] [1763893985.439822807] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.384, 0.300, -0.009)[0m
+[0m[INFO] [1763893985.472131918] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.380, 0.300, -0.022)[0m
+[0m[INFO] [1763893985.503918769] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.375, 0.300, -0.038)[0m
+[0m[INFO] [1763893985.535716594] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.370, 0.300, -0.051)[0m
+[0m[INFO] [1763893985.567930415] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.366, 0.300, -0.064)[0m
+[0m[INFO] [1763893985.598887614] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.360, 0.300, -0.083)[0m
+[0m[INFO] [1763893985.631694977] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.355, 0.300, -0.099)[0m
+[0m[INFO] [1763893985.662803235] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.349, 0.300, -0.115)[0m
+[0m[INFO] [1763893985.696215559] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.345, 0.300, -0.127)[0m
+[0m[INFO] [1763893985.727586487] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.340, 0.300, -0.142)[0m
+[0m[INFO] [1763893985.760312726] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.335, 0.300, -0.157)[0m
+[0m[INFO] [1763893985.792133811] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.331, 0.300, -0.171)[0m
+[0m[INFO] [1763893985.823303863] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.324, 0.300, -0.192)[0m
+[0m[INFO] [1763893985.855404140] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.318, 0.300, -0.208)[0m
+[0m[INFO] [1763893985.887272597] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.313, 0.300, -0.222)[0m
+[0m[INFO] [1763893985.920451239] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.307, 0.300, -0.242)[0m
+[0m[INFO] [1763893985.951282938] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.300, 0.300, -0.262)[0m
+[0m[INFO] [1763893985.983080603] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.295, 0.300, -0.279)[0m
+[0m[INFO] [1763893986.015397683] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.287, 0.300, -0.303)[0m
+[0m[INFO] [1763893986.047272081] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.280, 0.300, -0.322)[0m
+[0m[INFO] [1763893986.079369060] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.272, 0.300, -0.347)[0m
+[0m[INFO] [1763893986.111962362] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.263, 0.300, -0.375)[0m
+[0m[INFO] [1763893986.144499929] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.254, 0.300, -0.401)[0m
+[0m[INFO] [1763893986.175851454] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.246, 0.300, -0.424)[0m
+[0m[INFO] [1763893986.206478909] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.241, 0.300, -0.439)[0m
+[0m[INFO] [1763893986.239521763] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.239, 0.300, -0.444)[0m
+[0m[INFO] [1763893986.270871100] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.239, 0.300, -0.444)[0m
+[0m[INFO] [1763893986.303269139] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.239, 0.300, -0.444)[0m
+[0m[INFO] [1763893986.334746800] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.243, 0.300, -0.432)[0m
+[0m[INFO] [1763893986.366685151] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.268, 0.300, -0.359)[0m
+[0m[INFO] [1763893986.398739059] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.288, 0.300, -0.298)[0m
+[0m[INFO] [1763893986.431409509] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.307, 0.300, -0.242)[0m
+[0m[INFO] [1763893986.463259844] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.315, 0.300, -0.218)[0m
+[0m[INFO] [1763893986.495623416] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.320, 0.300, -0.202)[0m
+[0m[INFO] [1763893986.527733989] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.324, 0.300, -0.190)[0m
+[0m[INFO] [1763893986.559262945] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.591927108] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.623783541] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.654787224] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.687037695] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.718667457] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.750657158] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.186)[0m
+[0m[INFO] [1763893986.783225991] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.325, 0.300, -0.188)[0m
+[0m[INFO] [1763893986.815285226] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.318, 0.300, -0.208)[0m
+[0m[INFO] [1763893986.847459716] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.308, 0.300, -0.238)[0m
+[0m[INFO] [1763893986.879722651] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.298, 0.300, -0.268)[0m
+[0m[INFO] [1763893986.911532669] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.291, 0.300, -0.289)[0m
+[0m[INFO] [1763893986.943502567] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.284, 0.300, -0.312)[0m
+[0m[INFO] [1763893986.975546474] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.279, 0.300, -0.327)[0m
+[0m[INFO] [1763893987.008082689] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.273, 0.300, -0.345)[0m
+[0m[INFO] [1763893987.039972051] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.266, 0.300, -0.365)[0m
+[0m[INFO] [1763893987.072414192] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.253, 0.300, -0.403)[0m
+[0m[INFO] [1763893987.103544533] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.251, 0.300, -0.411)[0m
+[0m[INFO] [1763893987.135423593] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.248, 0.300, -0.419)[0m
+[0m[INFO] [1763893987.167382939] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.243, 0.300, -0.432)[0m
+[0m[INFO] [1763893987.198715856] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.238, 0.300, -0.450)[0m
+[0m[INFO] [1763893987.231260055] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.234, 0.300, -0.462)[0m
+[0m[INFO] [1763893987.263351293] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.230, 0.300, -0.472)[0m
+[0m[INFO] [1763893987.295357189] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.227, 0.300, -0.483)[0m
+[0m[INFO] [1763893987.327545481] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.224, 0.300, -0.490)[0m
+[0m[INFO] [1763893987.359208800] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.222, 0.300, -0.497)[0m
+[0m[INFO] [1763893987.393486737] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.217, 0.300, -0.513)[0m
+[0m[INFO] [1763893987.425401309] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.211, 0.300, -0.529)[0m
+[0m[INFO] [1763893987.455442567] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.205, 0.300, -0.548)[0m
+[0m[INFO] [1763893987.488082126] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, -0.558)[0m
+[0m[INFO] [1763893987.518762514] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.199, 0.300, -0.567)[0m
+[0m[INFO] [1763893987.551527218] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.193, 0.300, -0.583)[0m
+[0m[INFO] [1763893987.583015273] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.189, 0.300, -0.598)[0m
+[0m[INFO] [1763893987.615782870] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.184, 0.300, -0.611)[0m
+[0m[INFO] [1763893987.647398465] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.180, 0.300, -0.623)[0m
+[0m[INFO] [1763893987.679614411] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.177, 0.300, -0.634)[0m
+[0m[INFO] [1763893987.711540486] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.171, 0.300, -0.649)[0m
+[0m[INFO] [1763893987.744184134] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.167, 0.300, -0.661)[0m
+[0m[INFO] [1763893987.776008052] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.163, 0.300, -0.676)[0m
+[0m[INFO] [1763893987.808633496] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.155, 0.300, -0.699)[0m
+[0m[INFO] [1763893987.840062786] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.149, 0.300, -0.715)[0m
+[0m[INFO] [1763893987.872485019] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.146, 0.300, -0.726)[0m
+[0m[INFO] [1763893987.903151033] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.139, 0.300, -0.746)[0m
+[0m[INFO] [1763893987.935591623] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.134, 0.300, -0.761)[0m
+[0m[INFO] [1763893987.966534909] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.128, 0.300, -0.781)[0m
+[0m[INFO] [1763893987.999582138] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.122, 0.300, -0.797)[0m
+[0m[INFO] [1763893988.031999453] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, -0.817)[0m
+[0m[INFO] [1763893988.063710154] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.109, 0.300, -0.837)[0m
+[0m[INFO] [1763893988.095899960] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.105, 0.300, -0.850)[0m
+[0m[INFO] [1763893988.128390165] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.105, 0.300, -0.850)[0m
+[0m[INFO] [1763893988.160207520] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.105, 0.300, -0.850)[0m
+[0m[INFO] [1763893988.191756404] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.112, 0.300, -0.826)[0m
+[0m[INFO] [1763893988.223530456] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.165, 0.300, -0.667)[0m
+[0m[INFO] [1763893988.254676801] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.220, 0.300, -0.503)[0m
+[0m[INFO] [1763893988.287696964] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.252, 0.300, -0.408)[0m
+[0m[INFO] [1763893988.319335672] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.279, 0.300, -0.327)[0m
+[0m[INFO] [1763893988.350881271] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.298, 0.300, -0.270)[0m
+[0m[INFO] [1763893988.382865230] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.309, 0.300, -0.235)[0m
+[0m[INFO] [1763893988.415378154] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.324, 0.300, -0.192)[0m
+[0m[INFO] [1763893988.448089787] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.333, 0.300, -0.163)[0m
+[0m[INFO] [1763893988.479497196] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.342, 0.300, -0.136)[0m
+[0m[INFO] [1763893988.512170574] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.347, 0.300, -0.121)[0m
+[0m[INFO] [1763893988.544360217] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.354, 0.300, -0.101)[0m
+[0m[INFO] [1763893988.575925751] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.363, 0.300, -0.074)[0m
+[0m[INFO] [1763893988.606807048] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.370, 0.300, -0.053)[0m
+[0m[INFO] [1763893988.639098584] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.376, 0.300, -0.036)[0m
+[0m[INFO] [1763893988.671080557] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.380, 0.300, -0.022)[0m
+[0m[INFO] [1763893988.703095411] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.386, 0.300, -0.005)[0m
+[0m[INFO] [1763893988.734882984] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.396, 0.300, 0.025)[0m
+[0m[INFO] [1763893988.767121657] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.403, 0.300, 0.046)[0m
+[0m[INFO] [1763893988.798589266] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.407, 0.300, 0.060)[0m
+[0m[INFO] [1763893988.832308834] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.411, 0.300, 0.072)[0m
+[0m[INFO] [1763893988.862783999] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.413, 0.300, 0.077)[0m
+[0m[INFO] [1763893988.895677933] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.080)[0m
+[0m[INFO] [1763893988.927590640] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893988.960024656] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893988.991993411] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893989.022663358] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893989.055561588] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893989.086798984] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.414, 0.300, 0.081)[0m
+[0m[INFO] [1763893989.119340958] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.411, 0.300, 0.071)[0m
+[0m[INFO] [1763893989.150866455] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.406, 0.300, 0.057)[0m
+[0m[INFO] [1763893989.183842028] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.406, 0.300, 0.055)[0m
+[0m[INFO] [1763893989.215543120] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.406, 0.300, 0.055)[0m
+[0m[INFO] [1763893989.226535004] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.406, 0.300, 0.055)[0m
+[0m[INFO] [1763893990.761910516] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.406, 0.300, 0.055)[0m
+[0m[INFO] [1763893990.783386486] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.408, 0.300, 0.055)[0m
+[0m[INFO] [1763893990.815356957] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.428, 0.300, 0.048)[0m
+[0m[INFO] [1763893990.847488593] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.463, 0.300, 0.037)[0m
+[0m[INFO] [1763893990.878598815] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.504, 0.300, 0.023)[0m
+[0m[INFO] [1763893990.911673098] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.534, 0.300, 0.013)[0m
+[0m[INFO] [1763893990.943866265] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.551, 0.300, 0.007)[0m
+[0m[INFO] [1763893990.975879886] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.562, 0.300, 0.004)[0m
+[0m[INFO] [1763893991.007598887] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.573, 0.300, -0.000)[0m
+[0m[INFO] [1763893991.039402991] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.579, 0.300, -0.002)[0m
+[0m[INFO] [1763893991.071137040] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.591, 0.300, -0.006)[0m
+[0m[INFO] [1763893991.103503302] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.601, 0.300, -0.010)[0m
+[0m[INFO] [1763893991.135134786] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.610, 0.300, -0.013)[0m
+[0m[INFO] [1763893991.167186047] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.616, 0.300, -0.014)[0m
+[0m[INFO] [1763893991.199596040] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.620, 0.300, -0.016)[0m
+[0m[INFO] [1763893991.231821509] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.627, 0.300, -0.018)[0m
+[0m[INFO] [1763893991.263179389] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.630, 0.300, -0.019)[0m
+[0m[INFO] [1763893991.295310045] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.632, 0.300, -0.020)[0m
+[0m[INFO] [1763893991.328506177] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.639, 0.300, -0.022)[0m
+[0m[INFO] [1763893991.360094802] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.646, 0.300, -0.024)[0m
+[0m[INFO] [1763893991.391614563] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.651, 0.300, -0.026)[0m
+[0m[INFO] [1763893991.422989154] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.651, 0.300, -0.026)[0m
+[0m[INFO] [1763893991.454964266] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.652, 0.300, -0.026)[0m
+[0m[INFO] [1763893991.487364633] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.652, 0.300, -0.026)[0m
+[0m[INFO] [1763893991.519110052] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.652, 0.300, -0.026)[0m
+[0m[INFO] [1763893991.551292791] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.639, 0.300, -0.022)[0m
+[0m[INFO] [1763893991.583289990] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.598, 0.300, -0.008)[0m
+[0m[INFO] [1763893991.615781483] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.558, 0.300, 0.005)[0m
+[0m[INFO] [1763893991.647573937] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.518, 0.300, 0.018)[0m
+[0m[INFO] [1763893991.679645765] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.488, 0.300, 0.028)[0m
+[0m[INFO] [1763893991.712063487] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.474, 0.300, 0.033)[0m
+[0m[INFO] [1763893991.743503947] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.467, 0.300, 0.035)[0m
+[0m[INFO] [1763893991.776092752] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.453, 0.300, 0.040)[0m
+[0m[INFO] [1763893991.807381858] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.441, 0.300, 0.044)[0m
+[0m[INFO] [1763893991.839449125] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.426, 0.300, 0.049)[0m
+[0m[INFO] [1763893991.871624897] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.410, 0.300, 0.054)[0m
+[0m[INFO] [1763893991.903293323] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.395, 0.300, 0.059)[0m
+[0m[INFO] [1763893991.936639532] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.377, 0.300, 0.065)[0m
+[0m[INFO] [1763893991.967421268] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.356, 0.300, 0.072)[0m
+[0m[INFO] [1763893991.999451225] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.331, 0.300, 0.080)[0m
+[0m[INFO] [1763893992.031243742] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.301, 0.300, 0.090)[0m
+[0m[INFO] [1763893992.063525624] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.277, 0.300, 0.098)[0m
+[0m[INFO] [1763893992.095562040] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.255, 0.300, 0.106)[0m
+[0m[INFO] [1763893992.128391577] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.237, 0.300, 0.112)[0m
+[0m[INFO] [1763893992.159810750] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.219, 0.300, 0.118)[0m
+[0m[INFO] [1763893992.191668331] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.195, 0.300, 0.126)[0m
+[0m[INFO] [1763893992.223111003] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.170, 0.300, 0.134)[0m
+[0m[INFO] [1763893992.255383722] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.151, 0.300, 0.140)[0m
+[0m[INFO] [1763893992.287167559] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.137, 0.300, 0.145)[0m
+[0m[INFO] [1763893992.319314734] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.127, 0.300, 0.148)[0m
+[0m[INFO] [1763893992.351544917] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.111, 0.300, 0.154)[0m
+[0m[INFO] [1763893992.383510448] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.102, 0.300, 0.157)[0m
+[0m[INFO] [1763893992.415507719] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.096, 0.300, 0.159)[0m
+[0m[INFO] [1763893992.447392607] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.089, 0.300, 0.161)[0m
+[0m[INFO] [1763893992.479782831] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.083, 0.300, 0.163)[0m
+[0m[INFO] [1763893992.511121068] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.068, 0.300, 0.168)[0m
+[0m[INFO] [1763893992.543829242] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.056, 0.300, 0.172)[0m
+[0m[INFO] [1763893992.574871883] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.049, 0.300, 0.174)[0m
+[0m[INFO] [1763893992.607787122] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.037, 0.300, 0.178)[0m
+[0m[INFO] [1763893992.639079437] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.037, 0.300, 0.178)[0m
+[0m[INFO] [1763893992.671064438] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.035, 0.300, 0.179)[0m
+[0m[INFO] [1763893992.703155821] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.035, 0.300, 0.179)[0m
+[0m[INFO] [1763893992.734836645] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.035, 0.300, 0.179)[0m
+[0m[INFO] [1763893992.767398004] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.033, 0.300, 0.180)[0m
+[0m[INFO] [1763893992.799302491] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.027, 0.300, 0.182)[0m
+[0m[INFO] [1763893992.831576541] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.024, 0.300, 0.182)[0m
+[0m[INFO] [1763893992.864423503] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.024, 0.300, 0.182)[0m
+[0m[INFO] [1763893992.895994131] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.024, 0.300, 0.182)[0m
+[0m[INFO] [1763893992.928099059] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.030, 0.300, 0.180)[0m
+[0m[INFO] [1763893992.960276571] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.077, 0.300, 0.165)[0m
+[0m[INFO] [1763893992.991342868] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.119, 0.300, 0.151)[0m
+[0m[INFO] [1763893993.023338419] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.147, 0.300, 0.142)[0m
+[0m[INFO] [1763893993.054854737] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.158, 0.300, 0.138)[0m
+[0m[INFO] [1763893993.087383551] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.170, 0.300, 0.134)[0m
+[0m[INFO] [1763893993.119401615] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.178, 0.300, 0.131)[0m
+[0m[INFO] [1763893993.150908025] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.183, 0.300, 0.129)[0m
+[0m[INFO] [1763893993.183080542] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.187, 0.300, 0.128)[0m
+[0m[INFO] [1763893993.215481806] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.189, 0.300, 0.128)[0m
+[0m[INFO] [1763893993.247579057] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.199, 0.300, 0.124)[0m
+[0m[INFO] [1763893993.278872274] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, 0.123)[0m
+[0m[INFO] [1763893993.311454290] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, 0.123)[0m
+[0m[INFO] [1763893993.344391595] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, 0.123)[0m
+[0m[INFO] [1763893993.375581497] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, 0.123)[0m
+[0m[INFO] [1763893993.407742985] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.202, 0.300, 0.123)[0m
+[0m[INFO] [1763893993.439169165] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.200, 0.300, 0.124)[0m
+[0m[INFO] [1763893993.470472332] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.191, 0.300, 0.127)[0m
+[0m[INFO] [1763893993.503251388] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.187, 0.300, 0.128)[0m
+[0m[INFO] [1763893993.534676623] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.183, 0.300, 0.129)[0m
+[0m[INFO] [1763893993.567316144] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.176, 0.300, 0.132)[0m
+[0m[INFO] [1763893993.599461435] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.168, 0.300, 0.135)[0m
+[0m[INFO] [1763893993.631879361] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.161, 0.300, 0.137)[0m
+[0m[INFO] [1763893993.662570667] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.152, 0.300, 0.140)[0m
+[0m[INFO] [1763893993.695591211] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.143, 0.300, 0.143)[0m
+[0m[INFO] [1763893993.727743354] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.139, 0.300, 0.144)[0m
+[0m[INFO] [1763893993.759924014] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.139, 0.300, 0.144)[0m
+[0m[INFO] [1763893993.791730853] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.137, 0.300, 0.145)[0m
+[0m[INFO] [1763893993.823958517] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.133, 0.300, 0.146)[0m
+[0m[INFO] [1763893993.854974048] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763893993.887144750] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763893993.919198398] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763893993.951517946] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763893993.965877780] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.464522711] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.479385006] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.512095182] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.544341488] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.132, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.575767346] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.130, 0.300, 0.147)[0m
+[0m[INFO] [1763894008.606722932] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.118, 0.300, 0.151)[0m
+[0m[INFO] [1763894008.638927764] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.094, 0.300, 0.159)[0m
+[0m[INFO] [1763894008.671509264] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.075, 0.300, 0.166)[0m
+[0m[INFO] [1763894008.702984932] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.068, 0.300, 0.168)[0m
+[0m[INFO] [1763894008.735565619] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.068, 0.300, 0.168)[0m
+[0m[INFO] [1763894008.767034354] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.065, 0.300, 0.169)[0m
+[0m[INFO] [1763894008.799313474] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.065, 0.300, 0.169)[0m
+[0m[INFO] [1763894008.831200434] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.065, 0.300, 0.169)[0m
+[0m[INFO] [1763894008.863171815] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.062, 0.300, 0.170)[0m
+[0m[INFO] [1763894008.895610983] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.057, 0.300, 0.172)[0m
+[0m[INFO] [1763894008.927907057] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.057, 0.300, 0.172)[0m
+[0m[INFO] [1763894008.960359149] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.057, 0.300, 0.172)[0m
+[0m[INFO] [1763894008.992169874] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.057, 0.300, 0.172)[0m
+[0m[INFO] [1763894009.023626743] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.057, 0.300, 0.172)[0m
+[0m[INFO] [1763894009.055594540] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.063, 0.300, 0.170)[0m
+[0m[INFO] [1763894009.087323425] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.084, 0.300, 0.163)[0m
+[0m[INFO] [1763894009.119134088] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.105, 0.300, 0.155)[0m
+[0m[INFO] [1763894009.151289047] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.183189136] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.215514212] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.246501803] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.279350838] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.311525095] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.343751264] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.375032524] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894009.390744026] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894010.338474031] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894010.339793668] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.298, 0.152)[0m
+[0m[INFO] [1763894010.366794585] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.298, 0.152)[0m
+[0m[INFO] [1763894010.399123169] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.292, 0.152)[0m
+[0m[INFO] [1763894010.431114601] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.281, 0.152)[0m
+[0m[INFO] [1763894010.463055968] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.274, 0.152)[0m
+[0m[INFO] [1763894010.494713366] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.266, 0.152)[0m
+[0m[INFO] [1763894010.527834348] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.261, 0.152)[0m
+[0m[INFO] [1763894010.560278778] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.259, 0.152)[0m
+[0m[INFO] [1763894010.591476344] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.256, 0.152)[0m
+[0m[INFO] [1763894010.622734937] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.253, 0.152)[0m
+[0m[INFO] [1763894010.655209979] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.246, 0.152)[0m
+[0m[INFO] [1763894010.686905743] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.241, 0.152)[0m
+[0m[INFO] [1763894010.718800722] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.230, 0.152)[0m
+[0m[INFO] [1763894010.750826786] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.223, 0.152)[0m
+[0m[INFO] [1763894010.782855309] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.211, 0.152)[0m
+[0m[INFO] [1763894010.814799253] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.198, 0.152)[0m
+[0m[INFO] [1763894010.847211534] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.178, 0.152)[0m
+[0m[INFO] [1763894010.879011399] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.171, 0.152)[0m
+[0m[INFO] [1763894010.911420391] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.159, 0.152)[0m
+[0m[INFO] [1763894010.942842016] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.151, 0.152)[0m
+[0m[INFO] [1763894010.975758023] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.134, 0.152)[0m
+[0m[INFO] [1763894011.007715160] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.129, 0.152)[0m
+[0m[INFO] [1763894011.039960695] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.071858843] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.102829161] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.135342673] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.166545543] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.199154754] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.230444450] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.125, 0.152)[0m
+[0m[INFO] [1763894011.263369924] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.129, 0.152)[0m
+[0m[INFO] [1763894011.295269490] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.142, 0.152)[0m
+[0m[INFO] [1763894011.327624037] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.151, 0.152)[0m
+[0m[INFO] [1763894011.358863655] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.159, 0.152)[0m
+[0m[INFO] [1763894011.391090080] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.159, 0.152)[0m
+[0m[INFO] [1763894011.423604683] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.161, 0.152)[0m
+[0m[INFO] [1763894011.454924815] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.168, 0.152)[0m
+[0m[INFO] [1763894011.486956169] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.178, 0.152)[0m
+[0m[INFO] [1763894011.518981165] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.183, 0.152)[0m
+[0m[INFO] [1763894011.551145794] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.188, 0.152)[0m
+[0m[INFO] [1763894011.582838224] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.188, 0.152)[0m
+[0m[INFO] [1763894011.615427280] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.191, 0.152)[0m
+[0m[INFO] [1763894011.646996119] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.193, 0.152)[0m
+[0m[INFO] [1763894011.678412278] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.193, 0.152)[0m
+[0m[INFO] [1763894011.711022060] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.202, 0.152)[0m
+[0m[INFO] [1763894011.743147403] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.212, 0.152)[0m
+[0m[INFO] [1763894011.775957156] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.221, 0.152)[0m
+[0m[INFO] [1763894011.807283803] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.234, 0.152)[0m
+[0m[INFO] [1763894011.839521350] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.248, 0.152)[0m
+[0m[INFO] [1763894011.872754240] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.256, 0.152)[0m
+[0m[INFO] [1763894011.903025890] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.258, 0.152)[0m
+[0m[INFO] [1763894011.934881847] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.261, 0.152)[0m
+[0m[INFO] [1763894011.966309151] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.263, 0.152)[0m
+[0m[INFO] [1763894011.999082915] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.270, 0.152)[0m
+[0m[INFO] [1763894012.031006859] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.274, 0.152)[0m
+[0m[INFO] [1763894012.063024065] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.281, 0.152)[0m
+[0m[INFO] [1763894012.095161481] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.289, 0.152)[0m
+[0m[INFO] [1763894012.127363919] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.296, 0.152)[0m
+[0m[INFO] [1763894012.159581558] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.308, 0.152)[0m
+[0m[INFO] [1763894012.191695183] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.317, 0.152)[0m
+[0m[INFO] [1763894012.223313609] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.323, 0.152)[0m
+[0m[INFO] [1763894012.255691455] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.323, 0.152)[0m
+[0m[INFO] [1763894012.288039399] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.323, 0.152)[0m
+[0m[INFO] [1763894012.319842387] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.327, 0.152)[0m
+[0m[INFO] [1763894012.351060690] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.329, 0.152)[0m
+[0m[INFO] [1763894012.382779237] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.329, 0.152)[0m
+[0m[INFO] [1763894012.414949121] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.337, 0.152)[0m
+[0m[INFO] [1763894012.446842836] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.348, 0.152)[0m
+[0m[INFO] [1763894012.478967467] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.351, 0.152)[0m
+[0m[INFO] [1763894012.510562598] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.351, 0.152)[0m
+[0m[INFO] [1763894012.543379721] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.351, 0.152)[0m
+[0m[INFO] [1763894012.575472526] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.351, 0.152)[0m
+[0m[INFO] [1763894012.607421584] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.342, 0.152)[0m
+[0m[INFO] [1763894012.640248791] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.317, 0.152)[0m
+[0m[INFO] [1763894012.671397180] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.300, 0.152)[0m
+[0m[INFO] [1763894012.703220279] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.289, 0.152)[0m
+[0m[INFO] [1763894012.734906953] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.281, 0.152)[0m
+[0m[INFO] [1763894012.767361238] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.268, 0.152)[0m
+[0m[INFO] [1763894012.798815243] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.255, 0.152)[0m
+[0m[INFO] [1763894012.831472732] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.246, 0.152)[0m
+[0m[INFO] [1763894012.863429402] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.232, 0.152)[0m
+[0m[INFO] [1763894012.895548140] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.221, 0.152)[0m
+[0m[INFO] [1763894012.928531908] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.212, 0.152)[0m
+[0m[INFO] [1763894012.960217927] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.204, 0.152)[0m
+[0m[INFO] [1763894012.991794748] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.200, 0.152)[0m
+[0m[INFO] [1763894013.022790339] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.188, 0.152)[0m
+[0m[INFO] [1763894013.054761486] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.086707107] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.118630661] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.151096127] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.183565593] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.215104568] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.247024154] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.279025593] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.311487511] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.343715075] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.375819825] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.406703727] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.438924662] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.470838454] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.502681747] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.535234787] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+[0m[INFO] [1763894013.549156091] [dual_6dof_marker_publisher]: 🟩 Left target updated: pos=(0.116, 0.181, 0.152)[0m
+^CTraceback (most recent call last):
+  File "/home/marvin/ros2_ws/src/marvin_fabric/scripts/6dof_maker.py", line 102, in <module>
+    main()
+  File "/home/marvin/ros2_ws/src/marvin_fabric/scripts/6dof_maker.py", line 97, in main
+    rclpy.spin(node)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 229, in spin
+    executor.spin_once()
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 751, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 740, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(timeout_sec=timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 723, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 620, in _wait_for_ready_callbacks
+    wait_set.wait(timeout_nsec)
+KeyboardInterrupt
+
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ python3 6dof_maker.py [Kros2 topic echo /fusion_pose 
+[?2004lheader:
+  stamp:
+    sec: 1763894477
+    nanosec: 347920450
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: -0.039149466092655225
+      y: -0.07176733674474539
+      z: -0.9212626133616042
+    orientation:
+      x: -0.30431053735009983
+      y: 0.33889220955110266
+      z: 0.6403442578822857
+      w: 0.6184710167505425
+  - position:
+      x: 0.010766817370853525
+      y: -0.07150276957023322
+      z: -0.924142656660031
+    orientation:
+      x: -0.30431053735009983
+      y: 0.33889220955110266
+      z: 0.6403442578822857
+      w: 0.6184710167505425
+  - position:
+      x: 0.013255687200577891
+      y: -0.10079335895529022
+      z: -0.8836968051985192
+    orientation:
+      x: -0.30431053735009983
+      y: 0.33889220955110266
+      z: 0.6403442578822857
+      w: 0.6184710167505425
+  - position:
+      x: 0.013535155492689892
+      y: -0.19085727279242046
+      z: -0.8871265927738197
+    orientation:
+      x: -0.30431053735009983
+      y: 0.33889220955110266
+      z: 0.6403442578822857
+      w: 0.6184710167505425
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.01753762211379257
+      y: -0.07598081625803405
+      z: -0.8072031300914372
+    orientation:
+      x: -0.41734563802390623
+      y: -0.2830145468876215
+      z: -0.469232122243631
+      w: 0.7249459291058549
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.44210407509573446
+      y: -0.1082863376653108
+      z: -0.8449768933678373
+    orientation:
+      x: -0.1549861711295206
+      y: 0.20512948544368745
+      z: 0.7132264014221245
+      w: 0.6520807321755991
+  - position:
+      x: 0.44024641461941266
+      y: -0.1280757185193751
+      z: -0.8796889878446548
+    orientation:
+      x: -0.1549861711295206
+      y: 0.20512948544368745
+      z: 0.7132264014221245
+      w: 0.6520807321755991
+  - position:
+      x: 0.4212462840450748
+      y: -0.1401272530866387
+      z: -0.9093948815538226
+    orientation:
+      x: -0.1549861711295206
+      y: 0.20512948544368745
+      z: 0.7132264014221245
+      w: 0.6520807321755991
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+^C[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ cclear
+[?2004l找不到命令 “cclear”，您的意思是：
+  “cgclear” 命令来自 Debian 软件包 cgroup-tools (2.0-2)
+  “clear” 命令来自 Debian 软件包 ncurses-bin (6.3-2ubuntu0.1)
+尝试 sudo apt install <deb name>
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ clear
+[?2004l[H[2J[3J[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ clearclear
+[?2004l找不到命令 “cclear”，您的意思是：
+  “clear” 命令来自 Debian 软件包 ncurses-bin (6.3-2ubuntu0.1)
+  “cgclear” 命令来自 Debian 软件包 cgroup-tools (2.0-2)
+尝试 sudo apt install <deb name>
+[?2004h]0;marvin@marvin-NUC13L5K-B: ~/ros2_ws/src/marvin_fabric/scripts[01;32mmarvin@marvin-NUC13L5K-B[00m:[01;34m~/ros2_ws/src/marvin_fabric/scripts[00m$ cclear[1Plearclearros2 topic echo /fusion_pose 
+[?2004lheader:
+  stamp:
+    sec: 1763894515
+    nanosec: 779047994
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.5561481703028868
+      y: 0.10501458682243935
+      z: -0.18020584158330163
+    orientation:
+      x: 0.007569877142179439
+      y: 0.03537772918471505
+      z: 0.08510969206030196
+      w: 0.9957145442119372
+  - position:
+      x: 0.5645958856203213
+      y: 0.05574468309469406
+      z: -0.18126068402380857
+    orientation:
+      x: 0.007569877142179439
+      y: 0.03537772918471505
+      z: 0.08510969206030196
+      w: 0.9957145442119372
+  - position:
+      x: 0.5154454099608079
+      y: 0.04724340676456012
+      z: -0.17780249906601792
+    orientation:
+      x: 0.007569877142179439
+      y: 0.03537772918471505
+      z: 0.08510969206030196
+      w: 0.9957145442119372
+  - position:
+      x: 0.4609151650394238
+      y: 0.03942099822229453
+      z: -0.2491370098894038
+    orientation:
+      x: 0.007569877142179439
+      y: 0.03537772918471505
+      z: 0.08510969206030196
+      w: 0.9957145442119372
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.4733611848665043
+      y: 0.03856958099384618
+      z: -0.1096925708778067
+    orientation:
+      x: -0.09193585091446468
+      y: -0.0019488847768265047
+      z: -0.9605080675000508
+      w: 0.26261807521965796
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5507261258179978
+      y: -0.3788330879552381
+      z: -0.17004907670247926
+    orientation:
+      x: 0.026217513392150157
+      y: -0.09315172110040872
+      z: 0.1104709276632455
+      w: 0.9891570011827172
+  - position:
+      x: 0.5578657581438566
+      y: -0.37593518443773116
+      z: -0.20929990861028436
+    orientation:
+      x: 0.026217513392150157
+      y: -0.09315172110040872
+      z: 0.1104709276632455
+      w: 0.9891570011827172
+  - position:
+      x: 0.5656439424573755
+      y: -0.3557455520721452
+      z: -0.23964069241782016
+    orientation:
+      x: 0.026217513392150157
+      y: -0.09315172110040872
+      z: 0.1104709276632455
+      w: 0.9891570011827172
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894536
+    nanosec: 584541069
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.5597170963117244
+      y: 0.1041469740082135
+      z: -0.18513107054000927
+    orientation:
+      x: 0.015439549489677627
+      y: 0.05987443085935889
+      z: 0.0858825369751578
+      w: 0.9943846653501522
+  - position:
+      x: 0.5681646806668288
+      y: 0.05490839299278685
+      z: -0.18718057246746883
+    orientation:
+      x: 0.015439549489677627
+      y: 0.05987443085935889
+      z: 0.0858825369751578
+      w: 0.9943846653501522
+  - position:
+      x: 0.519260756429631
+      y: 0.04627592178999848
+      z: -0.18135934964615008
+    orientation:
+      x: 0.015439549489677627
+      y: 0.05987443085935889
+      z: 0.0858825369751578
+      w: 0.9943846653501522
+  - position:
+      x: 0.4612285406689555
+      y: 0.03917482843672476
+      z: -0.24995371186415238
+    orientation:
+      x: 0.015439549489677627
+      y: 0.05987443085935889
+      z: 0.0858825369751578
+      w: 0.9943846653501522
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.48065977086736134
+      y: 0.03673846921845795
+      z: -0.11132878142655714
+    orientation:
+      x: -0.11449497095671299
+      y: 0.010131432911006306
+      z: -0.9576850347406622
+      w: 0.2638704794526436
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5519240049171189
+      y: -0.37795688346958933
+      z: -0.16847737822410672
+    orientation:
+      x: 0.01958539350569433
+      y: -0.0984560160628457
+      z: 0.10260897897870498
+      w: 0.9896434826214981
+  - position:
+      x: 0.5595581423083955
+      y: -0.37559808120398874
+      z: -0.2076712042450875
+    orientation:
+      x: 0.01958539350569433
+      y: -0.0984560160628457
+      z: 0.10260897897870498
+      w: 0.9896434826214981
+  - position:
+      x: 0.5680274326530508
+      y: -0.3558674745261842
+      z: -0.23812869674712905
+    orientation:
+      x: 0.01958539350569433
+      y: -0.0984560160628457
+      z: 0.10260897897870498
+      w: 0.9896434826214981
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894546
+    nanosec: 351013787
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.5583872373992288
+      y: 0.10180885496476563
+      z: -0.17975949419705392
+    orientation:
+      x: 0.02440664444383636
+      y: 0.041430296589754556
+      z: 0.08304057063841641
+      w: 0.9953854076987081
+  - position:
+      x: 0.5665518571734672
+      y: 0.052557997031261794
+      z: -0.18253293551713567
+    orientation:
+      x: 0.02440664444383636
+      y: 0.041430296589754556
+      z: 0.08304057063841641
+      w: 0.9953854076987081
+  - position:
+      x: 0.5174130777582141
+      y: 0.04419114235340956
+      z: -0.17861169841912705
+    orientation:
+      x: 0.02440664444383636
+      y: 0.041430296589754556
+      z: 0.08304057063841641
+      w: 0.9953854076987081
+  - position:
+      x: 0.46178537204014813
+      y: 0.038951872234830626
+      z: -0.24933268912322293
+    orientation:
+      x: 0.02440664444383636
+      y: 0.041430296589754556
+      z: 0.08304057063841641
+      w: 0.9953854076987081
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.47630125446873256
+      y: 0.03352292557508715
+      z: -0.11019176923415086
+    orientation:
+      x: -0.09486836444140903
+      y: 0.015794855482281173
+      z: -0.9603735388807172
+      w: 0.2615973657861135
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.550721702459844
+      y: -0.3786332379721078
+      z: -0.16940448897662796
+    orientation:
+      x: 0.015098637548162269
+      y: -0.10072043055723262
+      z: 0.10251687699970322
+      w: 0.9895037725763266
+  - position:
+      x: 0.5585709329273244
+      y: -0.37661198174767085
+      z: -0.20857468305763235
+    orientation:
+      x: 0.015098637548162269
+      y: -0.10072043055723262
+      z: 0.10251687699970322
+      w: 0.9895037725763266
+  - position:
+      x: 0.5672278897287208
+      y: -0.3571471216392796
+      z: -0.23915017795514348
+    orientation:
+      x: 0.015098637548162269
+      y: -0.10072043055723262
+      z: 0.10251687699970322
+      w: 0.9895037725763266
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894590
+    nanosec: 298268920
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.5608017911554494
+      y: 0.10495241182726836
+      z: -0.184394545479037
+    orientation:
+      x: 0.010351261517340699
+      y: 0.05466375605388354
+      z: 0.08239221465542444
+      w: 0.9950458522717712
+  - position:
+      x: 0.5689436104172425
+      y: 0.055641974392350954
+      z: -0.18587493025516436
+    orientation:
+      x: 0.010351261517340699
+      y: 0.05466375605388354
+      z: 0.08239221465542444
+      w: 0.9950458522717712
+  - position:
+      x: 0.519921270743417
+      y: 0.04738698736367101
+      z: -0.1805209222181522
+    orientation:
+      x: 0.010351261517340699
+      y: 0.05466375605388354
+      z: 0.08239221465542444
+      w: 0.9950458522717712
+  - position:
+      x: 0.4626132754135618
+      y: 0.04000128960792096
+      z: -0.24969169105104871
+    orientation:
+      x: 0.010351261517340699
+      y: 0.05466375605388354
+      z: 0.08239221465542444
+      w: 0.9950458522717712
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.4804773708318244
+      y: 0.03878237259804677
+      z: -0.11084008598901768
+    orientation:
+      x: -0.11036563674266418
+      y: 0.004403593872876946
+      z: -0.9592158278738918
+      w: 0.26020190265175513
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5536945226953283
+      y: -0.38027060116275424
+      z: -0.17054852805728338
+    orientation:
+      x: 0.01822792576887267
+      y: -0.08667585597778028
+      z: 0.10617946574447688
+      w: 0.9903943455850811
+  - position:
+      x: 0.560407150394478
+      y: -0.3780901187072421
+      z: -0.20992093115429805
+    orientation:
+      x: 0.01822792576887267
+      y: -0.08667585597778028
+      z: 0.10617946574447688
+      w: 0.9903943455850811
+  - position:
+      x: 0.5680312053233592
+      y: -0.3584809838441378
+      z: -0.24067869740430725
+    orientation:
+      x: 0.01822792576887267
+      y: -0.08667585597778028
+      z: 0.10617946574447688
+      w: 0.9903943455850811
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894650
+    nanosec: 438593562
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.5542073499335127
+      y: 0.10260009271453563
+      z: -0.17460657930619586
+    orientation:
+      x: 0.01471386736142
+      y: 0.02105163215999234
+      z: 0.08113717856874904
+      w: 0.9963719632469462
+  - position:
+      x: 0.5622606558314647
+      y: 0.053280066678418274
+      z: -0.17624343480095406
+    orientation:
+      x: 0.01471386736142
+      y: 0.02105163215999234
+      z: 0.08113717856874904
+      w: 0.9963719632469462
+  - position:
+      x: 0.5129632971277343
+      y: 0.04516481059579767
+      z: -0.1742652933628277
+    orientation:
+      x: 0.01471386736142
+      y: 0.02105163215999234
+      z: 0.08113717856874904
+      w: 0.9963719632469462
+  - position:
+      x: 0.46034106148190274
+      y: 0.03899213179086852
+      z: -0.2471772160710224
+    orientation:
+      x: 0.01471386736142
+      y: 0.02105163215999234
+      z: 0.08113717856874904
+      w: 0.9963719632469462
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.46895845151215526
+      y: 0.035762902532307725
+      z: -0.10747863855659612
+    orientation:
+      x: -0.07667094625445499
+      y: 0.0027325033908476805
+      z: -0.9627964035193343
+      w: 0.2591084421548263
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5544681443680652
+      y: -0.37761878944857796
+      z: -0.1684227255600736
+    orientation:
+      x: 0.02084598500571567
+      y: -0.08967149590743964
+      z: 0.10686284468821841
+      w: 0.9900024243182465
+  - position:
+      x: 0.5613919313346709
+      y: -0.37520117930193175
+      z: -0.2077446829785427
+    orientation:
+      x: 0.02084598500571567
+      y: -0.08967149590743964
+      z: 0.10686284468821841
+      w: 0.9900024243182465
+  - position:
+      x: 0.569148725986971
+      y: -0.35540291817879216
+      z: -0.2383477148798142
+    orientation:
+      x: 0.02084598500571567
+      y: -0.08967149590743964
+      z: 0.10686284468821841
+      w: 0.9900024243182465
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894709
+    nanosec: 905950603
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.4266729467044312
+      y: 0.10901943451136625
+      z: -0.14273363393767363
+    orientation:
+      x: 0.039483338224789485
+      y: 0.0455705085643116
+      z: 0.718465315335048
+      w: 0.6929444316915514
+  - position:
+      x: 0.4762786730866528
+      y: 0.11079456884505255
+      z: -0.1487436928549835
+    orientation:
+      x: 0.039483338224789485
+      y: 0.0455705085643116
+      z: 0.718465315335048
+      w: 0.6929444316915514
+  - position:
+      x: 0.47810558114568275
+      y: 0.060828987302286905
+      z: -0.1484226507438997
+    orientation:
+      x: 0.039483338224789485
+      y: 0.0455705085643116
+      z: 0.718465315335048
+      w: 0.6929444316915514
+  - position:
+      x: 0.47094202211890346
+      y: 0.010056363577344712
+      z: -0.2225453478289039
+    orientation:
+      x: 0.039483338224789485
+      y: 0.0455705085643116
+      z: 0.718465315335048
+      w: 0.6929444316915514
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.4876349001713053
+      y: 0.014006463201069963
+      z: -0.08359886738631661
+    orientation:
+      x: -0.07139040880255555
+      y: -0.003374213170512734
+      z: -0.5495682069413846
+      w: 0.8323862145276766
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5896398188413478
+      y: -0.307837668264725
+      z: -0.09514830188358514
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  - position:
+      x: 0.5846836739178101
+      y: -0.3095328341411671
+      z: -0.13480385685572288
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  - position:
+      x: 0.5632403165984159
+      y: -0.3067194765545238
+      z: -0.16515104806497116
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.4630758082552161
+      y: 0.11291468964466418
+      z: -0.11561414150990768
+    orientation:
+      x: 0.0775044685576423
+      y: 0.09510984402177564
+      z: 0.7134538027507954
+      w: 0.6898774139397376
+  - position:
+      x: 0.5115582309043843
+      y: 0.11441701677526153
+      z: -0.12774664773327676
+    orientation:
+      x: 0.0775044685576423
+      y: 0.09510984402177564
+      z: 0.7134538027507954
+      w: 0.6898774139397376
+  - position:
+      x: 0.5133644520133261
+      y: 0.0644603065429917
+      z: -0.12671482019214425
+    orientation:
+      x: 0.0775044685576423
+      y: 0.09510984402177564
+      z: 0.7134538027507954
+      w: 0.6898774139397376
+  - position:
+      x: 0.49703683448358355
+      y: 0.01234572821061053
+      z: -0.19841440005172606
+    orientation:
+      x: 0.0775044685576423
+      y: 0.09510984402177564
+      z: 0.7134538027507954
+      w: 0.6898774139397376
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.530798417184036
+      y: 0.018816945538691204
+      z: -0.06269904067061086
+    orientation:
+      x: -0.11310246360856462
+      y: 0.04316033391530479
+      z: -0.544901139623039
+      w: 0.829715473122869
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5896398188413478
+      y: -0.307837668264725
+      z: -0.09514830188358514
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  - position:
+      x: 0.5846836739178101
+      y: -0.3095328341411671
+      z: -0.13480385685572288
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  - position:
+      x: 0.5632403165984159
+      y: -0.3067194765545238
+      z: -0.16515104806497116
+    orientation:
+      x: 0.03199256379862551
+      y: 0.05728908019744532
+      z: 0.7422789003277864
+      w: 0.6668706555846446
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894756
+    nanosec: 663615893
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.4582988369240145
+      y: 0.12907448416217854
+      z: -0.09265921204105348
+    orientation:
+      x: 0.0011712978851329038
+      y: 0.07464879609793718
+      z: 0.6638494306611645
+      w: 0.7441304446891288
+  - position:
+      x: 0.5076891505307666
+      y: 0.12314422801496733
+      z: -0.09770192796158192
+    orientation:
+      x: 0.0011712978851329038
+      y: 0.07464879609793718
+      z: 0.6638494306611645
+      w: 0.7441304446891288
+  - position:
+      x: 0.5023160014655689
+      y: 0.07373642721281587
+      z: -0.09222484032141333
+    orientation:
+      x: 0.0011712978851329038
+      y: 0.07464879609793718
+      z: 0.6638494306611645
+      w: 0.7441304446891288
+  - position:
+      x: 0.4884951904820243
+      y: 0.017027103101882185
+      z: -0.160900803100527
+    orientation:
+      x: 0.0011712978851329038
+      y: 0.07464879609793718
+      z: 0.6638494306611645
+      w: 0.7441304446891288
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5045269545476252
+      y: 0.033073008415870374
+      z: -0.022749106202908598
+    orientation:
+      x: -0.11044153988851145
+      y: -0.03307664977509934
+      z: -0.6074615062055575
+      w: 0.7859383690755818
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5567902475289375
+      y: -0.33326613944545236
+      z: -0.0799320864046569
+    orientation:
+      x: -0.040123746830553184
+      y: -0.06413060031169181
+      z: 0.7340780989633016
+      w: 0.6748382737118317
+  - position:
+      x: 0.5626087873211857
+      y: -0.33166615311615627
+      z: -0.11947427448817208
+    orientation:
+      x: -0.040123746830553184
+      y: -0.06413060031169181
+      z: 0.7340780989633016
+      w: 0.6748382737118317
+  - position:
+      x: 0.5501007012023406
+      y: -0.3257605663208115
+      z: -0.15407711244366956
+    orientation:
+      x: -0.040123746830553184
+      y: -0.06413060031169181
+      z: 0.7340780989633016
+      w: 0.6748382737118317
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894767
+    nanosec: 214134790
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.47044155347446187
+      y: 0.12946284744818212
+      z: -0.10063014040199889
+    orientation:
+      x: 0.027907986101791512
+      y: 0.10889019086986283
+      z: 0.6631040387329683
+      w: 0.7400385830888097
+  - position:
+      x: 0.5192099202075614
+      y: 0.12351142963540529
+      z: -0.10991599158558307
+    orientation:
+      x: 0.027907986101791512
+      y: 0.10889019086986283
+      z: 0.6631040387329683
+      w: 0.7400385830888097
+  - position:
+      x: 0.5143663241927263
+      y: 0.07413528171562223
+      z: -0.1037082871589229
+    orientation:
+      x: 0.027907986101791512
+      y: 0.10889019086986283
+      z: 0.6631040387329683
+      w: 0.7400385830888097
+  - position:
+      x: 0.49466158200329946
+      y: 0.017027387123807247
+      z: -0.1705944713193186
+    orientation:
+      x: 0.027907986101791512
+      y: 0.10889019086986283
+      z: 0.6631040387329683
+      w: 0.7400385830888097
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.52263933119549
+      y: 0.03387483111206446
+      z: -0.034455611792387736
+    orientation:
+      x: -0.13904423831849483
+      y: -0.0006050317918350045
+      z: -0.6018175419149165
+      w: 0.7864362529604343
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5422632167447394
+      y: -0.3333786335008447
+      z: -0.08115289737439005
+    orientation:
+      x: -0.06008898596669647
+      y: -0.078323699283673
+      z: 0.8292641273602221
+      w: 0.550068831119801
+  - position:
+      x: 0.549696262042786
+      y: -0.3308267970317067
+      z: -0.12037327432607123
+    orientation:
+      x: -0.06008898596669647
+      y: -0.078323699283673
+      z: 0.8292641273602221
+      w: 0.550068831119801
+  - position:
+      x: 0.538099886308677
+      y: -0.3297121540873107
+      z: -0.15577053706301308
+    orientation:
+      x: -0.06008898596669647
+      y: -0.078323699283673
+      z: 0.8292641273602221
+      w: 0.550068831119801
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894806
+    nanosec: 673001418
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.4169014568650728
+      y: -0.01694893049307155
+      z: -0.07315810016074996
+    orientation:
+      x: 0.13102559921534554
+      y: 0.036878127124926656
+      z: 0.9894511421806352
+      w: 0.04958561613466109
+  - position:
+      x: 0.42132451344664157
+      y: 0.03266919654815884
+      z: -0.0774567091679247
+    orientation:
+      x: 0.13102559921534554
+      y: 0.036878127124926656
+      z: 0.9894511421806352
+      w: 0.04958561613466109
+  - position:
+      x: 0.46936186934892216
+      y: 0.027279744225693427
+      z: -0.09023818958223909
+    orientation:
+      x: 0.13102559921534554
+      y: 0.036878127124926656
+      z: 0.9894511421806352
+      w: 0.04958561613466109
+  - position:
+      x: 0.4976813096182926
+      y: 0.017392133739056376
+      z: -0.17522992201954213
+    orientation:
+      x: 0.13102559921534554
+      y: 0.036878127124926656
+      z: 0.9894511421806352
+      w: 0.04958561613466109
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5321389068210137
+      y: 0.02605225983080453
+      z: -0.03981184308182403
+    orientation:
+      x: -0.005158748552172489
+      y: 0.07565039970038902
+      z: 0.12920218082226562
+      w: 0.9887149239337482
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5191802812258662
+      y: -0.32719984221768006
+      z: -0.0830670181617621
+    orientation:
+      x: -0.07956856026101075
+      y: -0.044460830048090406
+      z: 0.9729394134052503
+      w: 0.21232281236850734
+  - position:
+      x: 0.5261287161716179
+      y: -0.3250907643444186
+      z: -0.12240238446651609
+    orientation:
+      x: -0.07956856026101075
+      y: -0.044460830048090406
+      z: 0.9729394134052503
+      w: 0.21232281236850734
+  - position:
+      x: 0.5195166500673882
+      y: -0.3362329445472616
+      z: -0.1573425758009791
+    orientation:
+      x: -0.07956856026101075
+      y: -0.044460830048090406
+      z: 0.9729394134052503
+      w: 0.21232281236850734
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894892
+    nanosec: 229709870
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.28084234774396866
+      y: 0.14083310335924767
+      z: -0.026635795704198967
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.3095672048980725
+      y: -0.06316665150283814
+      z: -0.03431580857432201
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.35810991708193785
+      y: -0.04820711549534418
+      z: -0.054805254059129685
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.40764845272016653
+      y: -0.023298239851466326
+      z: -0.07543245457150588
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.4126275699919835
+      y: 0.026448458330453097
+      z: -0.07612122970934858
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.46126889623335515
+      y: 0.021435496196044988
+      z: -0.08655634313084241
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  - position:
+      x: 0.49423556451504136
+      y: 0.01697609437938813
+      z: -0.1703218649094529
+    orientation:
+      x: 0.10514898714833194
+      y: 0.0016093765384255782
+      z: 0.9931820942409676
+      w: 0.05030336060307981
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5211161803675823
+      y: 0.016187897298858486
+      z: -0.03292757416619685
+    orientation:
+      x: 0.02484009405623786
+      y: 0.043697229346427106
+      z: 0.1273353560789045
+      w: 0.9905852961592868
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5193964425311139
+      y: -0.28274017537010815
+      z: -0.013519626853257388
+    orientation:
+      x: 0.06123942325634921
+      y: 0.03386345585145867
+      z: 0.9975251422331611
+      w: 0.006825687491958846
+  - position:
+      x: 0.5144909220702254
+      y: -0.28540910716605994
+      z: -0.05312786680501948
+    orientation:
+      x: 0.06123942325634921
+      y: 0.03386345585145867
+      z: 0.9975251422331611
+      w: 0.006825687491958846
+  - position:
+      x: 0.5043747259889944
+      y: -0.30442072522441316
+      z: -0.08354012624060887
+    orientation:
+      x: 0.06123942325634921
+      y: 0.03386345585145867
+      z: 0.9975251422331611
+      w: 0.006825687491958846
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763894948
+    nanosec: 141777343
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.29213238715561174
+      y: 0.15201721900875653
+      z: -0.03477776833744059
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.3208408736575011
+      y: -0.05202571772284549
+      z: -0.028273710164705507
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.36834489729328856
+      y: -0.03874968914485984
+      z: -0.05208788249143262
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.41681896152717646
+      y: -0.015565268667162735
+      z: -0.07684162450677745
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.42166916451767866
+      y: 0.033976690831394596
+      z: -0.08153947294986617
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.4697784629815769
+      y: 0.02810159209402185
+      z: -0.09382680854948598
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  - position:
+      x: 0.4988003911547647
+      y: 0.017234801948297546
+      z: -0.17846126180605948
+    orientation:
+      x: 0.1263759131579294
+      y: 0.040549489268169675
+      z: 0.9896710178433401
+      w: 0.05418619690029521
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.30000001192092896
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5320774470960309
+      y: 0.02683994469759859
+      z: -0.04281186566756057
+    orientation:
+      x: -0.009868529739557817
+      y: 0.07167934080721379
+      z: 0.12499273505449263
+      w: 0.9895157908825004
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.4992716915874349
+      y: -0.2345047397536142
+      z: 0.012098014175573171
+    orientation:
+      x: 0.03573367603124947
+      y: 0.04138026794660674
+      z: 0.9138575725508271
+      w: 0.4023370662932643
+  - position:
+      x: 0.4953273471038907
+      y: -0.23637983486040634
+      z: -0.027662848050183694
+    orientation:
+      x: 0.03573367603124947
+      y: 0.04138026794660674
+      z: 0.9138575725508271
+      w: 0.4023370662932643
+  - position:
+      x: 0.47563056113983837
+      y: -0.24490512280644644
+      z: -0.058126607773035216
+    orientation:
+      x: 0.03573367603124947
+      y: 0.04138026794660674
+      z: 0.9138575725508271
+      w: 0.4023370662932643
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 0.5
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 0.10000000149011612
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763895009
+    nanosec: 899843671
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.28397707467586086
+      y: 0.14517529575627391
+      z: -0.036117116315419
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.31498010591528247
+      y: -0.05862868028180385
+      z: -0.03445838033941623
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.36317648010101594
+      y: -0.044112715768146224
+      z: -0.056054590414033406
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.4122530886707559
+      y: -0.01965449230503538
+      z: -0.07826453855267301
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.41665426059078814
+      y: 0.03005680244223074
+      z: -0.08133322887278545
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.46526197951033876
+      y: 0.025098005393217458
+      z: -0.09194925417723243
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  - position:
+      x: 0.49758348616101616
+      y: 0.01706648655440743
+      z: -0.17569986631811207
+    orientation:
+      x: 0.1081672921240403
+      y: 0.02577605106086763
+      z: 0.9926795980512613
+      w: 0.047144964938436305
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5256073185232416
+      y: 0.02304472623263149
+      z: -0.03866226066851097
+    orientation:
+      x: 0.001832332976977184
+      y: 0.05105021025381097
+      z: 0.13175779156722292
+      w: 0.9899648493508401
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5216977616638214
+      y: -0.32910904024721344
+      z: -0.08408397685724402
+    orientation:
+      x: -0.07226912372578084
+      y: -0.04771017569967101
+      z: 0.9723853671972974
+      w: 0.21672012031925264
+  - position:
+      x: 0.5281468171381579
+      y: -0.3266505999650091
+      z: -0.12348404988849317
+    orientation:
+      x: -0.07226912372578084
+      y: -0.04771017569967101
+      z: 0.9723853671972974
+      w: 0.21672012031925264
+  - position:
+      x: 0.5209925251111761
+      y: -0.3373847716956837
+      z: -0.15844514585497088
+    orientation:
+      x: -0.07226912372578084
+      y: -0.04771017569967101
+      z: 0.9723853671972974
+      w: 0.21672012031925264
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763895096
+    nanosec: 190087036
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.2823535135560192
+      y: 0.14887731936518456
+      z: -0.03135559346730374
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.31309228269893496
+      y: -0.05488528287704371
+      z: -0.025361429717955464
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.36100655333081777
+      y: -0.04096017230668622
+      z: -0.047951559540911584
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.4098063750651707
+      y: -0.017111365650373925
+      z: -0.0713996259807102
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.4142341305775212
+      y: 0.03250711477940011
+      z: -0.075689309064923
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.46268392176983886
+      y: 0.027218434256267972
+      z: -0.08685387765242591
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  - position:
+      x: 0.4938365795068854
+      y: 0.017178442606172212
+      z: -0.17083042559638728
+    orientation:
+      x: 0.1144606750944635
+      y: 0.03760789502906329
+      z: 0.9915057025325976
+      w: 0.04899838705245958
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5237551955298752
+      y: 0.026306194349660847
+      z: -0.034368194721063616
+    orientation:
+      x: -0.008783139242252637
+      y: 0.059398155370522836
+      z: 0.13036700496195305
+      w: 0.9896459769134014
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5373678394013833
+      y: -0.32881962081721405
+      z: -0.08168997966919718
+    orientation:
+      x: -0.058670963463773984
+      y: -0.06071276729349053
+      z: 0.8986715490191604
+      w: 0.4304197078635014
+  - position:
+      x: 0.5436764711758222
+      y: -0.3264750050032354
+      z: -0.1211197139039011
+    orientation:
+      x: -0.058670963463773984
+      y: -0.06071276729349053
+      z: 0.8986715490191604
+      w: 0.4304197078635014
+  - position:
+      x: 0.5320696426033441
+      y: -0.3304428980016101
+      z: -0.15630809158703352
+    orientation:
+      x: -0.058670963463773984
+      y: -0.06071276729349053
+      z: 0.8986715490191604
+      w: 0.4304197078635014
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+---
+header:
+  stamp:
+    sec: 1763895139
+    nanosec: 486941420
+  frame_id: base_link
+poses:
+- name: gripper_open
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: pick
+  arm: right
+  poses:
+  - position:
+      x: 0.2838118797558328
+      y: 0.14868136274217855
+      z: -0.0326582309212729
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.31470333159803526
+      y: -0.05504273523092004
+      z: -0.026161300251471342
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.362662197347844
+      y: -0.041125195863746654
+      z: -0.048661284561577006
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.4115005786642915
+      y: -0.017285045414706268
+      z: -0.07203776284545009
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.41589815649748535
+      y: 0.03232800999462865
+      z: -0.07642023271428727
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.4643799196724632
+      y: 0.027056133658869694
+      z: -0.08745318151983446
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  - position:
+      x: 0.4957497287805054
+      y: 0.016866430254205506
+      z: -0.17133080155074598
+    orientation:
+      x: 0.1131603828475097
+      y: 0.038630944883920576
+      z: 0.9916275923183835
+      w: 0.04875547152911522
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: lift
+  arm: right
+  poses:
+  - position:
+      x: 0.5253211117001079
+      y: 0.02630419111953483
+      z: -0.03481398253505438
+    orientation:
+      x: -0.010004672723868317
+      y: 0.05829971293833479
+      z: 0.13070233473757073
+      w: 0.9896554701961406
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: gripper_close
+  arm: right
+  poses: []
+  constraints:
+  - 1.0
+  - 1.0
+  - 1.0
+  speed: 1.0
+  gripper_value: 1.0
+- name: place
+  arm: right
+  poses:
+  - position:
+      x: 0.5232600427395648
+      y: -0.3285820103106318
+      z: -0.08337560841715293
+    orientation:
+      x: -0.06945726305479978
+      y: -0.04343359057850327
+      z: 0.9742726224720538
+      w: 0.2099573026113221
+  - position:
+      x: 0.5294032034873023
+      y: -0.32636336242274816
+      z: -0.12283874536262455
+    orientation:
+      x: -0.06945726305479978
+      y: -0.04343359057850327
+      z: 0.9742726224720538
+      w: 0.2099573026113221
+  - position:
+      x: 0.5221552644148872
+      y: -0.33748368209747087
+      z: -0.1576595787510251
+    orientation:
+      x: -0.06945726305479978
+      y: -0.04343359057850327
+      z: 0.9742726224720538
+      w: 0.2099573026113221
+  constraints:
+  - 0.0
+  - 0.0
+  - 0.0
+  speed: 1.0
+  gripper_value: 0.0
+- name: gripper_open
+  arm: r

@@ -1,0 +1,15 @@
+mug:
+  name: mug
+  description: A standard mug used for drinking beverages.
+  dimensions: [0.1, 0.1, 0.1]
+  keypoints:
+    handle:
+      description: The handle of the mug used for holding it.
+      position: [0.07, 0.0, 0.05]
+    bottom:
+      description: The bottom of the mug used for placing it on surfaces.
+      position: [0.0, 0.0, 0.0]
+  markers:
+    - type: cylinder
+      position: [0.0, 0.0, 0.05]
+      color: [0.7, 0.5, 0.3, 0.5]

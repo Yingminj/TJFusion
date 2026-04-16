@@ -1,0 +1,25 @@
+/**:
+  ros__parameters:
+    robot_ip: 192.168.11.190
+    left_joints:
+      - left_joint1
+      - left_joint2
+      - left_joint3
+      - left_joint4
+      - left_joint5
+      - left_joint6
+      - left_joint7
+    right_joints:
+      - right_joint1
+      - right_joint2
+      - right_joint3
+      - right_joint4
+      - right_joint5
+      - right_joint6
+      - right_joint7
+    left_kd:
+      k: [2.0,2.0,2.0,1.6,1.0,0.4,0.4]
+      d: [0.4,0.4,0.4,0.3,0.2,0.2,0.1]
+    right_kd:
+      k: [2.0,2.0,2.0,2.0,2.0,2.0,2.0]
+      d: [0.4,0.4,0.4,0.4,0.4,0.4,0.4]

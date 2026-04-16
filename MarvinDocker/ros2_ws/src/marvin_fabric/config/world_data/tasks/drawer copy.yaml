@@ -1,0 +1,56 @@
+Task:
+  name: drawer_open_put_mug
+  description: Open the drawer and place the mug inside.
+
+Entities:
+  objects:
+    - name: drawer
+      keypoints:
+        - handle
+        - handle_opened
+        - inside_place
+    - name: mug
+      keypoints:
+        - handle
+        - bottom
+    - name: robot
+      keypoints:
+        - gripper
+        - safe_position
+
+Actions:
+  - action: reach
+    actor: robot.gripper
+    target: drawer.handle
+
+  - action: grasp
+    actor: robot.gripper
+    target: drawer.handle
+
+  - action: pull
+    actor: drawer.handle
+    from: drawer.handle
+    to: drawer.handle_opened
+
+  - action: release
+    actor: robot.gripper
+
+  - action: reach
+    actor: robot.gripper
+    target: mug.handle
+
+  - action: grasp
+    actor: robot.gripper
+    target: mug.handle
+
+  - action: place
+    actor: robot.gripper
+    from: mug.bottom
+    to: drawer.inside_place
+
+  - action: release
+    actor: robot.gripper
+
+  - action: move
+    actor: robot.gripper
+    target: robot.safe_position

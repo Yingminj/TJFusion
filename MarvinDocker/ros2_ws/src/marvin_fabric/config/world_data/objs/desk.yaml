@@ -1,0 +1,4 @@
+obj:
+  name: desk
+  description: collision representation for desk
+  dimensions: 

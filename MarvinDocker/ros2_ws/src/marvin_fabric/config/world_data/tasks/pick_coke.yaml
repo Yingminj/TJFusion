@@ -1,0 +1,94 @@
+Task:
+  name: drawer_open_put_mug
+  description: Open the drawer and place the mug inside.
+
+keypoints:
+    - name: gripper_open
+      arm: left
+      gripper_value: 0.3
+    - name: pre_drawer_handle
+      arm: left
+      position: [0.38, 0.5001, 0.1330]
+      orientation: [0.6981, -0.0024, 0.00299, 0.7159]
+      constraints: [1, 1, 1]
+      speed: 0.5
+    - name: drawer_handle
+      arm: left
+      position: [0.4056, 0.5001, 0.1230]
+      orientation: [0.6981, -0.0024, 0.00299, 0.7159]
+      constraints: [1, 1, 1]
+      speed: 0.3
+    
+    - name: gripper_close
+      arm: left
+      gripper_value: 1.0
+
+    - name: drawer_handle_opened
+      arm: left
+      position: [0.1556, 0.5001, 0.1230]
+      orientation: [0.6981, -0.0024, 0.00299, 0.7159]
+      constraints: [1, 1, 1]
+      speed: 0.2
+    - name: gripper_open
+      arm: left
+      gripper_value: 0.5
+
+    - name: gripper_open
+      arm: right
+      gripper_value: 0.3
+    - name: pre_pick
+      arm: right
+      position: [0.4951, -0.1199, -0.2012]
+      orientation: [0.0001, 0.0863, 0.00280, 0.9962]
+      constraints: [1, 1, 1]
+      speed: 0.5
+    - name: pick
+      arm: right
+      position: [0.52316, -0.114, -0.208]
+      orientation: [0.0001, 0.0863, 0.00280, 0.9962]
+      constraints: [1, 1, 1]
+      speed: 0.2
+    
+    - name: gripper_close
+      arm: right
+      gripper_value: 1.0
+
+    # - name: pre_place
+    #   arm: right
+    #   position: [0.32368,  0.2339866, 0.15930]
+    #   orientation: [-0.0284,  0.052259, 0.66616, 0.74342]
+    #   constraints: [1, 1, 1]
+    #   speed: 0.8
+
+    - name: place
+      arm: right
+      position: [0.34086,  0.37666, 0.186913]
+      orientation: [-0.11489,  0.1110941, 0.6997639605, 0.696267]
+      constraints: [1, 1, 1]
+      speed: 0.5
+    
+    - name: gripper_open
+      arm: right
+      gripper_value: 0.0
+
+    - name: drawer_push_point_opened
+      arm: left
+      position: [0.1556, 0.5801, 0.1230]
+      orientation: [0.6981, -0.0024, 0.00299, 0.7159]
+      constraints: [1, 1, 1]
+      speed: 0.8
+    - name: gripper_close
+      arm: left
+      gripper_value: 1.0
+    - name: drawer_push_point_closed
+      arm: left
+      position: [0.3856, 0.5801, 0.1230]
+      orientation: [0.6981, -0.0024, 0.00299, 0.7159]
+      constraints: [1, 1, 1]
+      speed: 1.0
+    
+    - name: home
+      arm: left
+    - name: home
+      arm: right
+

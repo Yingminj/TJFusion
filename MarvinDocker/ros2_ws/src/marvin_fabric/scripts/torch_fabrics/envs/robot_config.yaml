@@ -1,0 +1,59 @@
+active_links:
+  ["left_link1", "left_link2", "left_link3", "left_link4", "left_link5", "left_link6", "left_link7",
+   "right_link1", "right_link2", "right_link3", "right_link4", "right_link5", "right_link6", "right_link7"]
+
+geometry:
+  marvin_collision:
+    spheres:
+  
+        base_link:
+        - center: [0.3, -0.2, 0.3]
+          radius: 0.15
+
+        - center: [0.0, -0.0, 0.0]
+          radius: 0.10
+        # left_link4:
+        #   - center: [0, 0, 0.0]
+        #     radius: 0.06
+       
+
+        # left_link5:
+
+        # - center: [0, 0, -0.00]
+        #   radius: 0.05
+        # - center: [0, 0, -0.15]
+        #   radius: 0.06
+
+
+        # left_link7:
+        # - center: [0, 0, 0.08]
+        #   radius: 0.05
+        # - center: [0, 0, 0.16]
+        #   radius: 0.001
+        right_link3:
+        - center: [0, 0, 0.1]
+          radius: 0.06
+
+        right_link4:
+        - center: [0, 0, 0.0]
+          radius: 0.06
+
+        right_link5:
+        - center: [0, 0, 0.0]
+          radius: 0.05
+        - center: [0, 0, -0.10]
+          radius: 0.06
+        - center: [0, 0, -0.20]
+          radius: 0.045
+
+
+        # right_link7:
+        # - center: [0, 0, 0.08]
+        #   radius: 0.05
+        # - center: [0, 0, 0.16]
+        #   radius: 0.05
+ 
+        
+
+
+
