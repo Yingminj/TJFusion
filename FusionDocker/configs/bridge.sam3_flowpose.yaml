@@ -3,8 +3,13 @@ bridge:
   source_mode: zmq_source
   zmq_source_addr: tcp://127.0.0.1:4444
   prompts:
+    - green small box
+    - red box
     - toy car
-    - cup
+  obj_ids:
+    - 1
+    - 2
+    - 3
 sam3:
   server_addr: tcp://127.0.0.1:5562
   timeout_ms: 5000
