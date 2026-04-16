@@ -87,6 +87,7 @@ class BridgeServiceConfig:
     input_mapping: BridgeInputMapping = field(default_factory=BridgeInputMapping)
     schema_check: BridgeSchemaCheckConfig = field(default_factory=BridgeSchemaCheckConfig)
     prompts: list[str] = field(default_factory=list)
+    obj_ids: list[Any] = field(default_factory=list)
     obj_id_map: dict[str, int | str] = field(default_factory=dict)
     return_masks: bool = True
     clear_previous: bool = True

@@ -623,6 +623,30 @@ def _safe_int(value: Any, default: int = 0) -> int:
         return default
 
 
+def _normalize_configured_obj_ids(
+    configured_obj_ids: list[Any] | None,
+    *,
+    fallback_obj_ids: list[list[int]],
+) -> list[Any]:
+    if not configured_obj_ids:
+        return fallback_obj_ids
+
+    normalized: list[Any] = []
+    for index, item in enumerate(configured_obj_ids, start=1):
+        if isinstance(item, (list, tuple)) and len(item) >= 2:
+            track_id = _safe_int(item[0], 0)
+            instance_id = _safe_int(item[1], 0)
+            if track_id > 0 and instance_id > 0:
+                normalized.append([track_id, instance_id])
+                continue
+
+        track_id = _safe_int(item, 0)
+        if track_id > 0:
+            normalized.append([track_id, index])
+
+    return normalized or fallback_obj_ids
+
+
 def _request_flowpose_sidecar_once(
     endpoint: str,
     *,
@@ -1120,6 +1144,7 @@ def process_once(
     rgb: Any,
     depth: Any,
     prompts: list[str],
+    obj_ids: list[Any] | None = None,
     obj_id_map: dict[str, int | str] | None = None,
     req_timeout_ms: int = 1000,
     sam3_timeout_ms: int | None = None,
@@ -1221,15 +1246,19 @@ def process_once(
                 elapsed_sec=0.0,
             )
         else:
-            combined_mask_np, obj_ids, class_names, instance_names = build_combined_mask_and_labels_from_sam3(
+            combined_mask_np, resolved_obj_ids, class_names, instance_names = build_combined_mask_and_labels_from_sam3(
                 sam3_response=sam3_response,
                 h=rgb.shape[0],
                 w=rgb.shape[1],
                 obj_id_map=obj_id_map,
                 prompts=prompts,
             )
+            resolved_obj_ids = _normalize_configured_obj_ids(
+                obj_ids,
+                fallback_obj_ids=resolved_obj_ids,
+            )
 
-            if len(obj_ids) == 0 or np_module.count_nonzero(combined_mask_np) == 0:
+            if len(resolved_obj_ids) == 0 or np_module.count_nonzero(combined_mask_np) == 0:
                 print_status(
                     "DONE",
                     f"{request_id} | empty_mask={time.time() - start_time:.3f}s",
@@ -1250,7 +1279,7 @@ def process_once(
                     "rgb_image": rgb_b64,
                     "depth_image": depth_b64,
                     "combined_mask": combined_mask_b64,
-                    "obj_ids": obj_ids,
+                    "obj_ids": resolved_obj_ids,
                     "class_names": class_names,
                     "instance_names": instance_names,
                 }
@@ -1523,6 +1552,7 @@ def run_zmq_source_bridge_service(
                     rgb=rgb,
                     depth=depth,
                     prompts=prompts,
+                    obj_ids=config.obj_ids,
                     obj_id_map=config.obj_id_map,
                     req_timeout_ms=config.req_timeout_ms,
                     sam3_timeout_ms=sam3_timeout_ms,
@@ -1659,6 +1689,7 @@ def run_bridge_service(
                     rgb=rgb,
                     depth=depth,
                     prompts=prompts,
+                    obj_ids=config.obj_ids,
                     obj_id_map=config.obj_id_map,
                     req_timeout_ms=config.req_timeout_ms,
                     sam3_timeout_ms=sam3_timeout_ms,
