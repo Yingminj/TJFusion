@@ -48,7 +48,7 @@ RUN mkdir -p /ros2_ws/src /ros2_ws/build /ros2_ws/install /ros2_ws/log
 COPY ros2_ws/src /ros2_ws/src
 
 # 再复制你的已有脚本
-COPY ros2_ws/build_ros.sh /ros2_ws/build_ros.sh
+COPY scripts/build_ros.sh /ros2_ws/build_ros.sh
 RUN chmod +x /ros2_ws/build_ros.sh
 
 # build 阶段直接执行（强制在 /ros2_ws 下构建）
