@@ -400,7 +400,7 @@ install_bash_completion() {
 _tjfusion_complete() {
   local cur
   cur="${COMP_WORDS[COMP_CWORD]}"
-  local cmds="start update list-dockers serve-fusion serve-bridge launch-dockers docker-select serve-ui list-bridges inspect-docker-io list-docker-ports inspect-ports listen-zmq test-bridge create-system create-bridge add-bridge-to-ui"
+  local cmds="start restart update list-dockers serve-fusion serve-bridge launch-dockers docker-config serve-ui list-bridges inspect-docker-io list-docker-ports inspect-ports listen-zmq test-bridge create-system create-bridge add-bridge-to-ui"
   COMPREPLY=( $(compgen -W "$cmds" -- "$cur") )
 }
 complete -F _tjfusion_complete tjfusion
@@ -421,12 +421,13 @@ _tjfusion() {
   local -a cmds
   cmds=(
     'start:Start all dockers configured in docker_launch.yaml'
+    'restart:Stop all local containers, clear configured ports, then relaunch selected dockers'
     'update:Pull latest code and refresh python package'
     'list-dockers:List runnable docker folders'
     'serve-fusion:Run FusionDocker event service (develop/debug)'
     'serve-bridge:Run ZeroMQ RGB-D bridge service (develop/debug)'
     'launch-dockers:Launch docker run.sh scripts (develop/debug)'
-    'docker-select:Write selected dockers into docker_launch.yaml (develop/debug)'
+    'docker-config:Write selected dockers into docker_launch.yaml (develop/debug)'
     'serve-ui:Serve web dashboard (develop/debug)'
     'list-bridges:List bridge types (develop/debug)'
     'inspect-docker-io:Inspect docker input/output schema (develop/debug)'
