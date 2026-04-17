@@ -38,12 +38,62 @@ REPO_URL="https://github.com/yangzhaofeng496/TJFusion.git"
 CLONE_DIR="$PWD"
 SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
+VERBOSE="0"
+LOG_FILE="/tmp/tjfusion-install-$(date +%Y%m%d-%H%M%S).log"
+
+_strip_conda_from_path() {
+  local src_path="$1"
+  local cleaned=""
+  local seg
+  local path_parts=()
+  IFS=':' read -r -a path_parts <<< "$src_path"
+  for seg in "${path_parts[@]}"; do
+    case "$seg" in
+      *conda*|*anaconda*|*miniconda*) continue ;;
+    esac
+    [[ -z "$seg" ]] && continue
+    if [[ -z "$cleaned" ]]; then
+      cleaned="$seg"
+    else
+      cleaned="${cleaned}:$seg"
+    fi
+  done
+  echo "$cleaned"
+}
+
+reexec_without_conda_if_needed() {
+  [[ "${TJ_NO_CONDA_REEXEC:-0}" == "1" ]] && return 0
+  if [[ -z "${CONDA_PREFIX:-}" && "${CONDA_SHLVL:-0}" == "0" ]]; then
+    return 0
+  fi
+
+  local conda_name="${CONDA_DEFAULT_ENV:-${CONDA_PREFIX:-unknown}}"
+  local cleaned_path
+  cleaned_path="$(_strip_conda_from_path "${PATH:-}")"
+
+  log_warn "[install] Detected active Conda env before install: ${conda_name}"
+  log_warn "[install] Restarting installer outside Conda now..."
+
+  exec env \
+    -u CONDA_PREFIX \
+    -u CONDA_DEFAULT_ENV \
+    -u CONDA_PROMPT_MODIFIER \
+    -u CONDA_SHLVL \
+    -u _CE_CONDA \
+    -u _CE_M \
+    -u CONDA_EXE \
+    -u CONDA_PYTHON_EXE \
+    TJ_NO_CONDA_REEXEC=1 \
+    PATH="${cleaned_path}" \
+    bash "$0" "$@"
+}
 
 for arg in "$@"; do
   case "$arg" in
     --cwd) MODE="cwd" ;;
     --local) MODE="local" ;;
     --system) MODE="system" ;;
+    --verbose) VERBOSE="1" ;;
     --skip-clone) SKIP_CLONE="1" ;;
     --skip-env-install) SKIP_ENV_INSTALL="1" ;;
     --repo-url=*) REPO_URL="${arg#*=}" ;;
@@ -56,6 +106,7 @@ Options:
   --cwd                   Install launcher to current directory
   --local                 Install launcher to ~/.local/bin (default)
   --system                Install launcher to /usr/local/bin
+  --verbose               Show full command output instead of concise logs
   --repo-url=<git_url>    Git repository URL for clone/pull (default: https://github.com/yangzhaofeng496/TJFusion.git)
   --clone-dir=<path>      Where to clone repository (default: current directory)
   --skip-clone            Skip git clone/pull step
@@ -70,6 +121,8 @@ USAGE
       ;;
   esac
 done
+
+reexec_without_conda_if_needed "$@"
 
 run_with_privilege() {
   if [[ "$(id -u)" -eq 0 ]]; then
@@ -129,6 +182,23 @@ force_deactivate_conda() {
   log_info "[install] Tip: run 'conda deactivate' in your current shell after install."
 }
 
+run_step() {
+  local step="$1"
+  shift
+  if [[ "$VERBOSE" == "1" ]]; then
+    log_info "[install] ${step}"
+    "$@"
+    return $?
+  fi
+  log_info "[install] ${step} (简洁模式，详细日志: ${LOG_FILE})"
+  if "$@" >>"$LOG_FILE" 2>&1; then
+    return 0
+  fi
+  log_err "[install] ${step} failed. Last 80 log lines:"
+  tail -n 80 "$LOG_FILE" || true
+  return 1
+}
+
 install_base_env_if_needed() {
   [[ "$SKIP_ENV_INSTALL" == "1" ]] && return 0
 
@@ -149,18 +219,18 @@ install_base_env_if_needed() {
   log_info "[install] Missing dependencies detected. Trying to install via package manager..."
 
   if has_cmd apt-get; then
-    run_with_privilege apt-get update
-    run_with_privilege apt-get install -y git python3 python3-pip python3-venv
+    run_step "apt update" run_with_privilege apt-get -o Acquire::ForceIPv4=true -qq update
+    run_step "apt install base dependencies" run_with_privilege env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git python3 python3-pip python3-venv
   elif has_cmd dnf; then
-    run_with_privilege dnf install -y git python3 python3-pip python3-virtualenv
+    run_step "dnf install base dependencies" run_with_privilege dnf install -y git python3 python3-pip python3-virtualenv
   elif has_cmd yum; then
-    run_with_privilege yum install -y git python3 python3-pip
+    run_step "yum install base dependencies" run_with_privilege yum install -y git python3 python3-pip
   elif has_cmd pacman; then
-    run_with_privilege pacman -Sy --noconfirm git python python-pip
+    run_step "pacman install base dependencies" run_with_privilege pacman -Sy --noconfirm git python python-pip
   elif has_cmd zypper; then
-    run_with_privilege zypper --non-interactive install git python3 python3-pip python3-virtualenv
+    run_step "zypper install base dependencies" run_with_privilege zypper --non-interactive install git python3 python3-pip python3-virtualenv
   elif has_cmd brew; then
-    brew install git python
+    run_step "brew install base dependencies" brew install git python
   else
     log_err "[install] No supported package manager found."
     log_warn "Please install manually: git, python3, pip3, python3-venv"
@@ -547,6 +617,8 @@ list_git_repos() {
 }
 
 main() {
+  : > "$LOG_FILE"
+  [[ "$VERBOSE" == "1" ]] && log_info "[install] Verbose mode enabled."
   force_deactivate_conda
   install_base_env_if_needed
   clone_or_update_repo
