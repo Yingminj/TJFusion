@@ -3497,7 +3497,21 @@ class BridgeManager:
         if config_path:
             if Path(config_path).is_absolute():
                 return Path(config_path).resolve()
-            return (self._config_base_dir / config_path).resolve()
+            relative = Path(config_path)
+            candidates: list[Path] = []
+            candidates.append((self._config_base_dir / relative).resolve())
+            candidates.append((self._project_root / relative).resolve())
+            if self._config_base_dir.name == "configs" and relative.parts and relative.parts[0] == "configs":
+                candidates.append((self._config_base_dir.parent / relative).resolve())
+
+            for candidate in candidates:
+                if candidate.exists():
+                    return candidate
+
+            # Fall back to the most common project-root-relative interpretation.
+            if self._config_base_dir.name == "configs" and relative.parts and relative.parts[0] == "configs":
+                return (self._config_base_dir.parent / relative).resolve()
+            return candidates[0]
 
         local_candidate = (self._project_root / "configs" / "bridge.sam3_flowpose.yaml").resolve()
         if local_candidate.exists():
