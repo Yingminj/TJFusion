@@ -1,2 +1,0 @@
-"""Fusion Docker package."""
-

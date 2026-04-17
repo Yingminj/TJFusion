@@ -1,4 +1,0 @@
-PyYAML>=6.0
-numpy>=1.26
-opencv-python-headless>=4.10
-pyzmq>=25.1
