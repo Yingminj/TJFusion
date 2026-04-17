@@ -3,11 +3,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import select
+import shutil
+import signal
 from pathlib import Path
 import subprocess
 import sys
 import termios
+import time
 import tty
 from typing import Any
 
@@ -119,6 +123,10 @@ def main() -> None:
 
         if args.command == "start":
             _handle_start(args)
+            return
+
+        if args.command == "restart":
+            _handle_restart(args)
             return
 
         if args.command == "update":
@@ -247,6 +255,80 @@ def _build_parser() -> argparse.ArgumentParser:
         "--dashboard",
         choices=("terminal", "web"),
         help="Choose the monitor dashboard mode. Defaults to YAML or 'terminal'.",
+    )
+
+    restart_parser = subparsers.add_parser(
+        "restart",
+        help=_release_help(
+            "Force stop all local docker containers, clear busy configured ports, then relaunch selected dockers."
+        ),
+    )
+    restart_parser.add_argument(
+        "docker_names",
+        nargs="*",
+        help="Optional docker names to relaunch after cleanup. Defaults to launch config selected dockers.",
+    )
+    restart_parser.add_argument(
+        "--launch-config",
+        help=(
+            "YAML file controlling which dockers to relaunch. "
+            "When omitted, auto-uses $DOCKER_MODEL_ROOT/FusionDocker/configs/docker_launch.yaml if it exists."
+        ),
+    )
+    restart_parser.add_argument(
+        "--docker-model-root",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
+    )
+    restart_parser.add_argument(
+        "--tmux",
+        action="store_true",
+        help="Launch each docker in a dedicated tmux session named after the docker folder.",
+    )
+    restart_parser.add_argument(
+        "--foreground",
+        action="store_true",
+        help="Run each run.sh in the foreground. Default behavior is background launch.",
+    )
+    restart_parser.add_argument(
+        "--log-dir",
+        help="Directory for background launch logs. Defaults to ./logs/docker-launches.",
+    )
+    restart_parser.add_argument(
+        "--replace-session",
+        action="store_true",
+        help="When --tmux is enabled, replace an existing tmux session with the same docker name.",
+    )
+    restart_parser.add_argument(
+        "--monitor",
+        action="store_true",
+        help="When --tmux is enabled, show docker running/ended status and cleanup on Ctrl+C.",
+    )
+    restart_parser.add_argument(
+        "--poll-interval",
+        type=float,
+        default=None,
+        help="Status monitor poll interval in seconds. Defaults to YAML or 0.5.",
+    )
+    restart_parser.add_argument(
+        "--dashboard",
+        choices=("terminal", "web"),
+        help="Choose the monitor dashboard mode. Defaults to YAML or 'terminal'.",
+    )
+    restart_parser.add_argument(
+        "--skip-port-cleanup",
+        action="store_true",
+        help="Only stop local docker containers, do not terminate processes occupying configured service ports.",
+    )
+    restart_parser.add_argument(
+        "--no-start",
+        action="store_true",
+        help="Only perform cleanup (stop containers + clear ports), and skip relaunch.",
+    )
+    restart_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show relaunch matches without executing run.sh. Cleanup steps still execute.",
     )
 
     update_parser = subparsers.add_parser(
@@ -621,6 +703,44 @@ def _handle_start(args: argparse.Namespace) -> None:
         raise ValueError(
             "No docker selected. Run `tjfusion docker-config` first or set docker_launcher.selected_dockers."
         )
+    _run_docker_launch_flow(
+        args,
+        docker_names_override=docker_names,
+        list_when_empty=False,
+    )
+
+
+def _handle_restart(args: argparse.Namespace) -> None:
+    if not args.launch_config:
+        default_launch_config = Path(_default_docker_config_launch_path()).expanduser()
+        if default_launch_config.exists():
+            args.launch_config = str(default_launch_config)
+
+    print_status("RESTART", "Stopping all local docker containers.", color="cyan")
+    _force_stop_all_local_containers()
+
+    if args.skip_port_cleanup:
+        print_warning("Skip port cleanup (--skip-port-cleanup).")
+    else:
+        configured_ports = _collect_restart_target_ports(args)
+        if not configured_ports:
+            print_warning(
+                "No configured docker service ports resolved for cleanup. "
+                "If needed, provide --docker-model-root or --launch-config."
+            )
+        else:
+            _release_ports(configured_ports)
+
+    if args.no_start:
+        print_success("Restart cleanup completed (no relaunch due to --no-start).")
+        return
+
+    docker_names = list(args.docker_names) if args.docker_names else _resolve_start_docker_names(args)
+    if not docker_names:
+        raise ValueError(
+            "No docker selected for relaunch. Pass docker names or run `tjfusion docker-config` first."
+        )
+
     _run_docker_launch_flow(
         args,
         docker_names_override=docker_names,
@@ -1346,6 +1466,211 @@ def _handle_inspect_ports(args: argparse.Namespace) -> None:
             print_status("PACKET", line, color="green")
     if result.error:
         print_warning(result.error)
+
+
+def _force_stop_all_local_containers() -> None:
+    docker_bin = shutil.which("docker")
+    if docker_bin is None:
+        print_warning("docker command not found. Skip stopping containers.")
+        return
+
+    listed = subprocess.run(
+        [docker_bin, "ps", "-aq"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if listed.returncode != 0:
+        detail = listed.stderr.strip() or listed.stdout.strip() or "unknown error"
+        print_warning(f"Failed to list containers: {detail}")
+        return
+
+    container_ids = [line.strip() for line in listed.stdout.splitlines() if line.strip()]
+    if not container_ids:
+        print_status("DOCKER", "No local containers to stop.", color="blue")
+        return
+
+    removed = subprocess.run(
+        [docker_bin, "rm", "-f", *container_ids],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if removed.returncode != 0:
+        detail = removed.stderr.strip() or removed.stdout.strip() or "unknown error"
+        raise RuntimeError(f"Failed to stop/remove containers: {detail}")
+    print_success(f"Stopped and removed {len(container_ids)} local container(s).")
+
+
+def _collect_restart_target_ports(args: argparse.Namespace) -> list[int]:
+    launch_config = _load_optional_launch_config(args.launch_config)
+    docker_model_root_value = args.docker_model_root or (
+        launch_config.docker_model_root if launch_config else None
+    )
+    has_target_entries = bool(launch_config and launch_config.docker_targets)
+    docker_model_root = (
+        _require_docker_model_root(docker_model_root_value)
+        if docker_model_root_value
+        else None
+    )
+    if docker_model_root is None and not has_target_entries:
+        return []
+
+    docker_names = list(args.docker_names) if args.docker_names else []
+    if not docker_names and launch_config:
+        docker_names = list(launch_config.docker_names)
+    if not docker_names and docker_model_root is not None:
+        docker_names = describe_targets(docker_model_root)
+    if not docker_names:
+        return []
+
+    group_lookup = _build_group_lookup(launch_config)
+    matches = _match_dockers_for_runtime(
+        docker_names,
+        launch_config=launch_config,
+        docker_model_root=docker_model_root,
+        group_lookup=group_lookup,
+    )
+
+    ports: set[int] = set()
+    for match in matches:
+        if match.target.is_remote:
+            continue
+        try:
+            info = read_docker_configured_port(match.target)
+        except Exception as exc:
+            print_warning(f"{match.target.folder_name}: failed to read configured port: {exc}")
+            continue
+        if info.port is None:
+            continue
+        if 1 <= info.port <= 65535:
+            ports.add(int(info.port))
+    return sorted(ports)
+
+
+def _release_ports(ports: list[int]) -> None:
+    if not ports:
+        return
+    print_status("PORT", f"Cleaning owner processes on configured port(s): {', '.join(str(p) for p in ports)}", color="cyan")
+    for port in ports:
+        pids = _find_port_owner_pids(port)
+        if not pids:
+            print_status("PORT", f"{port}: no owner process found.", color="blue")
+            continue
+        killed_count = 0
+        for pid in sorted(pids):
+            if _terminate_pid(pid):
+                killed_count += 1
+        if killed_count > 0:
+            print_success(f"Port {port}: stopped {killed_count} owner process(es).")
+            continue
+        print_warning(f"Port {port}: found PID(s) but unable to stop them (permission denied or already exited).")
+
+
+def _find_port_owner_pids(port: int) -> set[int]:
+    pids = _pids_from_lsof(port)
+    if pids:
+        return pids
+    pids = _pids_from_fuser(port)
+    if pids:
+        return pids
+    return _pids_from_ss(port)
+
+
+def _pids_from_lsof(port: int) -> set[int]:
+    lsof_bin = shutil.which("lsof")
+    if lsof_bin is None:
+        return set()
+    completed = subprocess.run(
+        [lsof_bin, "-ti", f"tcp:{port}"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0 and not completed.stdout.strip():
+        return set()
+    pids: set[int] = set()
+    for line in completed.stdout.splitlines():
+        value = line.strip()
+        if value.isdigit():
+            pids.add(int(value))
+    return pids
+
+
+def _pids_from_fuser(port: int) -> set[int]:
+    fuser_bin = shutil.which("fuser")
+    if fuser_bin is None:
+        return set()
+    completed = subprocess.run(
+        [fuser_bin, "-n", "tcp", str(port)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    output = f"{completed.stdout} {completed.stderr}"
+    pids: set[int] = set()
+    for token in output.split():
+        if token.isdigit():
+            pids.add(int(token))
+    return pids
+
+
+def _pids_from_ss(port: int) -> set[int]:
+    completed = subprocess.run(
+        ["ss", "-lntupH"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return set()
+    pids: set[int] = set()
+    for line in completed.stdout.splitlines():
+        text = line.strip()
+        if not text:
+            continue
+        if f":{port} " not in f"{text} ":
+            continue
+        for pid_text in re.findall(r"pid=(\d+)", text):
+            pids.add(int(pid_text))
+    return pids
+
+
+def _terminate_pid(pid: int) -> bool:
+    if pid <= 0 or pid == os.getpid():
+        return False
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return False
+    except OSError:
+        return False
+
+    for _ in range(20):
+        if not _pid_exists(pid):
+            return True
+        time.sleep(0.1)
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return False
+    except OSError:
+        return False
+    return not _pid_exists(pid)
+
+
+def _pid_exists(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def _handle_listen_zmq(args: argparse.Namespace) -> None:

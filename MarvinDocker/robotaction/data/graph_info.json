@@ -20,7 +20,7 @@
       "state_description": "box fixed and closed",
       "next_action": [
         { 
-          "target": "orange small object",
+          "target": "yellow small object",
           "action_name": "pull",
           "arm": "right",
           "speed": 0.8,
@@ -36,7 +36,7 @@
       "state_description": "box fixed and opening",
       "next_action": [
         { 
-          "target": "orange small object",
+          "target": "yellow small object",
           "action_name": "pull",
           "arm": "right",
           "speed": 0.8,
@@ -67,7 +67,7 @@
       "state_description": "toy in hand and outside box",
       "next_action": [
         { 
-          "target": "orange small object",
+          "target": "green small box",
           "action_name": "place",
           "arm": "right",
           "speed": 0.8,
@@ -83,7 +83,7 @@
       "state_description": "toy in box and box opened",
       "next_action": [
         { 
-          "target": "orange small object",
+          "target": "green small box",
           "action_name": "push",
           "arm": "right",
           "speed": 0.8,
@@ -99,7 +99,7 @@
       "state_description": "toy in box and closing",
       "next_action": [
         { 
-          "target": "orange small object",
+          "target": "yellow small object",
           "action_name": "push",
           "arm": "right",
           "speed": 0.8,
@@ -129,13 +129,83 @@
     {
       "node_id": "009",
       "state_description": "toy in box and box in hand",
-      "next_action": "home",
+      "next_action": [
+        { 
+          "target": "red box",
+          "action_name": "place",
+          "arm": "left",
+          "speed": 0.8,
+          "correction_mode": "reverse",
+          "finish_home": true
+        }
+      ],
       "parents": null,
       "center_feature": null
     },
     {
       "node_id": "010",
       "state_description": "gift has been packaged",
+      "next_action": "home",
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "011",
+      "state_description": "toy car too closed to box",
+      "next_action": [
+        { 
+          "target": "toy car",
+          "action_name": "pick1",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward"
+        },
+        { 
+          "target": "green small box",
+          "action_name": "near",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "012",
+      "state_description": "toy car at misposition",
+      "next_action": [
+        { 
+          "target": "toy car",
+          "action_name": "pull",
+          "arm": "right",
+          "speed": 0.8,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "013",
+      "state_description": "green box out of bag",
+      "next_action": [
+        { 
+          "target": "green small box",
+          "action_name": "hold",
+          "arm": "left",
+          "speed": 0.8,
+          "correction_mode": "forward"
+        }      
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "014",
+      "state_description": "no object or insufficient items on table",
       "next_action": "home",
       "parents": null,
       "center_feature": null

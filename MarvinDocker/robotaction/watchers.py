@@ -20,7 +20,7 @@ from robotaction.common import (
 
 
 class StatusWatcher:
-    def __init__(self, node, topic: str, stable_frames=5, callback_group=None):
+    def __init__(self, node, topic: str, stable_frames=2, callback_group=None):
         self._node = node
         self._lock = threading.Lock()
         self._stable_frames = stable_frames
@@ -110,17 +110,19 @@ class TaskProgressWatcher:
             self._seen_zero = False
             self._reset_time = time.time()
 
-    def is_finished(self, silence_after_zero=0.5, finish_percentage=0.99):
+    def is_finished(self, silence_after_zero=1, finish_percentage=0.97):
         now = time.time()
         with self._lock:
             seen_active = self._seen_active
             seen_zero = self._seen_zero
             last_msg_time = self._last_msg_time
             latest_value = self._latest_value
-        if latest_value is not None and (
-            latest_value >= finish_percentage or abs(latest_value) <= 1e-6
-        ):
+
+        # 必须先激活，才允许按百分比完成
+        if seen_active and latest_value is not None and latest_value >= finish_percentage:
             return True
+
+        # 必须先激活，再回零并静默一段时间
         return bool(
             seen_active
             and seen_zero

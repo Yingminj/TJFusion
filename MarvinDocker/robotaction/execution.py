@@ -68,19 +68,22 @@ class FusionExecutionMixin:
                 self.get_logger().warning(f"Publish failed: {e}")
 
     def _home(self, arm):
-        self.publish_kp_separately(
-            [
-                {
-                    "name": "home",
-                    "arm": arm,
-                    "poses": [],
-                    "constraints": [100, 100, 100],
-                    "speed": 0.3,
-                    "gripper_value": [0.0, 0.0],
-                    "time": [0, 0.1],
-                }
-            ]
-        )
+        home_seq = [{
+            "name": "home",
+            "arm": arm,
+            "poses": [],
+            "constraints": [100, 100, 100],
+            "speed": 0.3,
+            "gripper_value": [0.0, 0.0],
+            "time": [0, 0.1],
+        }]
+
+        # 连续发送3次，间隔0.1s
+        for i in range(3):
+            self.publish_kp_separately(home_seq)
+            self.get_logger().info(f"[Home] publish {i + 1}/3 arm='{arm}'")
+            if i < 2:
+                time.sleep(0.1)
 
     def publish_home_both(self):
         for arm in ["right", "left"]:

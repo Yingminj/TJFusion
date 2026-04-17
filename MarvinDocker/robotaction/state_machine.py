@@ -114,8 +114,13 @@ class FusionStateMixin:
             }
         ]
 
+    def _reset_tf_miss_streak(self):
+        self._tf_miss_streak = 0
+        self._tf_miss_key = None
+
     def _activate_state(self, state_name: str):
         tasks = self.status_tasks.get(state_name)
+        self._reset_tf_miss_streak()
         if tasks is None:
             if self.last_ignored_state != state_name:
                 self.get_logger().info(f"[State] '{state_name}' -> null,跳过")
@@ -229,7 +234,6 @@ class FusionStateMixin:
     def on_timer(self):
         if not self._control_lock.acquire(blocking=False):
             return
-
         try:
             stable_state = self.status_watcher.get_stable_state()
             if self.active_state is None:
@@ -284,9 +288,44 @@ class FusionStateMixin:
                 poll_interval=0.03,
             )
             if not frames:
-                self.get_logger().warning(f"[TF] 未等到 target='{step.target}' 的TF，跳过本周期")
-                return
+                miss_key = (
+                    self.active_state,
+                    self.active_step_idx,
+                    normalize_obj_name(step.target),
+                    self._normalize_arm_text(step.arm),
+                )
+                if self._tf_miss_key != miss_key:
+                    self._tf_miss_key = miss_key
+                    self._tf_miss_streak = 0
 
+                self._tf_miss_streak += 1
+                self.get_logger().warning(
+                    f"[TF] 未等到 target='{step.target}' 的TF,跳过本周期 "
+                    f"(连续{self._tf_miss_streak}/2)"
+                )
+
+                if self._tf_miss_streak >= 2:
+                    arm = self._normalize_arm_text(self.arm_resolver.resolve(step.arm, None))
+                    # arm = self._current_running_arm(step) or self._normalize_arm_text(
+                    #     self.arm_resolver.resolve(step.arm, None)
+                    # )
+                    self.get_logger().warning(
+                        f"[TF] 连续2次未获取到 '{step.target}',执行home arm='{arm}'，并重新查询状态"
+                    )
+                    home_status, _ = self._run_home_and_wait(arm, step, allow_preempt=False)
+                    if home_status != TaskStatus.SUCCESS:
+                        self.get_logger().warning(
+                            f"[TF] 连续丢失后home异常 status='{home_status}' arm='{arm}'"
+                        )
+
+                    # 退出当前状态，下一周期重新按稳定状态选择
+                    self.active_state = None
+                    self.active_steps = []
+                    self.active_step_idx = 0
+                    self._reset_tf_miss_streak()
+                return
+            
+            self._reset_tf_miss_streak()
             inst = self._select_instance(step, frames)
             if inst is None:
                 return
@@ -368,6 +407,7 @@ class FusionStateMixin:
 
             finished_state = self.active_state
             self.get_logger().info(f"[State] '{finished_state}' 全部动作已完成，开始检查状态")
+            time.sleep(1)
             next_state = self.status_watcher.wait_stable_state(timeout=0.5, poll_interval=0.1)
 
             self.active_state = None

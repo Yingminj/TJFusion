@@ -105,6 +105,9 @@ class FusionNode(FusionStateMixin, FusionExecutionMixin, FusionTfMixin, Node):
             self.get_parameter("home_old_arm_on_preempt_switch").value
         )
 
+        self._tf_miss_streak = 0
+        self._tf_miss_key = None
+
         self.get_logger().info(
             f"[Config] status_topic={status_topic}, progress_topic={progress_topic}, "
             f"object_tf_topic={object_tf_topic or '<tf_buffer>'}, base_frame={self.base_frame}"
