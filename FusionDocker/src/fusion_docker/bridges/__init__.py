@@ -1,0 +1,10 @@
+from __future__ import annotations
+
+from fusion_docker.bridges.multi_zmq_pub_bridge import MULTI_ZMQ_PUB_BRIDGE
+from fusion_docker.bridges.sam3_flowpose import SAM3_FLOWPOSE_BRIDGE
+from fusion_docker.bridges.registry import register_bridge
+from fusion_docker.bridges.siglip2_bridge import SIGLIP2_BRIDGE
+
+register_bridge(MULTI_ZMQ_PUB_BRIDGE)
+register_bridge(SAM3_FLOWPOSE_BRIDGE)
+register_bridge(SIGLIP2_BRIDGE)

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fusion-docker"
+version = "0.1.0"
+description = "Fusion layer for robot perception, state matching, and action dispatch."
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0",
+  "numpy>=1.26",
+  "opencv-python-headless>=4.10",
+  "pyzmq>=25.1",
+]
+
+[project.scripts]
+fusion-docker = "fusion_docker.cli:main"
+robot-system = "fusion_docker.cli:main"
+bridge-test = "fusion_docker.bridge_test_client:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

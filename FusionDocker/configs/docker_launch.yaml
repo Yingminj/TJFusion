@@ -1,0 +1,48 @@
+docker_launcher:
+  docker_model_root: ${DOCKER_MODEL_ROOT}
+  tmux: true
+  monitor: true
+  replace_session: true
+  poll_interval: 0.5
+  dashboard:
+    mode: web
+    host: 0.0.0.0
+    port: 8765
+    log_lines: 300
+  bridges:
+  - name: Sam3 To FlowPose
+    enabled: true
+    config: configs/bridge.sam3_flowpose.yaml
+  - name: Siglip2_Bridge
+    enabled: true
+    config: configs/bridge.siglip2.yaml
+  - name: Multi-ZMQ-PUB-Bridge
+    enabled: true
+    config: configs/bridge.multi_zmq_pub.yaml
+  zmq_test:
+    timeout_ms: 4000
+    history_limit: 40
+    endpoints:
+      Sam3Docker: tcp://127.0.0.1:5555
+      FlowPoseDocker: tcp://127.0.0.1:6666
+  docker_targets:
+  - name: Fast-FoundationSteroDocker
+    group: vision
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: Sam3Docker
+    group: vision
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: FlowPoseDocker
+    group: vision
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: SiglipDocker
+    group: inference
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: MarvinDocker
+    group: action
+    location: local  # TODO: 未完成
+    docker_model_root: ${DOCKER_MODEL_ROOT}

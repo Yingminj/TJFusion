@@ -1,0 +1,31 @@
+service_name: fusion_docker
+poll_timeout_ms: 200
+
+inputs:
+  realsense_rgb:
+    endpoint: tcp://realsense:5551
+    topic: realsense.rgb
+    mode: connect
+  realsense_depth:
+    endpoint: tcp://realsense:5552
+    topic: realsense.depth
+    mode: connect
+  yomni_pose:
+    endpoint: tcp://yomni:5561
+    topic: yomni.pose
+    mode: connect
+  siglip_state:
+    endpoint: tcp://siglip2:5571
+    topic: siglip2.state
+    mode: connect
+  task_goal:
+    endpoint: tcp://planner:5581
+    topic: fusion.goal
+    mode: connect
+
+outputs:
+  marvin_command:
+    endpoint: tcp://*:5591
+    topic: fusion.command
+    mode: bind
+
