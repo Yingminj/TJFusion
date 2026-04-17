@@ -3120,12 +3120,16 @@ class BridgeManager:
         *,
         name: str,
         project_root: Path,
+        config_base_dir: Path | None = None,
         enabled: bool = True,
         config_path: str | None = None,
         schema_check: BridgeSchemaCheckConfig | None = None,
     ) -> None:
         self.name = name.strip() or "Bridge Service"
         self._project_root = project_root.resolve()
+        self._config_base_dir = (
+            config_base_dir.resolve() if config_base_dir is not None else self._project_root
+        )
         self._enabled = enabled
         self._requested_config_path = config_path
         self._schema_check_override = self._clone_schema_check(schema_check)
@@ -3491,7 +3495,9 @@ class BridgeManager:
 
     def _resolve_config_path(self, config_path: str | None) -> Path | None:
         if config_path:
-            return (self._project_root / config_path).resolve() if not Path(config_path).is_absolute() else Path(config_path).resolve()
+            if Path(config_path).is_absolute():
+                return Path(config_path).resolve()
+            return (self._config_base_dir / config_path).resolve()
 
         local_candidate = (self._project_root / "configs" / "bridge.sam3_flowpose.yaml").resolve()
         if local_candidate.exists():
@@ -4165,6 +4171,9 @@ def serve_dashboard_ui(
         if project_root is not None
         else Path(__file__).resolve().parents[2]
     )
+    bridge_config_base_dir = resolved_project_root
+    if launch_config_path:
+        bridge_config_base_dir = Path(launch_config_path).expanduser().resolve().parent
     effective_bridge_entries = list(bridge_entries or [])
     if not effective_bridge_entries:
         effective_bridge_entries = [
@@ -4187,6 +4196,7 @@ def serve_dashboard_ui(
             BridgeManager(
                 name=entry.name,
                 project_root=resolved_project_root,
+                config_base_dir=bridge_config_base_dir,
                 enabled=entry.enabled,
                 config_path=entry.config_path,
                 schema_check=entry.schema_check,

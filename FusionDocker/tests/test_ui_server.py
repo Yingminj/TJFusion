@@ -1103,6 +1103,37 @@ class DashboardControllerTest(unittest.TestCase):
 
 
 class BridgeManagerTest(unittest.TestCase):
+    def test_resolves_relative_config_path_from_launch_config_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            fusion_root = root / "FusionDocker"
+            config_dir = fusion_root / "configs"
+            config_dir.mkdir(parents=True)
+            config_path = config_dir / "bridge.sam3_flowpose.yaml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "bridge:",
+                        "  sam3_server_addr: tcp://127.0.0.1:5555",
+                        "  flowpose_server_addr: tcp://127.0.0.1:6666",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            manager = BridgeManager(
+                name="MainBridge",
+                project_root=root,
+                config_base_dir=config_dir,
+                enabled=True,
+                config_path="bridge.sam3_flowpose.yaml",
+            )
+            manager._is_endpoint_open = mock.Mock(return_value=False)
+            payload = manager.payload()
+
+        self.assertEqual(payload["status"], "stopped")
+        self.assertEqual(Path(payload["config_path"]).resolve(), config_path.resolve())
+
     def test_payload_uses_zmq_source_endpoint_label_for_zmq_source_bridge(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
