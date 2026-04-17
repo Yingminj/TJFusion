@@ -444,8 +444,6 @@ setup_python_env() {
   fi
   run_step "install editable FusionDocker package" \
     "$venv_dir/bin/pip" install -e "$fusion_dir"
-
-  echo "$venv_dir"
 }
 
 append_if_missing() {
@@ -758,8 +756,8 @@ main() {
   fi
 
   log_step "Setting up Python virtual environment and dependencies"
-  local venv_dir
-  venv_dir="$(setup_python_env "$repo_root")"
+  local venv_dir="${repo_root}/.venv-tjfusion"
+  setup_python_env "$repo_root"
 
   log_step "Installing tjfusion launcher"
   local launcher_path
