@@ -170,6 +170,38 @@ class DockerLaunchConfigTest(unittest.TestCase):
         self.assertEqual(config.docker_targets[1].remote_ssh_port, 2222)
         self.assertEqual(config.docker_targets[1].remote_password, "robotpass")
 
+    def test_load_docker_launch_config_selected_dockers_override_default_order(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_path = Path(tmp_dir) / "docker_launch.yaml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "docker_launcher:",
+                        "  groups:",
+                        "    vision:",
+                        "      - Sam3Docker",
+                        "      - FlowPoseDocker",
+                        "    action:",
+                        "      - MarvinDocker",
+                        "  selected_dockers:",
+                        "    - MarvinDocker",
+                        "    - Sam3Docker",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            config = load_docker_launch_config(config_path)
+
+        self.assertEqual(config.docker_names, ["MarvinDocker", "Sam3Docker"])
+        self.assertEqual(
+            config.docker_groups,
+            {
+                "vision": ["Sam3Docker", "FlowPoseDocker"],
+                "action": ["MarvinDocker"],
+            },
+        )
+
     def test_load_docker_launch_config_rejects_remote_target_without_required_fields(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             config_path = Path(tmp_dir) / "docker_launch.yaml"

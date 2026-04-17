@@ -28,21 +28,27 @@ docker_launcher:
   docker_targets:
   - name: Fast-FoundationSteroDocker
     group: vision
-    location: local  # TODO: 未完成
+    location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: Sam3Docker
     group: vision
-    location: local  # TODO: 未完成
+    location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: FlowPoseDocker
     group: vision
-    location: local  # TODO: 未完成
+    location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: SiglipDocker
     group: inference
-    location: local  # TODO: 未完成
+    location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: MarvinDocker
     group: action
-    location: local  # TODO: 未完成
+    location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
+  selected_dockers:
+  - Fast-FoundationSteroDocker
+  - FlowPoseDocker
+  - MarvinDocker
+  - Sam3Docker
+  - SiglipDocker

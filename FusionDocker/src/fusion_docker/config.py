@@ -419,6 +419,7 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
         launch_raw,
         default_docker_model_root=docker_model_root,
     )
+    selected_dockers = _coerce_docker_names(launch_raw.get("selected_dockers", []))
     if docker_targets:
         docker_names = [entry.name for entry in docker_targets]
         docker_groups = _build_groups_from_target_entries(docker_targets)
@@ -429,6 +430,8 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
             docker_names = _coerce_docker_names(
                 launch_raw.get("dockers", launch_raw.get("docker_names", []))
             )
+    if selected_dockers:
+        docker_names = selected_dockers
     remote_enabled, remote_host, remote_user, remote_docker_model_root, remote_ssh_port, remote_password = (
         _parse_remote_settings(launch_raw)
     )

@@ -3,8 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import select
 from pathlib import Path
+import sys
+import termios
+import tty
 from typing import Any
+
+import yaml
 
 from fusion_docker.bridge_scaffold import create_bridge_scaffold
 from fusion_docker.bridge_runtime import run_bridge_from_config
@@ -12,10 +18,12 @@ from fusion_docker.bridges.registry import list_bridges as list_registered_bridg
 from fusion_docker.config import load_docker_launch_config
 from fusion_docker.launch_config_bridge_editor import add_bridge_to_launch_config
 from fusion_docker.console import (
+    colorize,
     print_banner,
     print_error,
     print_status,
     print_success,
+    supports_color,
     print_warning,
 )
 from fusion_docker.docker_launcher import (
@@ -34,6 +42,48 @@ from fusion_docker.port_inspector import (
 )
 from fusion_docker.system_scaffold import create_system_scaffold
 from fusion_docker.zmq_listener import listen_zmq_messages
+
+
+def _release_help(text: str) -> str:
+    if supports_color():
+        return f"{colorize('[RELEASE]', color='green', bold=True)} {text}"
+    return f"[RELEASE] {text}"
+
+
+def _debug_help(text: str) -> str:
+    if supports_color():
+        return f"{colorize('[DEBUG]', color='yellow', bold=True)} {text}"
+    return f"[DEBUG] {text}"
+
+
+def _release_debug_help_footer() -> str:
+    if supports_color():
+        return (
+            f"{colorize('Legend:', bold=True)} "
+            f"{colorize('[RELEASE]', color='green', bold=True)} stable runtime command, "
+            f"{colorize('[DEBUG]', color='yellow', bold=True)} development/debug command."
+        )
+    return "Legend: [RELEASE] stable runtime command, [DEBUG] development/debug command."
+
+
+def _default_docker_config_launch_path() -> str:
+    docker_model_root = str(os.getenv("DOCKER_MODEL_ROOT", "")).strip()
+    if docker_model_root:
+        return str(
+            Path(docker_model_root).expanduser()
+            / "FusionDocker"
+            / "configs"
+            / "docker_launch.yaml"
+        )
+    return "configs/docker_launch.yaml"
+
+
+def _default_docker_model_root() -> str | None:
+    docker_model_root = str(os.getenv("DOCKER_MODEL_ROOT", "")).strip()
+    if docker_model_root:
+        return docker_model_root
+    legacy_root = str(os.getenv("ROBOT_DOCKER_MODEL_ROOT", "")).strip()
+    return legacy_root or None
 
 
 def main() -> None:
@@ -67,6 +117,14 @@ def main() -> None:
 
         if args.command == "launch-dockers":
             _handle_launch_dockers(args)
+            return
+
+        if args.command == "start":
+            _handle_start(args)
+            return
+
+        if args.command == "docker-config":
+            _handle_docker_config(args)
             return
 
         if args.command == "serve-ui":
@@ -129,19 +187,95 @@ def main() -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="robot-system",
+        prog="tjfusion",
         description="Marvin Robot System CLI for FusionDocker, bridge service, and docker launch flow.",
+        epilog=_release_debug_help_footer(),
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    start_parser = subparsers.add_parser(
+        "start",
+        help=_release_help("Start selected dockers from docker_launch.yaml."),
+    )
+    start_parser.add_argument(
+        "--launch-config",
+        help=(
+            "YAML file controlling which dockers to launch. "
+            "When omitted, auto-uses $DOCKER_MODEL_ROOT/FusionDocker/configs/docker_launch.yaml if it exists."
+        ),
+    )
+    start_parser.add_argument(
+        "--docker-model-root",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+    )
+    start_parser.add_argument("--dry-run", action="store_true", help="Show matches without executing run.sh.")
+    start_parser.add_argument(
+        "--tmux",
+        action="store_true",
+        help="Launch each docker in a dedicated tmux session named after the docker folder.",
+    )
+    start_parser.add_argument(
+        "--foreground",
+        action="store_true",
+        help="Run each run.sh in the foreground. Default behavior is background launch.",
+    )
+    start_parser.add_argument(
+        "--log-dir",
+        help="Directory for background launch logs. Defaults to ./logs/docker-launches.",
+    )
+    start_parser.add_argument(
+        "--replace-session",
+        action="store_true",
+        help="When --tmux is enabled, replace an existing tmux session with the same docker name.",
+    )
+    start_parser.add_argument(
+        "--monitor",
+        action="store_true",
+        help="When --tmux is enabled, show docker running/ended status and cleanup on Ctrl+C.",
+    )
+    start_parser.add_argument(
+        "--poll-interval",
+        type=float,
+        default=None,
+        help="Status monitor poll interval in seconds. Defaults to YAML or 0.5.",
+    )
+    start_parser.add_argument(
+        "--dashboard",
+        choices=("terminal", "web"),
+        help="Choose the monitor dashboard mode. Defaults to YAML or 'terminal'.",
+    )
+
+    docker_config_parser = subparsers.add_parser(
+        "docker-config",
+        help=_release_help(
+            "Interactively choose dockers (Up/Down + Space) and write docker_launch.yaml."
+        ),
+    )
+    docker_config_parser.add_argument(
+        "--launch-config",
+        default=_default_docker_config_launch_path(),
+        help=(
+            "Launch config YAML path. Defaults to "
+            "$DOCKER_MODEL_ROOT/FusionDocker/configs/docker_launch.yaml "
+            "(fallback: configs/docker_launch.yaml)."
+        ),
+    )
+    docker_config_parser.add_argument(
+        "--docker-model-root",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+    )
+
     subparsers.add_parser(
         "serve-fusion",
-        help="Run the original FusionDocker event service.",
+        help=_debug_help("Run the original FusionDocker event service."),
     )
 
     bridge_parser = subparsers.add_parser(
         "serve-bridge",
-        help="Run the ZeroMQ RGB-D bridge service integrated from ZeroMQClient_interface.py.",
+        help=_debug_help("Run the ZeroMQ RGB-D bridge service integrated from ZeroMQClient_interface.py."),
     )
     bridge_parser.add_argument(
         "--config",
@@ -156,7 +290,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     launch_parser = subparsers.add_parser(
         "launch-dockers",
-        help="Scan DockerModel folders, match docker names by folder name, and execute run.sh.",
+        help=_debug_help("Scan DockerModel folders, match docker names by folder name, and execute run.sh."),
     )
     launch_parser.add_argument(
         "docker_names",
@@ -169,8 +303,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     launch_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
     launch_parser.add_argument("--dry-run", action="store_true", help="Show matches without executing run.sh.")
     launch_parser.add_argument(
@@ -211,7 +345,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     ui_parser = subparsers.add_parser(
         "serve-ui",
-        help="Serve a local web dashboard for docker status and clickable log viewing.",
+        help=_debug_help("Serve a local web dashboard for docker status and clickable log viewing."),
     )
     ui_parser.add_argument(
         "docker_names",
@@ -224,8 +358,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     ui_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
     ui_parser.add_argument(
         "--host",
@@ -244,22 +378,22 @@ def _build_parser() -> argparse.ArgumentParser:
 
     list_parser = subparsers.add_parser(
         "list-dockers",
-        help="List all folders under DockerModel root that contain run.sh.",
+        help=_debug_help("List all folders under DockerModel root that contain run.sh."),
     )
     list_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
 
     subparsers.add_parser(
         "list-bridges",
-        help="List all registered bridge types and their descriptions.",
+        help=_debug_help("List all registered bridge types and their descriptions."),
     )
 
     inspect_io_parser = subparsers.add_parser(
         "inspect-docker-io",
-        help=(
+        help=_debug_help(
             "Inspect RequestFormat input/output schema fields for one or more docker folders."
         ),
     )
@@ -274,8 +408,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     inspect_io_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
     inspect_io_parser.add_argument(
         "--json",
@@ -285,7 +419,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     docker_ports_parser = subparsers.add_parser(
         "list-docker-ports",
-        help="Read Docker config files and list the ports each docker is configured to listen on.",
+        help=_debug_help("Read Docker config files and list the ports each docker is configured to listen on."),
     )
     docker_ports_parser.add_argument(
         "docker_names",
@@ -298,13 +432,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     docker_ports_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
 
     inspect_ports_parser = subparsers.add_parser(
         "inspect-ports",
-        help="List listening service ports and optionally inspect one port for traffic.",
+        help=_debug_help("List listening service ports and optionally inspect one port for traffic."),
     )
     inspect_ports_parser.add_argument(
         "--port",
@@ -320,7 +454,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     listen_zmq_parser = subparsers.add_parser(
         "listen-zmq",
-        help="Subscribe to a ZMQ PUB endpoint on a port and print received messages.",
+        help=_debug_help("Subscribe to a ZMQ PUB endpoint on a port and print received messages."),
     )
     listen_zmq_parser.add_argument(
         "--port",
@@ -351,7 +485,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     test_parser = subparsers.add_parser(
         "test-bridge",
-        help="Send a synthetic RGB-D request to the bridge service.",
+        help=_debug_help("Send a synthetic RGB-D request to the bridge service."),
     )
     test_parser.add_argument(
         "--endpoint",
@@ -364,7 +498,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     scaffold_parser = subparsers.add_parser(
         "create-system",
-        help="Create a new DockerModel system scaffold (Dockerfile/run.sh/build.sh/Server).",
+        help=_debug_help("Create a new DockerModel system scaffold (Dockerfile/run.sh/build.sh/Server)."),
     )
     scaffold_parser.add_argument(
         "name",
@@ -372,8 +506,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     scaffold_parser.add_argument(
         "--docker-model-root",
-        default=os.getenv("ROBOT_DOCKER_MODEL_ROOT"),
-        help="DockerModel root path. Defaults to ROBOT_DOCKER_MODEL_ROOT when set.",
+        default=_default_docker_model_root(),
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
     )
     scaffold_parser.add_argument(
         "--launch-config",
@@ -398,7 +532,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     bridge_scaffold_parser = subparsers.add_parser(
         "create-bridge",
-        help="Create a new bridge module, config, and registry entry scaffold.",
+        help=_debug_help("Create a new bridge module, config, and registry entry scaffold."),
     )
     bridge_scaffold_parser.add_argument(
         "name",
@@ -417,7 +551,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     add_bridge_ui_parser = subparsers.add_parser(
         "add-bridge-to-ui",
-        help="Add or update a bridge entry in docker_launch.yaml for the UI dashboard.",
+        help=_debug_help("Add or update a bridge entry in docker_launch.yaml for the UI dashboard."),
     )
     add_bridge_ui_parser.add_argument(
         "name",
@@ -448,6 +582,44 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _handle_launch_dockers(args: argparse.Namespace) -> None:
+    _run_docker_launch_flow(
+        args,
+        docker_names_override=None,
+        list_when_empty=True,
+    )
+
+
+def _handle_start(args: argparse.Namespace) -> None:
+    if not args.launch_config:
+        default_launch_config = Path(_default_docker_config_launch_path()).expanduser()
+        if default_launch_config.exists():
+            args.launch_config = str(default_launch_config)
+
+    docker_names = _resolve_start_docker_names(args)
+    if not docker_names:
+        raise ValueError(
+            "No docker selected. Run `tjfusion docker-config` first or set docker_launcher.selected_dockers."
+        )
+    _run_docker_launch_flow(
+        args,
+        docker_names_override=docker_names,
+        list_when_empty=False,
+    )
+
+
+def _resolve_start_docker_names(args: argparse.Namespace) -> list[str]:
+    launch_config = _load_optional_launch_config(args.launch_config)
+    if launch_config and launch_config.docker_names:
+        return list(launch_config.docker_names)
+    return []
+
+
+def _run_docker_launch_flow(
+    args: argparse.Namespace,
+    *,
+    docker_names_override: list[str] | None,
+    list_when_empty: bool,
+) -> None:
     launch_config = _load_optional_launch_config(args.launch_config)
     launch_config_path = _resolve_launch_config_path(args.launch_config)
     docker_model_root_value = args.docker_model_root or (
@@ -504,14 +676,22 @@ def _handle_launch_dockers(args: argparse.Namespace) -> None:
             color="cyan",
         )
 
-    docker_names = list(args.docker_names) if args.docker_names else []
-    if not docker_names and launch_config:
+    docker_names: list[str] = []
+    requested_names = list(getattr(args, "docker_names", []) or [])
+    if docker_names_override is not None:
+        docker_names = list(docker_names_override)
+    elif requested_names:
+        docker_names = requested_names
+    elif launch_config:
         docker_names = list(launch_config.docker_names)
 
     if not docker_names:
-        print_warning("No docker names were provided. Listing all runnable folders instead.")
-        for target in available:
-            print_status("DOCKER", target, color="blue")
+        if list_when_empty:
+            print_warning("No docker names were provided. Listing all runnable folders instead.")
+            for target in available:
+                print_status("DOCKER", target, color="blue")
+        else:
+            print_warning("No docker names selected to launch.")
         return
 
     group_lookup = _build_group_lookup(launch_config)
@@ -574,7 +754,7 @@ def _handle_launch_dockers(args: argparse.Namespace) -> None:
                     if args.docker_model_root
                     else None
                 ),
-                docker_names_override=list(args.docker_names) if args.docker_names else None,
+                docker_names_override=requested_names if requested_names else None,
                 bridge_entries=launch_config.bridge_entries if launch_config else None,
                 cleanup_on_exit=True,
             )
@@ -583,6 +763,240 @@ def _handle_launch_dockers(args: argparse.Namespace) -> None:
         return
     if local_failures:
         raise RuntimeError(f"{len(local_failures)} local docker launch task(s) failed.")
+
+
+def _handle_docker_config(args: argparse.Namespace) -> None:
+    launch_config_path = Path(args.launch_config).expanduser().resolve()
+    launch_config = _load_optional_launch_config(str(launch_config_path)) if launch_config_path.exists() else None
+    docker_model_root_value = args.docker_model_root or (
+        launch_config.docker_model_root if launch_config else None
+    )
+    docker_model_root = _require_docker_model_root(docker_model_root_value)
+    docker_names = describe_targets(docker_model_root)
+    if not docker_names:
+        raise FileNotFoundError(f"No run.sh files found under DockerModel path: {docker_model_root}")
+
+    default_selected = _read_selected_dockers(launch_config_path)
+    if not default_selected and launch_config:
+        default_selected = list(launch_config.docker_names)
+    selected = _interactive_select_dockers(
+        docker_names,
+        default_selected,
+        title=f"Select dockers to run from {docker_model_root}",
+    )
+    if selected is None:
+        print_warning("Selection canceled. docker_launch.yaml not changed.")
+        return
+    _write_selected_dockers(
+        launch_config_path=launch_config_path,
+        docker_model_root=docker_model_root,
+        selected_dockers=selected,
+    )
+    print_success(f"Saved {len(selected)} docker selection(s) into {launch_config_path}")
+    if selected:
+        print_status("SELECT", ", ".join(selected), color="green")
+    else:
+        print_warning("No docker selected.")
+
+
+def _read_selected_dockers(launch_config_path: Path) -> list[str]:
+    if not launch_config_path.exists():
+        return []
+    with launch_config_path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict):
+        return []
+    launch_raw = raw.get("docker_launcher")
+    if launch_raw is None:
+        launch_raw = raw.get("launcher", raw)
+    if not isinstance(launch_raw, dict):
+        return []
+    return _coerce_docker_name_list(launch_raw.get("selected_dockers", []))
+
+
+def _write_selected_dockers(
+    *,
+    launch_config_path: Path,
+    docker_model_root: Path,
+    selected_dockers: list[str],
+) -> None:
+    raw: dict[str, Any] = {}
+    if launch_config_path.exists():
+        with launch_config_path.open("r", encoding="utf-8") as handle:
+            loaded = yaml.safe_load(handle) or {}
+        if isinstance(loaded, dict):
+            raw = loaded
+    launcher_key = "docker_launcher"
+    launch_raw = raw.get(launcher_key)
+    if launch_raw is None:
+        if isinstance(raw.get("launcher"), dict):
+            launcher_key = "launcher"
+            launch_raw = raw.get("launcher")
+        else:
+            launch_raw = {}
+            raw[launcher_key] = launch_raw
+    if not isinstance(launch_raw, dict):
+        launch_raw = {}
+        raw[launcher_key] = launch_raw
+
+    if not launch_raw.get("docker_model_root"):
+        launch_raw["docker_model_root"] = str(docker_model_root)
+    launch_raw["selected_dockers"] = selected_dockers
+
+    launch_config_path.parent.mkdir(parents=True, exist_ok=True)
+    with launch_config_path.open("w", encoding="utf-8") as handle:
+        yaml.safe_dump(raw, handle, sort_keys=False, allow_unicode=True)
+
+
+def _coerce_docker_name_list(raw: Any) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    docker_names: list[str] = []
+    for item in raw:
+        if isinstance(item, str):
+            name = item.strip()
+            if name:
+                docker_names.append(name)
+            continue
+        if isinstance(item, dict):
+            name = str(item.get("name", "")).strip()
+            if name and bool(item.get("enabled", True)):
+                docker_names.append(name)
+    return docker_names
+
+
+def _interactive_select_dockers(
+    options: list[str],
+    default_selected: list[str],
+    *,
+    title: str,
+) -> list[str] | None:
+    if not options:
+        return []
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        raise RuntimeError("docker-config requires an interactive TTY terminal.")
+
+    default_set = set(default_selected)
+    selected = {name for name in options if name in default_set}
+    cursor = 0
+
+    fd = sys.stdin.fileno()
+    original_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        # Use alternate screen to avoid polluting scrollback and reduce flicker.
+        sys.stdout.write("\033[?1049h\033[?25l")
+        sys.stdout.flush()
+        needs_render = True
+        while True:
+            if needs_render:
+                _render_docker_selection_screen(
+                    title=title,
+                    options=options,
+                    selected=selected,
+                    cursor=cursor,
+                )
+                needs_render = False
+
+            key = _read_selection_key(fd, timeout_s=0.2)
+            if key is None:
+                continue
+            if key == "UP":
+                cursor = (cursor - 1) % len(options)
+                needs_render = True
+            elif key == "DOWN":
+                cursor = (cursor + 1) % len(options)
+                needs_render = True
+            elif key == "SPACE":
+                name = options[cursor]
+                if name in selected:
+                    selected.remove(name)
+                else:
+                    selected.add(name)
+                needs_render = True
+            elif key == "ENTER":
+                return [name for name in options if name in selected]
+            elif key == "QUIT":
+                return None
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, original_settings)
+        sys.stdout.write("\033[?25h\033[?1049l")
+        sys.stdout.flush()
+
+
+def _render_docker_selection_screen(
+    *,
+    title: str,
+    options: list[str],
+    selected: set[str],
+    cursor: int,
+) -> None:
+    lines: list[str] = []
+    lines.append(colorize(title, color="cyan", bold=True))
+    lines.append(
+        colorize(
+            "Keys: Up/Down (or k/j) move | Space select/unselect | Enter save | q cancel",
+            color="yellow",
+            bold=True,
+        )
+    )
+    lines.append("")
+    for idx, name in enumerate(options):
+        marker = "[x]" if name in selected else "[ ]"
+        prefix = ">" if idx == cursor else " "
+        if idx == cursor:
+            row = colorize(f"{prefix} {marker} {name}", color="green", bold=True)
+        else:
+            row = f"{prefix} {marker} {name}"
+        lines.append(row)
+    lines.append("")
+    lines.append(f"Selected: {len(selected)} / {len(options)}")
+    sys.stdout.write("\033[H\033[J")
+    sys.stdout.write("\n".join(lines))
+    sys.stdout.flush()
+
+
+def _read_selection_key(fd: int, *, timeout_s: float) -> str | None:
+    while True:
+        ready, _, _ = select.select([fd], [], [], timeout_s)
+        if not ready:
+            return None
+        ch = os.read(fd, 1).decode(errors="ignore")
+        if not ch:
+            return None
+        if ch == "\x1b":
+            seq = _read_escape_sequence(fd)
+            if seq in {"[A", "OA"} or seq.endswith("A"):
+                return "UP"
+            if seq in {"[B", "OB"} or seq.endswith("B"):
+                return "DOWN"
+            continue
+        if ch in {"\r", "\n"}:
+            return "ENTER"
+        if ch == " ":
+            return "SPACE"
+        if ch in {"k", "K"}:
+            return "UP"
+        if ch in {"j", "J"}:
+            return "DOWN"
+        if ch in {"q", "Q"}:
+            return "QUIT"
+
+
+def _read_escape_sequence(fd: int) -> str:
+    chars: list[str] = []
+    # Collect the rest of an escape sequence with a short timeout window.
+    for _ in range(16):
+        ready, _, _ = select.select([fd], [], [], 0.03)
+        if not ready:
+            break
+        c = os.read(fd, 1).decode(errors="ignore")
+        if not c:
+            break
+        chars.append(c)
+        if c.isalpha() or c == "~":
+            break
+    return "".join(chars)
 
 
 def _handle_list_dockers(args: argparse.Namespace) -> None:
@@ -1120,7 +1534,7 @@ def _handle_add_bridge_to_ui(args: argparse.Namespace) -> None:
 def _require_docker_model_root(raw_path: str | None) -> Path:
     if not raw_path:
         raise ValueError(
-            "Please provide --docker-model-root or set ROBOT_DOCKER_MODEL_ROOT first."
+            "Please provide --docker-model-root or set DOCKER_MODEL_ROOT first."
         )
     return Path(raw_path).expanduser().resolve()
 
