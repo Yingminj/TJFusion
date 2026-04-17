@@ -5,6 +5,7 @@ import json
 import os
 import select
 from pathlib import Path
+import subprocess
 import sys
 import termios
 import tty
@@ -80,10 +81,7 @@ def _default_docker_config_launch_path() -> str:
 
 def _default_docker_model_root() -> str | None:
     docker_model_root = str(os.getenv("DOCKER_MODEL_ROOT", "")).strip()
-    if docker_model_root:
-        return docker_model_root
-    legacy_root = str(os.getenv("ROBOT_DOCKER_MODEL_ROOT", "")).strip()
-    return legacy_root or None
+    return docker_model_root or None
 
 
 def main() -> None:
@@ -121,6 +119,10 @@ def main() -> None:
 
         if args.command == "start":
             _handle_start(args)
+            return
+
+        if args.command == "update":
+            _handle_update(args)
             return
 
         if args.command == "docker-config":
@@ -208,7 +210,7 @@ def _build_parser() -> argparse.ArgumentParser:
     start_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
     start_parser.add_argument("--dry-run", action="store_true", help="Show matches without executing run.sh.")
     start_parser.add_argument(
@@ -247,6 +249,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Choose the monitor dashboard mode. Defaults to YAML or 'terminal'.",
     )
 
+    update_parser = subparsers.add_parser(
+        "update",
+        help=_release_help("Update local code via git pull and refresh the Python package."),
+    )
+    update_parser.add_argument(
+        "--repo-root",
+        help="Repository root path. Defaults to auto-detected project root.",
+    )
+    update_parser.add_argument(
+        "--skip-pip",
+        action="store_true",
+        help="Skip python package refresh step after git pull.",
+    )
+    update_parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="Allow update even when repository has local modifications.",
+    )
+
     docker_config_parser = subparsers.add_parser(
         "docker-config",
         help=_release_help(
@@ -265,7 +286,7 @@ def _build_parser() -> argparse.ArgumentParser:
     docker_config_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
 
     subparsers.add_parser(
@@ -304,7 +325,7 @@ def _build_parser() -> argparse.ArgumentParser:
     launch_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
     launch_parser.add_argument("--dry-run", action="store_true", help="Show matches without executing run.sh.")
     launch_parser.add_argument(
@@ -359,7 +380,7 @@ def _build_parser() -> argparse.ArgumentParser:
     ui_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
     ui_parser.add_argument(
         "--host",
@@ -383,7 +404,7 @@ def _build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
 
     subparsers.add_parser(
@@ -409,7 +430,7 @@ def _build_parser() -> argparse.ArgumentParser:
     inspect_io_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
     inspect_io_parser.add_argument(
         "--json",
@@ -433,7 +454,7 @@ def _build_parser() -> argparse.ArgumentParser:
     docker_ports_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
 
     inspect_ports_parser = subparsers.add_parser(
@@ -507,7 +528,7 @@ def _build_parser() -> argparse.ArgumentParser:
     scaffold_parser.add_argument(
         "--docker-model-root",
         default=_default_docker_model_root(),
-        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT (fallback: ROBOT_DOCKER_MODEL_ROOT).",
+        help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
     )
     scaffold_parser.add_argument(
         "--launch-config",
@@ -612,6 +633,77 @@ def _resolve_start_docker_names(args: argparse.Namespace) -> list[str]:
     if launch_config and launch_config.docker_names:
         return list(launch_config.docker_names)
     return []
+
+
+def _handle_update(args: argparse.Namespace) -> None:
+    repo_root = _resolve_repo_root_for_update(args.repo_root)
+    print_status("UPDATE", f"Repository root: {repo_root}", color="cyan")
+
+    if not args.allow_dirty:
+        dirty = _run_subprocess(
+            ["git", "-C", str(repo_root), "status", "--porcelain"],
+            capture_output=True,
+        ).stdout.strip()
+        if dirty:
+            raise RuntimeError(
+                "Repository has uncommitted changes. Commit/stash first, or re-run with --allow-dirty."
+            )
+
+    pull_result = _run_subprocess(
+        ["git", "-C", str(repo_root), "pull", "--ff-only"],
+        capture_output=True,
+    )
+    _print_cmd_output(pull_result.stdout)
+    _print_cmd_output(pull_result.stderr)
+
+    if args.skip_pip:
+        print_warning("Skipped pip package refresh (--skip-pip).")
+        return
+
+    fusion_dir = repo_root / "FusionDocker"
+    if not fusion_dir.is_dir():
+        raise FileNotFoundError(f"FusionDocker directory not found under: {repo_root}")
+
+    py_bin = Path(sys.executable).resolve()
+    print_status("UPDATE", f"Refreshing package with interpreter: {py_bin}", color="cyan")
+    _run_subprocess([str(py_bin), "-m", "pip", "install", "--upgrade", "pip", "setuptools", "wheel"])
+    requirements_file = fusion_dir / "requirements.txt"
+    if requirements_file.is_file():
+        _run_subprocess([str(py_bin), "-m", "pip", "install", "-r", str(requirements_file)])
+    _run_subprocess([str(py_bin), "-m", "pip", "install", "-e", str(fusion_dir)])
+    print_success("Update completed.")
+
+
+def _resolve_repo_root_for_update(raw_repo_root: str | None) -> Path:
+    if raw_repo_root:
+        repo_root = Path(raw_repo_root).expanduser().resolve()
+    else:
+        this_file = Path(__file__).resolve()
+        # .../<repo>/FusionDocker/src/fusion_docker/cli.py
+        repo_root = this_file.parents[3]
+    if not (repo_root / ".git").exists():
+        raise FileNotFoundError(f"Git repository not found at: {repo_root}")
+    return repo_root
+
+
+def _run_subprocess(cmd: list[str], *, capture_output: bool = False) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(
+        cmd,
+        text=True,
+        capture_output=capture_output,
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"Command failed ({' '.join(cmd)}): {detail or 'unknown error'}")
+    return result
+
+
+def _print_cmd_output(text: str) -> None:
+    content = text.strip()
+    if not content:
+        return
+    for line in content.splitlines():
+        print_status("GIT", line, color="blue")
 
 
 def _run_docker_launch_flow(
