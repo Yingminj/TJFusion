@@ -321,15 +321,16 @@ setup_python_env() {
     exit 1
   fi
 
-  log_info "[install] Creating virtualenv: ${venv_dir}"
-  python3 -m venv "$venv_dir"
+  run_step "create virtualenv: ${venv_dir}" python3 -m venv "$venv_dir"
 
-  log_info "[install] Installing Python dependencies..."
-  "$venv_dir/bin/python" -m pip install --upgrade pip setuptools wheel
+  run_step "upgrade pip/setuptools/wheel" \
+    "$venv_dir/bin/python" -m pip install --upgrade pip setuptools wheel
   if [[ -f "${fusion_dir}/requirements.txt" ]]; then
-    "$venv_dir/bin/pip" install -r "${fusion_dir}/requirements.txt"
+    run_step "install requirements.txt" \
+      "$venv_dir/bin/pip" install -r "${fusion_dir}/requirements.txt"
   fi
-  "$venv_dir/bin/pip" install -e "$fusion_dir"
+  run_step "install editable FusionDocker package" \
+    "$venv_dir/bin/pip" install -e "$fusion_dir"
 
   echo "$venv_dir"
 }
@@ -632,8 +633,8 @@ main() {
     exit 1
   fi
 
-  local venv_dir="${repo_root}/.venv-tjfusion"
-  setup_python_env "$repo_root" >/dev/null
+  local venv_dir
+  venv_dir="$(setup_python_env "$repo_root")"
 
   local launcher_path
   launcher_path="$(install_launcher "$venv_dir")"
