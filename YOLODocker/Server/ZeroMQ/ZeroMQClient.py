@@ -9,6 +9,11 @@ import cv2
 import numpy as np
 import zmq
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_RGB = Path(__file__).resolve().parent / "test.jpg"
+DEFAULT_JSON_OUTPUT = PROJECT_ROOT / "RequestFormat" / "output.json"
+DEFAULT_ANNOTATED_OUTPUT = PROJECT_ROOT / "RequestFormat" / "annotated_latest.jpg"
+
 
 def encode_file_to_base64(path: Path) -> str:
     return base64.b64encode(path.read_bytes()).decode("utf-8")
@@ -43,7 +48,7 @@ def build_dummy_rgb(width: int, height: int) -> np.ndarray:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="YOLO ZeroMQ test client (REQ).")
     parser.add_argument("--endpoint", default="tcp://127.0.0.1:5562", help="YOLO REP endpoint.")
-    parser.add_argument("--rgb", type=str, default="test.jpg", help="Path to input RGB image file.")
+    parser.add_argument("--rgb", type=str, default=str(DEFAULT_RGB), help="Path to input RGB image file.")
     parser.add_argument("--timeout-ms", type=int, default=5000, help="Send/recv timeout in ms.")
     parser.add_argument("--count", type=int, default=1, help="How many requests to send.")
     parser.add_argument("--interval-sec", type=float, default=0.0, help="Sleep between requests.")
@@ -53,8 +58,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--return-masks", action="store_true", help="Ask server to return masks.")
     parser.add_argument(
         "--return-annotated-image",
+        dest="return_annotated_image",
         action="store_true",
-        help="Ask server to return annotated image.",
+        default=True,
+        help="Ask server to return annotated image (default: enabled).",
+    )
+    parser.add_argument(
+        "--no-return-annotated-image",
+        dest="return_annotated_image",
+        action="store_false",
+        help="Disable annotated image in request.",
     )
     parser.add_argument(
         "--prompts",
@@ -64,11 +77,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dummy-width", type=int, default=640, help="Width for auto-generated test image.")
     parser.add_argument("--dummy-height", type=int, default=480, help="Height for auto-generated test image.")
-    parser.add_argument("--save-json", type=str, default="", help="Save response JSON to this file.")
+    parser.add_argument(
+        "--save-json",
+        type=str,
+        default=str(DEFAULT_JSON_OUTPUT),
+        help="Save response JSON to this file.",
+    )
     parser.add_argument(
         "--save-annotated",
         type=str,
-        default="",
+        default=str(DEFAULT_ANNOTATED_OUTPUT),
         help="Save response annotated image to this file (jpg/png).",
     )
     return parser.parse_args()

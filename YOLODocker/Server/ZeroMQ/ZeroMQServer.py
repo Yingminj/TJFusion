@@ -78,9 +78,9 @@ class YOLOZMQServer:
         self.tracker = "bytetrack.yaml"
         self.persist = True
         self.return_masks = True
-        self.return_annotated_image = bool(yolo_cfg.get("return_annotated_image", True))
-        self.show_window = bool(yolo_cfg.get("show_window", False))
-        self.window_name = str(yolo_cfg.get("window_name", "YOLO Detections"))
+        self.return_annotated_image = True
+        self.show_window = False
+        self.window_name = "YOLO Detections"
         self._window_available = True
 
         print("=" * 70)
@@ -92,20 +92,39 @@ class YOLOZMQServer:
         log_info(f"port         : {self.port}")
         log_info(f"model_path   : {self.model_path}")
         log_info(f"score_thresh : {self.score_threshold}")
-        log_info(f"ret_ann_img  : {self.return_annotated_image}")
-        log_info(f"show_window  : {self.show_window}")
         print("=" * 70)
 
         log_info("Loading YOLO model, please wait...")
         t0 = time.time()
         self.yolo = YOLO(self.model_path)
+        self.model_task = getattr(self.yolo, "task", "detect")
         log_success(f"Model loaded in {time.time() - t0:.2f} s")
+        log_info(f"model_task   : {self.model_task}")
 
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REP)
         bind_host = "*" if self.host in ("0.0.0.0", "*") else self.host
         self.socket.bind(f"tcp://{bind_host}:{self.port}")
         log_success(f"ZeroMQ REP socket bound at tcp://{bind_host}:{self.port}")
+
+    def get_class_id(self, class_name):
+        """Get class id by class name from model names."""
+        if class_name is None:
+            return None
+        target = str(class_name).strip().lower()
+        if not target:
+            return None
+
+        names = getattr(self.yolo, "names", None)
+        if isinstance(names, dict):
+            for class_id, name in names.items():
+                if str(name).strip().lower() == target:
+                    return int(class_id)
+        elif isinstance(names, (list, tuple)):
+            for class_id, name in enumerate(names):
+                if str(name).strip().lower() == target:
+                    return int(class_id)
+        return None
 
     def process_request(self, req: dict) -> dict:
         request_total_start = time.time()
@@ -126,13 +145,20 @@ class YOLOZMQServer:
         return_annotated_image = bool(req.get("return_annotated_image", self.return_annotated_image))
         show_window = bool(req.get("show_window", self.show_window))
 
-        results = self.yolo.track(
-            rgb,
-            persist=persist,
-            tracker=tracker,
-            verbose=False,
-            conf=conf,
-        )
+        if self.model_task == "classify":
+            results = self.yolo.predict(
+                rgb,
+                verbose=False,
+                conf=conf,
+            )
+        else:
+            results = self.yolo.track(
+                rgb,
+                persist=persist,
+                tracker=tracker,
+                verbose=False,
+                conf=conf,
+            )
 
         prompt_set = normalize_prompt_set(prompts)
 
@@ -157,7 +183,42 @@ class YOLOZMQServer:
                 self._window_available = False
                 log_error(f"OpenCV window display disabled: {e}")
 
-        if result0 is not None and result0.boxes is not None and len(result0.boxes) > 0:
+        if self.model_task == "classify":
+            names = result0.names if (result0 is not None and hasattr(result0, "names")) else self.yolo.names
+            probs = result0.probs if result0 is not None else None
+            if probs is not None and hasattr(probs, "top5") and hasattr(probs, "top5conf"):
+                top5_ids = probs.top5
+                top5_confs = probs.top5conf.tolist()
+                for class_id, score in zip(top5_ids, top5_confs):
+                    class_id = int(class_id)
+                    label = (
+                        str(names[class_id])
+                        if isinstance(names, dict) and class_id in names
+                        else str(class_id)
+                    )
+                    label_norm = label.strip().lower()
+                    if prompt_set:
+                        prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
+                        if not prompt_hit:
+                            for prompt in prompt_set:
+                                prompt_id = self.get_class_id(prompt)
+                                if prompt_id is not None and int(prompt_id) == class_id:
+                                    prompt_hit = True
+                                    break
+                        if not prompt_hit:
+                            continue
+                    detections.append(
+                        {
+                            "id": int(global_det_id),
+                            "label": label,
+                            "class": label,
+                            "class_id": class_id,
+                            "score": float(score),
+                            "bbox": [],
+                        }
+                    )
+                    global_det_id += 1
+        elif result0 is not None and result0.boxes is not None and len(result0.boxes) > 0:
             boxes = result0.boxes
             masks = result0.masks
 
@@ -175,12 +236,22 @@ class YOLOZMQServer:
                 label = str(names[class_id]) if isinstance(names, dict) and class_id in names else str(class_id)
                 label_norm = label.strip().lower()
 
-                if prompt_set and label_norm not in prompt_set:
-                    continue
+                if prompt_set:
+                    prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
+                    if not prompt_hit:
+                        for prompt in prompt_set:
+                            prompt_id = self.get_class_id(prompt)
+                            if prompt_id is not None and int(prompt_id) == class_id:
+                                prompt_hit = True
+                                break
+                    if not prompt_hit:
+                        continue
 
                 det = {
                     "id": int(global_det_id),
                     "label": label,
+                    "class": label,
+                    "class_id": class_id,
                     "score": score,
                     "bbox": [float(v) for v in xyxy[i].tolist()] if xyxy is not None else [],
                 }

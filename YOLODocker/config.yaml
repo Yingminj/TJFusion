@@ -3,8 +3,5 @@ server:
   port: 5562
 
 yolo:
-  model_path: /workspace/model/drawer_cup.pt
+  model_path: /workspace/model/best.pt
   score_threshold: 0.4
-  return_annotated_image: true
-  show_window: false
-  window_name: YOLO Detections
