@@ -1,140 +1,34 @@
-# Marvin Robot System
- <img src="https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/FusionDocker/assets/logo.png" alt="MARVIN"
-  width="520" />
+# TJFUSION
 
-# DockerModel
-
-## 前提条件
-
-使用本项目前，需要先完成以下环境准备。
-
-### 1. 安装 Docker
+## Install `tjfusion`
 
 ```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin
-sudo systemctl enable docker
-sudo systemctl start docker
+curl -fsSL https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/install.sh | bash
 ```
 
-检查是否安装成功：
+## Configure
 
 ```bash
-docker --version
-docker compose version
+export DOCKER_MODEL_ROOT=/path/to/DockerModel
 ```
 
-### 2. 安装 Docker GPU 支持
+## `tjfusion docker-select`
 
-如果需要在容器中使用 GPU，需要安装 NVIDIA Container Toolkit。
+Use interactive selection for which dockers should be started.
+
+- Up/Down: move
+- Space: select/unselect
+- Enter: save
+- q: cancel
 
 ```bash
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID) && \
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
-sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg && \
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
-sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-sudo apt update
-sudo apt install -y nvidia-container-toolkit
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
+tjfusion docker-select
 ```
 
-检查 GPU 是否可用：
+## `tjfusion start`
+
+Start all dockers selected in `docker_launch.yaml`.
 
 ```bash
-docker run --rm --gpus all nvidia/cuda:12.3.1-base-ubuntu22.04 nvidia-smi
+tjfusion start
 ```
-
-### 3. 给 Docker 配置代理
-
-如果拉取镜像或构建时需要代理，可以配置 Docker 的 systemd 代理。
-
-```bash
-sudo mkdir -p /etc/systemd/system/docker.service.d
-sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf > /dev/null <<EOF2
-[Service]
-Environment="HTTP_PROXY=http://127.0.0.1:7890"
-Environment="HTTPS_PROXY=http://127.0.0.1:7890"
-Environment="NO_PROXY=localhost,127.0.0.1"
-EOF2
-
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-```
-
-检查代理是否生效：
-
-```bash
-systemctl show --property=Environment docker
-```
-
-## 构建和运行 Docker
-
-### 1. 添加和运行 Fusion 时，建议使用单独的 conda 环境，避免与系统或其他项目依赖冲突。
-
-```bash
-conda create -n fusion python=3.10
-conda activate fusion
-cd FusionDocker
-pip install -r requirement.txt
-```
-
-### 2. 逐个构建和运行(除了FusionDocker)
-
-如果某个 Docker 目录中有 `build.sh`，执行：
-
-```bash
-cd /path/to/DockerModel/<docker_dir>
-chmod +x build.sh
-./build.sh
-```
-
-如果某个 Docker 目录中有 `run.sh`，执行：
-
-```bash
-cd /path/to/DockerModel/<docker_dir>
-chmod +x run.sh
-./run.sh
-```
-
-### 3. 通过配置文件统一构建和运行
-
-项目支持通过配置文件统一指定要构建和运行的 Docker。
-配置TJDocker路径:
-```bash
-export DOCKER_MODEL_ROOT=Path To TJDocker
-```
-
-配置文件路径：
-
-```bash
-FusionDocker/configs/docker_launch.yaml
-```
-
-先修改这个配置文件，选择需要启用的 Docker。然后启动FusionDocker中的run.sh，系统会自动帮助构建所有要运行的 Docker。
-
-### 4. 模型文件说明
-
-  Docker 目录下会有一个 `model` 文件夹，里面包含 `download.sh` 脚本。
-
-  你可以选择以下任一方式准备模型文件：
-
-  1. 进入 `model` 目录后运行 `download.sh` 下载模型。
-  2. 也可以将已经准备好的模型文件手动复制到 `model` 目录。
-
-  完成后，请在 `config.yaml` 中将对应的模型路径修改为你实际使用的模型文件路径。
-
-推荐流程：
-
-1. 安装 Docker
-2. 如果需要 GPU，再安装 Docker GPU 支持
-3. 给 Docker 配置代理
-4. 安装Fusion的conda环境
-5. 配置`DOCKER_MODEL_ROOT`环境变量以及修改 `FusionDocker/configs/docker_launch.yaml`
-6. 修改 `下载模型并修改Docker各自的config.yaml`
-7. 运行FusionDocker下面的run.sh
-
-Tips:机器人ip在MarvinDocker的run.sh里面配置
