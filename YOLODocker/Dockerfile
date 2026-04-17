@@ -7,16 +7,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /workspace
 
-COPY scripts/select_fastest_mirrors.sh /usr/local/bin/select_fastest_mirrors.sh
+# 切换 apt 为阿里云源，并安装基础工具
 RUN set -eux; \
-    chmod +x /usr/local/bin/select_fastest_mirrors.sh; \
-    /usr/local/bin/select_fastest_mirrors.sh; \
-    apt-get update
-
-RUN set -eux; \
+    sed -i 's@deb.debian.org@mirrors.aliyun.com@g' /etc/apt/sources.list.d/debian.sources; \
     apt-get update; \
     apt-get install -y --no-install-recommends ca-certificates curl; \
     rm -rf /var/lib/apt/lists/*
+
+# 配置 pip 为阿里云源
+RUN mkdir -p /root/.pip && \
+    printf "[global]\nindex-url = https://mirrors.aliyun.com/pypi/simple/\ndefault-timeout = 300\ntrusted-host = mirrors.aliyun.com\n" > /root/.pip/pip.conf
 
 # System deps commonly needed by OpenCV/YOLO
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -33,12 +33,13 @@ COPY requirements*.txt ./
 RUN set -eux; \
     python -m pip install --upgrade pip setuptools wheel; \
     if [ -f requirements.txt ]; then \
-        pip install -r requirements.txt; \
+        python -m pip install -r requirements.txt; \
     else \
-        pip install ultralytics opencv-python-headless; \
+        python -m pip install ultralytics opencv-python-headless; \
     fi
 
 # Copy source code
-COPY ./ WORKDIR
+COPY . /workspace
+
 # Default server entrypoint
 CMD ["python", "Server/ZeroMQ/ZeroMQServer.py"]
