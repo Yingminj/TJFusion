@@ -85,6 +85,50 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+force_deactivate_conda() {
+  local had_conda=0
+  local conda_name="${CONDA_DEFAULT_ENV:-${CONDA_PREFIX:-unknown}}"
+  if [[ -n "${CONDA_PREFIX:-}" || "${CONDA_SHLVL:-0}" != "0" ]]; then
+    had_conda=1
+  fi
+  [[ "$had_conda" -eq 0 ]] && return 0
+
+  log_warn "[install] Detected active Conda env: ${conda_name}"
+  log_warn "[install] Conda will be disabled for this installer process."
+
+  if declare -F conda >/dev/null 2>&1; then
+    while [[ "${CONDA_SHLVL:-0}" -gt 0 ]]; do
+      conda deactivate >/dev/null 2>&1 || break
+    done
+  fi
+
+  local cleaned_path=""
+  local seg
+  local path_parts=()
+  IFS=':' read -r -a path_parts <<< "${PATH:-}"
+  for seg in "${path_parts[@]}"; do
+    case "$seg" in
+      *conda*|*anaconda*|*miniconda*) continue ;;
+    esac
+    [[ -z "$seg" ]] && continue
+    if [[ -z "$cleaned_path" ]]; then
+      cleaned_path="$seg"
+    else
+      cleaned_path="${cleaned_path}:$seg"
+    fi
+  done
+  if [[ -n "$cleaned_path" ]]; then
+    PATH="$cleaned_path"
+    export PATH
+  fi
+
+  unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_PROMPT_MODIFIER CONDA_SHLVL
+  unset _CE_CONDA _CE_M CONDA_EXE CONDA_PYTHON_EXE
+
+  log_warn "[install] Conda disabled. Installer now uses non-Conda Python lookup."
+  log_info "[install] Tip: run 'conda deactivate' in your current shell after install."
+}
+
 install_base_env_if_needed() {
   [[ "$SKIP_ENV_INSTALL" == "1" ]] && return 0
 
@@ -503,6 +547,7 @@ list_git_repos() {
 }
 
 main() {
+  force_deactivate_conda
   install_base_env_if_needed
   clone_or_update_repo
 
