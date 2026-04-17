@@ -40,6 +40,13 @@ SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
 VERBOSE="0"
 LOG_FILE="/tmp/tjfusion-install-$(date +%Y%m%d-%H%M%S).log"
+STEP_INDEX=0
+STEP_TOTAL=8
+
+log_step() {
+  STEP_INDEX=$((STEP_INDEX + 1))
+  log_info "[install][${STEP_INDEX}/${STEP_TOTAL}] $*"
+}
 
 _strip_conda_from_path() {
   local src_path="$1"
@@ -261,7 +268,10 @@ resolve_repo_root() {
 }
 
 clone_or_update_repo() {
-  [[ "$SKIP_CLONE" == "1" ]] && return 0
+  if [[ "$SKIP_CLONE" == "1" ]]; then
+    log_info "[install] Skip clone/pull step (--skip-clone)."
+    return 0
+  fi
 
   local repo_root
   repo_root="$(resolve_repo_root)"
@@ -622,10 +632,14 @@ list_git_repos() {
 main() {
   : > "$LOG_FILE"
   [[ "$VERBOSE" == "1" ]] && log_info "[install] Verbose mode enabled."
+  log_step "Preparing shell environment"
   force_deactivate_conda
+  log_step "Checking/installing base dependencies"
   install_base_env_if_needed
+  log_step "Syncing repository (clone/pull)"
   clone_or_update_repo
 
+  log_step "Resolving repository root"
   local repo_root
   repo_root="$(resolve_repo_root)"
   if [[ -z "$repo_root" ]]; then
@@ -633,9 +647,11 @@ main() {
     exit 1
   fi
 
+  log_step "Setting up Python virtual environment and dependencies"
   local venv_dir
   venv_dir="$(setup_python_env "$repo_root")"
 
+  log_step "Installing tjfusion launcher"
   local launcher_path
   launcher_path="$(install_launcher "$venv_dir")"
 
@@ -643,15 +659,18 @@ main() {
     ensure_local_path
   fi
 
+  log_step "Installing shell completions"
   install_bash_completion
   install_zsh_completion
 
+  log_step "Running environment checks"
   log_ok "[install] Done"
   log_info "[install] Repo root: $repo_root"
   log_info "[install] Venv: $venv_dir"
   log_ok "[install] Command: $launcher_path"
   log_info "[install] Reload shell: source ~/.bashrc  (or source ~/.zshrc)"
   log_info "[install] Test: tjfusion --help"
+  log_step "Printing summary (docker folders/git repos/runtime checks)"
   list_docker_folders "$repo_root"
   list_git_repos "$repo_root"
   check_docker_install
