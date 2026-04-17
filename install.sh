@@ -39,7 +39,7 @@ CLONE_DIR="$PWD"
 SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
 VERBOSE="0"
-CONDA_MODE="auto"         # auto | on | off
+CONDA_MODE="on"           # auto | on | off
 LOG_FILE="/tmp/tjfusion-install-$(date +%Y%m%d-%H%M%S).log"
 STEP_INDEX=0
 STEP_TOTAL=8
@@ -153,7 +153,7 @@ Options:
   --clone-dir=<path>      Where to clone repository (default: current directory)
   --skip-clone            Skip git clone/pull step
   --skip-env-install      Skip system package auto-install step
-  --conda=auto|on|off     Conda policy: auto keeps conda when Python>=3.11 (default)
+  --conda=auto|on|off     Conda policy: default is on (always keep active conda)
   -h, --help              Show this help
 USAGE
       exit 0
@@ -359,6 +359,11 @@ resolve_repo_root() {
   echo ""
 }
 
+is_tjfusion_repo_root() {
+  local root="$1"
+  [[ -d "${root}/FusionDocker/src" || -d "${root}/src/fusion_docker" ]]
+}
+
 clone_or_update_repo() {
   if [[ "$SKIP_CLONE" == "1" ]]; then
     log_info "[install] Skip clone/pull step (--skip-clone)."
@@ -387,18 +392,23 @@ clone_or_update_repo() {
 
   if [[ -d "$target_dir" ]]; then
     if [[ -d "$target_dir/.git" ]]; then
-      log_info "[install] Existing git repo found at ${target_dir}. Running git pull..."
-      (cd "$target_dir" && git pull --ff-only || true)
-      CLONE_DIR="$target_dir"
-      return 0
-    fi
-    if [[ -n "$(ls -A "$target_dir" 2>/dev/null || true)" ]]; then
-      target_dir="${target_dir}/${repo_name}"
-      if [[ -d "$target_dir/.git" ]]; then
-        log_info "[install] Existing git repo found at ${target_dir}. Running git pull..."
+      if is_tjfusion_repo_root "$target_dir"; then
+        log_info "[install] Existing TJFusion repo found at ${target_dir}. Running git pull..."
         (cd "$target_dir" && git pull --ff-only || true)
         CLONE_DIR="$target_dir"
         return 0
+      fi
+      log_warn "[install] ${target_dir} is a git repo but not TJFusion. Will use subfolder clone target."
+      target_dir="${target_dir}/${repo_name}"
+    fi
+    if [[ -n "$(ls -A "$target_dir" 2>/dev/null || true)" ]]; then
+      if [[ -d "$target_dir/.git" ]]; then
+        if is_tjfusion_repo_root "$target_dir"; then
+          log_info "[install] Existing TJFusion repo found at ${target_dir}. Running git pull..."
+          (cd "$target_dir" && git pull --ff-only || true)
+          CLONE_DIR="$target_dir"
+          return 0
+        fi
       fi
       if [[ -e "$target_dir" && -n "$(ls -A "$target_dir" 2>/dev/null || true)" ]]; then
         log_err "[install] Target clone path exists and is not empty: ${target_dir}"
