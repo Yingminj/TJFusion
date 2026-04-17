@@ -33,7 +33,7 @@ log_err() { echo -e "${C_RED}$*${C_RESET}"; }
 #   ./install.sh --system
 #   ./install.sh --local --skip-clone
 
-MODE="cwd"                 # cwd | local | system
+MODE="local"               # cwd | local | system
 REPO_URL="https://github.com/yangzhaofeng496/TJFusion.git"
 CLONE_DIR="$PWD"
 SKIP_CLONE="0"
@@ -53,8 +53,8 @@ for arg in "$@"; do
 Usage: ./install.sh [options]
 
 Options:
-  --cwd                   Install launcher to current directory (default)
-  --local                 Install launcher to ~/.local/bin
+  --cwd                   Install launcher to current directory
+  --local                 Install launcher to ~/.local/bin (default)
   --system                Install launcher to /usr/local/bin
   --repo-url=<git_url>    Git repository URL for clone/pull (default: https://github.com/yangzhaofeng496/TJFusion.git)
   --clone-dir=<path>      Where to clone repository (default: current directory)
