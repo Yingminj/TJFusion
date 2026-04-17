@@ -39,6 +39,7 @@ CLONE_DIR="$PWD"
 SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
 VERBOSE="0"
+CONDA_MODE="auto"         # auto | on | off
 LOG_FILE="/tmp/tjfusion-install-$(date +%Y%m%d-%H%M%S).log"
 STEP_INDEX=0
 STEP_TOTAL=8
@@ -46,6 +47,14 @@ STEP_TOTAL=8
 log_step() {
   STEP_INDEX=$((STEP_INDEX + 1))
   log_info "[install][${STEP_INDEX}/${STEP_TOTAL}] $*"
+}
+
+python_version_text() {
+  local py_bin="$1"
+  "$py_bin" - <<'PY' 2>/dev/null || true
+import platform
+print(platform.python_version())
+PY
 }
 
 _strip_conda_from_path() {
@@ -71,6 +80,29 @@ _strip_conda_from_path() {
 reexec_without_conda_if_needed() {
   [[ "${TJ_NO_CONDA_REEXEC:-0}" == "1" ]] && return 0
   if [[ -z "${CONDA_PREFIX:-}" && "${CONDA_SHLVL:-0}" == "0" ]]; then
+    return 0
+  fi
+
+  local should_keep_conda=0
+  case "${CONDA_MODE}" in
+    on)
+      should_keep_conda=1
+      ;;
+    auto)
+      if python3 - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
+PY
+      then
+        should_keep_conda=1
+      fi
+      ;;
+    off)
+      should_keep_conda=0
+      ;;
+  esac
+  if [[ "$should_keep_conda" -eq 1 ]]; then
+    log_info "[install] Keeping active Conda env (${CONDA_DEFAULT_ENV:-${CONDA_PREFIX:-unknown}}) due to --conda=${CONDA_MODE}."
     return 0
   fi
 
@@ -105,6 +137,9 @@ for arg in "$@"; do
     --skip-env-install) SKIP_ENV_INSTALL="1" ;;
     --repo-url=*) REPO_URL="${arg#*=}" ;;
     --clone-dir=*) CLONE_DIR="${arg#*=}" ;;
+    --conda=on) CONDA_MODE="on" ;;
+    --conda=off) CONDA_MODE="off" ;;
+    --conda=auto) CONDA_MODE="auto" ;;
     -h|--help)
       cat <<'USAGE'
 Usage: ./install.sh [options]
@@ -118,6 +153,7 @@ Options:
   --clone-dir=<path>      Where to clone repository (default: current directory)
   --skip-clone            Skip git clone/pull step
   --skip-env-install      Skip system package auto-install step
+  --conda=auto|on|off     Conda policy: auto keeps conda when Python>=3.11 (default)
   -h, --help              Show this help
 USAGE
       exit 0
@@ -145,6 +181,28 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+python_ge_311() {
+  local py_bin="$1"
+  "$py_bin" - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
+PY
+}
+
+select_python_bin() {
+  local candidate
+  for candidate in python3.12 python3.11 python3; do
+    if ! has_cmd "$candidate"; then
+      continue
+    fi
+    if python_ge_311 "$candidate"; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 force_deactivate_conda() {
   local had_conda=0
   local conda_name="${CONDA_DEFAULT_ENV:-${CONDA_PREFIX:-unknown}}"
@@ -152,6 +210,29 @@ force_deactivate_conda() {
     had_conda=1
   fi
   [[ "$had_conda" -eq 0 ]] && return 0
+
+  local keep_conda=0
+  case "${CONDA_MODE}" in
+    on)
+      keep_conda=1
+      ;;
+    auto)
+      if python3 - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
+PY
+      then
+        keep_conda=1
+      fi
+      ;;
+    off)
+      keep_conda=0
+      ;;
+  esac
+  if [[ "$keep_conda" -eq 1 ]]; then
+    log_info "[install] Using active Conda env: ${conda_name}"
+    return 0
+  fi
 
   log_warn "[install] Detected active Conda env: ${conda_name}"
   log_warn "[install] Conda will be disabled for this installer process."
@@ -210,11 +291,13 @@ install_base_env_if_needed() {
   [[ "$SKIP_ENV_INSTALL" == "1" ]] && return 0
 
   local need_git=0 need_py=0 need_pip=0 need_venv=0
+  local py_bin=""
   has_cmd git || need_git=1
-  has_cmd python3 || need_py=1
+  py_bin="$(select_python_bin || true)"
+  [[ -n "$py_bin" ]] || need_py=1
   has_cmd pip3 || need_pip=1
-  if has_cmd python3; then
-    python3 -m venv --help >/dev/null 2>&1 || need_venv=1
+  if [[ -n "$py_bin" ]]; then
+    "$py_bin" -m venv --help >/dev/null 2>&1 || need_venv=1
   else
     need_venv=1
   fi
@@ -240,7 +323,16 @@ install_base_env_if_needed() {
     run_step "brew install base dependencies" brew install git python
   else
     log_err "[install] No supported package manager found."
-    log_warn "Please install manually: git, python3, pip3, python3-venv"
+    log_warn "Please install manually: git, python>=3.11, pip3, python-venv"
+    exit 1
+  fi
+
+  py_bin="$(select_python_bin || true)"
+  if [[ -z "$py_bin" ]]; then
+    log_err "[install] Python >= 3.11 is required by FusionDocker, but not found."
+    log_warn "Ubuntu/Debian example:"
+    log_warn "  sudo apt-get update && sudo apt-get install -y python3.11 python3.11-venv"
+    log_warn "Then rerun: ./install.sh"
     exit 1
   fi
 }
@@ -325,13 +417,24 @@ setup_python_env() {
   local repo_root="$1"
   local fusion_dir="${repo_root}/FusionDocker"
   local venv_dir="${repo_root}/.venv-tjfusion"
+  local py_bin=""
 
   if [[ ! -d "$fusion_dir" ]]; then
     log_err "[install] FusionDocker directory not found under ${repo_root}"
     exit 1
   fi
 
-  run_step "create virtualenv: ${venv_dir}" python3 -m venv "$venv_dir"
+  py_bin="$(select_python_bin || true)"
+  if [[ -z "$py_bin" ]]; then
+    log_err "[install] Python >= 3.11 is required by FusionDocker, but not found."
+    log_warn "Ubuntu/Debian example:"
+    log_warn "  sudo apt-get update && sudo apt-get install -y python3.11 python3.11-venv"
+    log_warn "Then rerun: ./install.sh"
+    exit 1
+  fi
+  log_info "[install] Using Python interpreter: $py_bin ($($py_bin --version 2>/dev/null || echo unknown))"
+
+  run_step "create virtualenv: ${venv_dir}" "$py_bin" -m venv "$venv_dir"
 
   run_step "upgrade pip/setuptools/wheel" \
     "$venv_dir/bin/python" -m pip install --upgrade pip setuptools wheel
@@ -632,6 +735,13 @@ list_git_repos() {
 main() {
   : > "$LOG_FILE"
   [[ "$VERBOSE" == "1" ]] && log_info "[install] Verbose mode enabled."
+  log_info "[install] Conda policy: ${CONDA_MODE}"
+  local py_hint="${CONDA_PREFIX:+python3}"
+  if [[ -n "$py_hint" ]] && command -v "$py_hint" >/dev/null 2>&1; then
+    log_info "[install] Active interpreter hint: ${py_hint} $(python_version_text "$py_hint") (conda env: ${CONDA_DEFAULT_ENV:-unknown})"
+  elif command -v python3 >/dev/null 2>&1; then
+    log_info "[install] Active interpreter hint: python3 $(python_version_text python3)"
+  fi
   log_step "Preparing shell environment"
   force_deactivate_conda
   log_step "Checking/installing base dependencies"
