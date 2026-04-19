@@ -642,6 +642,14 @@ def get_single_image_from_request(req: dict[str, Any]) -> Image.Image:
     return decode_image_b64_to_pil(image_b64)
 
 
+def summarize_request(req: dict[str, Any]) -> str:
+    request_id = str(req.get("request_id", "")).strip() or "-"
+    keys = sorted(list(req.keys()))
+    image_b64 = req.get("image_b64")
+    image_b64_len = len(image_b64) if isinstance(image_b64, str) else 0
+    return f"request_id={request_id}, keys={keys}, image_b64_len={image_b64_len}"
+
+
 def main():
     args = parse_args()
     enable_upload = bool(args.dashboard.strip())
@@ -686,15 +694,19 @@ def main():
         output_thread.start()
 
     try:
+        request_count = 0
         while not output_worker.stop_event.is_set():
             try:
                 req = sock.recv_json()
             except zmq.Again:
                 continue
 
+            request_count += 1
             res = {"ok": False}
             image_bgr = None
-            start_time = cv2.getTickCount()
+            start_time = time.perf_counter()
+            req_summary = summarize_request(req)
+            print(f"[REQ {request_count}] 收到请求: {req_summary}")
 
             try:
                 request_id = str(req.get("request_id", "")).strip()
@@ -713,12 +725,23 @@ def main():
                 res = {"ok": False, "error": str(e)}
 
             sock.send_json(res)
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            if res.get("ok"):
+                best_category = str(res.get("best_category", "")).strip() or "unknown"
+                best_similarity = float(res.get("best_similarity", 0.0))
+                print(
+                    f"[REQ {request_count}] 响应完成: ok=True, category={best_category}, "
+                    f"similarity={best_similarity:.4f}, elapsed_ms={elapsed_ms:.2f}"
+                )
+            else:
+                err = str(res.get("error", "unknown"))
+                print(f"[REQ {request_count}] 响应完成: ok=False, error={err}, elapsed_ms={elapsed_ms:.2f}")
 
             if (args.show or enable_upload) and req.get("image_b64"):
                 try:
                     if image_bgr is None:
                         image_bgr = decode_image_b64_to_bgr(req["image_b64"])
-                    infer_elapsed = (cv2.getTickCount() - start_time) / cv2.getTickFrequency()
+                    infer_elapsed = max(elapsed_ms / 1000.0, 1e-6)
                     infer_fps = 1.0 / max(infer_elapsed, 1e-6)
                     combined_vis = build_visualization_frame(image_bgr, res, state_list, fps=infer_fps)
                     output_worker.submit(combined_vis)
