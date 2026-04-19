@@ -1176,6 +1176,34 @@ def process_once(
     )
     model_results: dict[str, dict[str, Any]] = {}
     effective_sam3_timeout_ms = int(sam3_timeout_ms or req_timeout_ms)
+    siglip2_thread: threading.Thread | None = None
+    siglip2_async_result: dict[str, Any] = {}
+
+    if siglip2_server_addr:
+        def _siglip2_worker() -> None:
+            siglip_start = time.time()
+            try:
+                siglip_meta = _build_meta_for_siglip2(source_meta)
+                siglip2_result = _request_siglip2_once(
+                    siglip2_server_addr,
+                    timeout_ms=req_timeout_ms,
+                    meta=siglip_meta,
+                    rgb_jpg_bytes=rgb_jpg_bytes,
+                )
+                siglip2_payload = _normalize_sidecar_result(siglip2_result, "siglip2")
+            except Exception as exc:
+                print_warning(f"Siglip2 sidecar failed: {exc}")
+                siglip2_payload = {
+                    "source": "siglip2",
+                    "ok": False,
+                    "error": str(exc),
+                    "timestamp": time.time(),
+                }
+            siglip2_async_result["payload"] = siglip2_payload
+            siglip2_async_result["elapsed"] = time.time() - siglip_start
+
+        siglip2_thread = threading.Thread(target=_siglip2_worker, daemon=True)
+        siglip2_thread.start()
 
     if run_sam3_flowpose:
         if sam3_socket is None or flowpose_socket is None:
@@ -1365,25 +1393,15 @@ def process_once(
         )
 
     if siglip2_server_addr:
-        siglip_start = time.time()
-        try:
-            siglip_meta = _build_meta_for_siglip2(source_meta)
-            siglip2_result = _request_siglip2_once(
-                siglip2_server_addr,
-                timeout_ms=req_timeout_ms,
-                meta=siglip_meta,
-                rgb_jpg_bytes=rgb_jpg_bytes,
-            )
-            siglip2_payload = _normalize_sidecar_result(siglip2_result, "siglip2")
-        except Exception as exc:
-            print_warning(f"Siglip2 sidecar failed: {exc}")
-            siglip2_payload = {
-                "source": "siglip2",
-                "ok": False,
-                "error": str(exc),
-                "timestamp": time.time(),
-            }
-        siglip_elapsed = time.time() - siglip_start
+        if siglip2_thread is not None:
+            siglip2_thread.join()
+        siglip2_payload = siglip2_async_result.get("payload", {
+            "source": "siglip2",
+            "ok": False,
+            "error": "siglip2 worker did not return payload",
+            "timestamp": time.time(),
+        })
+        siglip_elapsed = float(siglip2_async_result.get("elapsed", 0.0))
         flowpose_response["siglip2"] = siglip2_payload
         # Backward compatibility for older dashboards/scripts.
         flowpose_response["siglip"] = siglip2_payload
