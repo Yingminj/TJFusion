@@ -146,6 +146,9 @@ class BridgeConfigTest(unittest.TestCase):
                         "  result_pub_addr: tcp://0.0.0.0:8899",
                         "  result_pub_frame_id: camera_rgb_link",
                         "  result_siglip_topic: /siglip2/result",
+                        "  result_siglip_vote_window: 7",
+                        "  result_siglip_sync_with_pose: true",
+                        "  result_siglip_pose_wait_timeout_sec: 1.25",
                         "  result_tf_topic: /tf",
                     ]
                 ),
@@ -157,6 +160,9 @@ class BridgeConfigTest(unittest.TestCase):
         self.assertEqual(config.result_pub_addr, "tcp://0.0.0.0:8899")
         self.assertEqual(config.result_pub_frame_id, "camera_rgb_link")
         self.assertEqual(config.result_siglip_topic, "/siglip2/result")
+        self.assertEqual(config.result_siglip_vote_window, 7)
+        self.assertTrue(config.result_siglip_sync_with_pose)
+        self.assertAlmostEqual(config.result_siglip_pose_wait_timeout_sec, 1.25)
         self.assertEqual(config.result_tf_topic, "/tf")
 
     def test_load_bridge_config_supports_split_yaml_sections(self) -> None:

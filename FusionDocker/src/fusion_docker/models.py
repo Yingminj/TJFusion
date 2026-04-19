@@ -100,6 +100,9 @@ class BridgeServiceConfig:
     result_pub_frame_id: str = "camera_rgb_link"
     result_siglip_topic: str = "/siglip2/result"
     result_tf_topic: str = "/tf"
+    result_siglip_vote_window: int = 1
+    result_siglip_sync_with_pose: bool = False
+    result_siglip_pose_wait_timeout_sec: float = 0.0
 
     @property
     def downstream_server_addr(self) -> str:

@@ -32,10 +32,20 @@ def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool 
         frame_id=config.result_pub_frame_id,
         siglip_topic=config.result_siglip_topic,
         tf_topic=config.result_tf_topic,
+        siglip_vote_window=config.result_siglip_vote_window,
+        siglip_sync_with_pose=config.result_siglip_sync_with_pose,
+        siglip_pose_wait_timeout_sec=config.result_siglip_pose_wait_timeout_sec,
     )
     print_status("PUB", f"Result PUB       : {config.result_pub_addr}", color="cyan")
     print_status("PUB", f"TF frame id      : {config.result_pub_frame_id}", color="cyan")
     print_status("PUB", f"Siglip topic     : {config.result_siglip_topic}", color="cyan")
+    print_status("PUB", f"Siglip vote k    : {config.result_siglip_vote_window}", color="cyan")
+    print_status("PUB", f"Siglip sync pose : {config.result_siglip_sync_with_pose}", color="cyan")
+    print_status(
+        "PUB",
+        f"Siglip pose t/o  : {config.result_siglip_pose_wait_timeout_sec}s",
+        color="cyan",
+    )
     print_status("PUB", f"TF topic         : {config.result_tf_topic}", color="cyan")
 
     try:

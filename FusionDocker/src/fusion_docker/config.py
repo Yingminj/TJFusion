@@ -241,6 +241,30 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
                 bridge_raw.get("result_tf_topic", "/tf"),
             )
         ),
+        result_siglip_vote_window=max(
+            1,
+            int(
+                publisher_raw.get(
+                    "result_siglip_vote_window",
+                    bridge_raw.get("result_siglip_vote_window", 1),
+                )
+            ),
+        ),
+        result_siglip_sync_with_pose=bool(
+            publisher_raw.get(
+                "result_siglip_sync_with_pose",
+                bridge_raw.get("result_siglip_sync_with_pose", False),
+            )
+        ),
+        result_siglip_pose_wait_timeout_sec=max(
+            0.0,
+            float(
+                publisher_raw.get(
+                    "result_siglip_pose_wait_timeout_sec",
+                    bridge_raw.get("result_siglip_pose_wait_timeout_sec", 0.0),
+                )
+            ),
+        ),
     )
 
 
