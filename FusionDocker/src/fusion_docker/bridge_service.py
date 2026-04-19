@@ -1115,6 +1115,71 @@ def zmq_capture_loop(
             time.sleep(0.01)
 
 
+def siglip2_fast_lane_loop(
+    frame_buffer: LatestFrameBuffer,
+    stop_flag: MutableMapping[str, bool],
+    *,
+    endpoint: str,
+    req_timeout_ms: int,
+    rgb_jpg_quality: int,
+    min_interval_sec: float = 0.08,
+) -> None:
+    zmq_module = _require_zmq()
+    context = zmq_module.Context()
+    socket = make_req_socket(context, endpoint, req_timeout_ms)
+    last_processed_frame_id = -1
+    last_submit_time = 0.0
+    last_error_log_ts = 0.0
+    request_counter = 0
+
+    try:
+        while not stop_flag.get("stop", False):
+            rgb, _depth, meta, frame_id, _frame_ts = frame_buffer.get()
+            if rgb is None or frame_id < 0:
+                time.sleep(0.005)
+                continue
+            if frame_id == last_processed_frame_id:
+                time.sleep(0.002)
+                continue
+
+            now = time.time()
+            if min_interval_sec > 0.0 and (now - last_submit_time) < min_interval_sec:
+                time.sleep(0.002)
+                continue
+
+            last_processed_frame_id = frame_id
+            last_submit_time = now
+            request_counter += 1
+
+            try:
+                request_payload = _build_meta_for_siglip2(meta)
+                request_payload["image_b64"] = encode_jpg_base64(rgb, quality=rgb_jpg_quality)
+                socket.send_json(request_payload)
+                socket.recv_json()
+                if request_counter % 50 == 0:
+                    print_status(
+                        "SIGLIP_FAST",
+                        f"submitted={request_counter}, latest_frame_id={frame_id}",
+                        color="blue",
+                    )
+            except zmq_module.error.Again as exc:
+                if now - last_error_log_ts >= 2.0:
+                    print_warning(f"Siglip fast-lane timeout after {req_timeout_ms} ms: {exc}")
+                    last_error_log_ts = now
+                safe_close_socket(socket)
+                socket = make_req_socket(context, endpoint, req_timeout_ms)
+            except Exception as exc:
+                if now - last_error_log_ts >= 2.0:
+                    print_warning(f"Siglip fast-lane error: {exc}")
+                    last_error_log_ts = now
+                safe_close_socket(socket)
+                socket = make_req_socket(context, endpoint, req_timeout_ms)
+                time.sleep(0.01)
+    finally:
+        safe_close_socket(socket)
+        context.term()
+
+
 def build_empty_response(
     request_id: str,
     start_time: float,
@@ -1540,6 +1605,21 @@ def run_zmq_source_bridge_service(
         daemon=True,
     )
     capture_thread.start()
+    siglip_fast_thread: threading.Thread | None = None
+
+    enable_siglip_fast_lane = bool(config.run_sam3_flowpose and config.siglip2_server_addr)
+    if enable_siglip_fast_lane:
+        siglip_fast_thread = threading.Thread(
+            target=siglip2_fast_lane_loop,
+            args=(frame_buffer, stop_flag),
+            kwargs={
+                "endpoint": config.siglip2_server_addr,
+                "req_timeout_ms": int(config.req_timeout_ms),
+                "rgb_jpg_quality": int(config.rgb_jpg_quality),
+            },
+            daemon=True,
+        )
+        siglip_fast_thread.start()
 
     if config.run_sam3_flowpose:
         print_status("BRIDGE", f"SAM3 server      : {config.sam3_server_addr}", color="cyan")
@@ -1548,6 +1628,8 @@ def run_zmq_source_bridge_service(
         print_status("BRIDGE", "SAM3->FlowPose pipeline disabled.", color="yellow")
     if config.siglip2_server_addr:
         print_status("BRIDGE", f"Siglip2 server   : {config.siglip2_server_addr}", color="cyan")
+    if enable_siglip_fast_lane:
+        print_status("BRIDGE", "Siglip fast lane : enabled (independent loop)", color="cyan")
     if config.flowpose_sidecar_server_addr:
         print_status(
             "BRIDGE",
@@ -1638,6 +1720,8 @@ def run_zmq_source_bridge_service(
     finally:
         stop_flag["stop"] = True
         capture_thread.join(timeout=1.0)
+        if siglip_fast_thread is not None:
+            siglip_fast_thread.join(timeout=1.0)
         safe_close_socket(source_socket)
         safe_close_socket(sam3_socket)
         safe_close_socket(flowpose_socket)
