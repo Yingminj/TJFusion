@@ -1205,9 +1205,13 @@ def process_once(
         siglip2_thread = threading.Thread(target=_siglip2_worker, daemon=True)
         siglip2_thread.start()
 
-    if run_sam3_flowpose:
-        if sam3_socket is None or flowpose_socket is None:
-            raise RuntimeError("SAM3/FlowPose sockets are required when run_sam3_flowpose=true.")
+    sam3_flowpose_enabled = bool(
+        run_sam3_flowpose and sam3_socket is not None and flowpose_socket is not None
+    )
+    if run_sam3_flowpose and not sam3_flowpose_enabled:
+        print_warning("SAM3/FlowPose sockets unavailable. Continuing with siglip2 only.")
+
+    if sam3_flowpose_enabled:
 
         sam3_request = {
             "request_id": request_id,
@@ -1221,7 +1225,13 @@ def process_once(
             sam3_socket.send_json(sam3_request)
             sam3_response = sam3_socket.recv_json()
         except zmq_module.error.Again as exc:
-            raise TimeoutError(f"SAM3 request timeout after {effective_sam3_timeout_ms} ms") from exc
+            print_warning(f"SAM3 request timeout after {effective_sam3_timeout_ms} ms: {exc}")
+            sam3_response = {
+                "status": "timeout",
+                "request_id": request_id,
+                "num_detections": 0,
+                "detections": [],
+            }
 
         sam3_elapsed = time.time()
         sam3_cost = sam3_elapsed - start_time
@@ -1315,7 +1325,13 @@ def process_once(
                     flowpose_socket.send_json(flowpose_request)
                     flowpose_reply = flowpose_socket.recv_json()
                 except zmq_module.error.Again as exc:
-                    raise TimeoutError(f"FlowPose request timeout after {req_timeout_ms} ms") from exc
+                    print_warning(f"FlowPose request timeout after {req_timeout_ms} ms: {exc}")
+                    flowpose_reply = {
+                        "status": "timeout",
+                        "request_id": request_id,
+                        "objects": [],
+                        "message": f"FlowPose request timeout after {req_timeout_ms} ms",
+                    }
 
                 total_elapsed = time.time()
                 if verbose:
@@ -1358,19 +1374,26 @@ def process_once(
                     elapsed_sec=total_elapsed - sam3_elapsed,
                 )
     else:
-        flowpose_response["message"] = "sam3_flowpose pipeline is disabled in bridge config."
+        if run_sam3_flowpose:
+            flowpose_response["message"] = "sam3_flowpose pipeline unavailable (service/socket not ready)."
+            sam3_summary = "unavailable: service/socket not ready."
+            flowpose_summary = "unavailable: service/socket not ready."
+        else:
+            flowpose_response["message"] = "sam3_flowpose pipeline is disabled in bridge config."
+            sam3_summary = "disabled by config."
+            flowpose_summary = "disabled by config."
         model_results["sam3"] = _build_model_result(
             name="sam3",
-            enabled=False,
+            enabled=bool(run_sam3_flowpose),
             ok=False,
-            summary="disabled by config.",
+            summary=sam3_summary,
             payload=None,
         )
         model_results["flowpose"] = _build_model_result(
             name="flowpose",
-            enabled=False,
+            enabled=bool(run_sam3_flowpose),
             ok=False,
-            summary="disabled by config.",
+            summary=flowpose_summary,
             payload=None,
         )
 
@@ -1387,8 +1410,8 @@ def process_once(
         pipelines.setdefault(
             "sam3_flowpose",
             {
-                "enabled": bool(run_sam3_flowpose),
-                "ok": bool(run_sam3_flowpose and sam3_ok and flow_ok),
+                "enabled": sam3_flowpose_enabled,
+                "ok": bool(sam3_flowpose_enabled and sam3_ok and flow_ok),
             },
         )
 
