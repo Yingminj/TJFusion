@@ -1644,6 +1644,206 @@ def run_zmq_source_bridge_service(
         context.term()
 
 
+def run_zmq_source_bridge_service_decoupled(
+    config: BridgeServiceConfig,
+    *,
+    verbose: bool = False,
+    save_json: bool = False,
+    result_callback: Callable[[dict[str, Any]], None] | None = None,
+) -> None:
+    _require_image_dependencies()
+    zmq_module = _require_zmq()
+
+    if not config.zmq_source_addr:
+        raise ValueError("ZMQ source bridge requires bridge.zmq_source_addr.")
+
+    output_json = config.output_json if save_json else None
+    sam3_timeout_ms = int(config.sam3_timeout_ms or config.req_timeout_ms)
+    flowpose_timeout_ms = int(config.req_timeout_ms)
+
+    source_context = zmq_module.Context()
+    source_socket = source_context.socket(zmq_module.SUB)
+    source_socket.setsockopt(zmq_module.RCVHWM, 1)
+    source_socket.setsockopt(zmq_module.LINGER, 0)
+    source_socket.connect(config.zmq_source_addr)
+    source_socket.setsockopt(zmq_module.SUBSCRIBE, b"")
+
+    frame_buffer = LatestFrameBuffer()
+    stop_flag: dict[str, bool] = {"stop": False}
+    capture_thread = threading.Thread(
+        target=zmq_capture_loop,
+        args=(
+            source_socket,
+            frame_buffer,
+            config.zmq_timeout_sec,
+            stop_flag,
+            config.input_mapping,
+        ),
+        daemon=True,
+    )
+    capture_thread.start()
+
+    if config.run_sam3_flowpose:
+        print_status("BRIDGE", f"SAM3 server      : {config.sam3_server_addr}", color="cyan")
+        print_status("BRIDGE", f"FlowPose server  : {config.flowpose_server_addr}", color="cyan")
+    else:
+        print_status("BRIDGE", "SAM3->FlowPose pipeline disabled.", color="yellow")
+    if config.siglip2_server_addr:
+        print_status("BRIDGE", f"Siglip2 server   : {config.siglip2_server_addr}", color="cyan")
+    if config.flowpose_sidecar_server_addr:
+        print_status(
+            "BRIDGE",
+            f"FlowPose sidecar : {config.flowpose_sidecar_server_addr}",
+            color="cyan",
+        )
+    print_status("BRIDGE", f"ZMQ source       : {config.zmq_source_addr}", color="cyan")
+    print_status("BRIDGE", f"SAM3 timeout     : {sam3_timeout_ms} ms", color="cyan")
+    print_status("BRIDGE", f"FlowPose timeout : {flowpose_timeout_ms} ms", color="cyan")
+    print_status("BRIDGE", "Publish mode     : decoupled (/siglip2/result and /tf)", color="cyan")
+    print_status("WAIT", "Waiting latest ZMQ RGB-D frames...", color="yellow")
+
+    flow_context = zmq_module.Context() if config.run_sam3_flowpose else None
+    sam3_socket: zmq.Socket | None = None
+    flowpose_socket: zmq.Socket | None = None
+    if flow_context is not None:
+        sam3_socket, flowpose_socket = recreate_req_sockets(
+            flow_context,
+            config.sam3_server_addr,
+            config.flowpose_server_addr,
+            sam3_timeout_ms,
+            flowpose_timeout_ms,
+        )
+
+    def _siglip_worker() -> None:
+        last_processed_frame_id = -1
+        while not stop_flag.get("stop", False):
+            rgb, depth, meta, frame_id, _ = frame_buffer.get()
+            if rgb is None or depth is None or frame_id < 0:
+                time.sleep(0.01)
+                continue
+            if frame_id == last_processed_frame_id:
+                time.sleep(0.002)
+                continue
+            last_processed_frame_id = frame_id
+            try:
+                result = process_once(
+                    sam3_socket=None,
+                    flowpose_socket=None,
+                    rgb=rgb,
+                    depth=depth,
+                    prompts=[],
+                    obj_ids=config.obj_ids,
+                    obj_id_map=config.obj_id_map,
+                    req_timeout_ms=config.req_timeout_ms,
+                    sam3_timeout_ms=sam3_timeout_ms,
+                    return_masks=config.return_masks,
+                    clear_previous=config.clear_previous,
+                    output_json=None,
+                    verbose=verbose,
+                    rgb_jpg_quality=config.rgb_jpg_quality,
+                    source_meta=meta,
+                    siglip2_server_addr=config.siglip2_server_addr,
+                    flowpose_sidecar_server_addr="",
+                    run_sam3_flowpose=False,
+                )
+                if result_callback is not None:
+                    result_callback(result)
+            except Exception as exc:
+                _log_zmq_input_error(exc, meta=meta)
+                print_warning("Siglip2 worker skipped current frame and continues.")
+
+    def _flowpose_worker() -> None:
+        nonlocal sam3_socket, flowpose_socket
+        if not config.run_sam3_flowpose:
+            return
+        last_processed_frame_id = -1
+        while not stop_flag.get("stop", False):
+            rgb, depth, meta, frame_id, _ = frame_buffer.get()
+            if rgb is None or depth is None or frame_id < 0:
+                time.sleep(0.01)
+                continue
+            if frame_id == last_processed_frame_id:
+                time.sleep(0.002)
+                continue
+            last_processed_frame_id = frame_id
+            try:
+                prompts = _extract_prompts_from_source_meta(
+                    meta,
+                    fallback_prompts=config.prompts,
+                    required=True,
+                )
+                result = process_once(
+                    sam3_socket=sam3_socket,
+                    flowpose_socket=flowpose_socket,
+                    rgb=rgb,
+                    depth=depth,
+                    prompts=prompts,
+                    obj_ids=config.obj_ids,
+                    obj_id_map=config.obj_id_map,
+                    req_timeout_ms=config.req_timeout_ms,
+                    sam3_timeout_ms=sam3_timeout_ms,
+                    return_masks=config.return_masks,
+                    clear_previous=config.clear_previous,
+                    output_json=output_json,
+                    verbose=verbose,
+                    rgb_jpg_quality=config.rgb_jpg_quality,
+                    source_meta=meta,
+                    siglip2_server_addr="",
+                    flowpose_sidecar_server_addr=config.flowpose_sidecar_server_addr,
+                    run_sam3_flowpose=True,
+                )
+                if result_callback is not None:
+                    result_callback(result)
+            except TimeoutError as exc:
+                _log_zmq_input_error(exc, meta=meta)
+                print_warning("FlowPose worker skipped current frame and reconnects sockets.")
+                if flow_context is not None:
+                    safe_close_socket(sam3_socket)
+                    safe_close_socket(flowpose_socket)
+                    sam3_socket, flowpose_socket = recreate_req_sockets(
+                        flow_context,
+                        config.sam3_server_addr,
+                        config.flowpose_server_addr,
+                        sam3_timeout_ms,
+                        flowpose_timeout_ms,
+                    )
+            except Exception as exc:
+                _log_zmq_input_error(exc, meta=meta)
+                print_warning("FlowPose worker skipped current frame and reconnects sockets.")
+                if flow_context is not None:
+                    safe_close_socket(sam3_socket)
+                    safe_close_socket(flowpose_socket)
+                    sam3_socket, flowpose_socket = recreate_req_sockets(
+                        flow_context,
+                        config.sam3_server_addr,
+                        config.flowpose_server_addr,
+                        sam3_timeout_ms,
+                        flowpose_timeout_ms,
+                    )
+
+    siglip_thread = threading.Thread(target=_siglip_worker, daemon=True)
+    flow_thread = threading.Thread(target=_flowpose_worker, daemon=True)
+    siglip_thread.start()
+    flow_thread.start()
+
+    try:
+        while True:
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        print_warning("ZMQ source bridge service stopped.")
+    finally:
+        stop_flag["stop"] = True
+        capture_thread.join(timeout=1.0)
+        siglip_thread.join(timeout=1.0)
+        flow_thread.join(timeout=1.0)
+        safe_close_socket(source_socket)
+        if flow_context is not None:
+            safe_close_socket(sam3_socket)
+            safe_close_socket(flowpose_socket)
+            flow_context.term()
+        source_context.term()
+
+
 def run_bridge_service(
     config: BridgeServiceConfig,
     *,

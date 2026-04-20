@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from collections import Counter, deque
 from typing import Any
 
@@ -35,6 +36,7 @@ class BridgeResultPublisher:
         self._tf_topic = tf_topic
         self._siglip_vote_window = max(1, int(siglip_vote_window))
         self._siglip_recent_categories: deque[str] = deque(maxlen=self._siglip_vote_window)
+        self._publish_lock = threading.Lock()
         self._context = zmq_module.Context.instance()
         self._socket = self._context.socket(zmq_module.PUB)
         self._socket.setsockopt(zmq_module.SNDHWM, 1)
@@ -61,50 +63,57 @@ class BridgeResultPublisher:
         return normalized
 
     def publish(self, result: dict[str, Any]) -> None:
-        siglip_result = result.get("siglip2", {})
-        if not isinstance(siglip_result, dict):
-            siglip_result = {}
-        frame_id = result.get(
-            "frame_id",
-            result.get("source_meta", {}).get("frame_id")
-            if isinstance(result.get("source_meta"), dict)
-            else None,
-        )
-        tf_payload = {
-            "frame_id": frame_id,
-            "transforms": build_tf_payload_from_flowpose_result(result, frame_id=self._frame_id),
-        }
-        if not tf_payload["transforms"]:
-            return
+        with self._publish_lock:
+            siglip_result = result.get("siglip2", {})
+            if not isinstance(siglip_result, dict):
+                siglip_result = {}
+            frame_id = result.get(
+                "frame_id",
+                result.get("source_meta", {}).get("frame_id")
+                if isinstance(result.get("source_meta"), dict)
+                else None,
+            )
+            tf_payload = {
+                "frame_id": frame_id,
+                "transforms": build_tf_payload_from_flowpose_result(result, frame_id=self._frame_id),
+            }
 
-        best_category = self._select_smoothed_best_category(siglip_result.get("best_category"))
-        best_similarity = siglip_result.get("best_similarity")
-        siglip_ok = bool(siglip_result.get("ok", False))
+            siglip_payload: dict[str, Any] | None = None
+            if siglip_result:
+                best_category = self._select_smoothed_best_category(siglip_result.get("best_category"))
+                best_similarity = siglip_result.get("best_similarity")
+                siglip_ok = bool(siglip_result.get("ok", False))
+                siglip_payload = {
+                    "frame_id": frame_id,
+                    "ok": siglip_ok,
+                    "best_category": best_category,
+                    "best_similarity": best_similarity,
+                }
+                self._socket.send_string(
+                    f"{self._siglip_topic} {json.dumps(siglip_payload, ensure_ascii=False)}"
+                )
 
-        siglip_payload = {
-            "frame_id": frame_id,
-            "ok": siglip_ok,
-            "best_category": best_category,
-            "best_similarity": best_similarity,
-        }
-        self._socket.send_string(
-            f"{self._siglip_topic} {json.dumps(siglip_payload, ensure_ascii=False)}"
-        )
-        self._socket.send_string(
-            f"{self._tf_topic} {json.dumps(tf_payload, ensure_ascii=False)}"
-        )
-        print_status(
-            "PUB",
-            (
-                f"published frame_id={frame_id} "
-                f"siglip_topic={self._siglip_topic} "
-                f"siglip_ok={siglip_payload['ok']} "
-                f"best_category={siglip_payload['best_category']} "
-                f"tf_topic={self._tf_topic} "
-                f"tf_count={len(tf_payload['transforms'])}"
-            ),
-            color="green",
-        )
+            tf_count = len(tf_payload["transforms"])
+            if tf_count > 0:
+                self._socket.send_string(
+                    f"{self._tf_topic} {json.dumps(tf_payload, ensure_ascii=False)}"
+                )
+
+            if siglip_payload is None and tf_count <= 0:
+                return
+
+            print_status(
+                "PUB",
+                (
+                    f"published frame_id={frame_id} "
+                    f"siglip_topic={self._siglip_topic} "
+                    f"siglip_ok={(siglip_payload or {}).get('ok', False)} "
+                    f"best_category={(siglip_payload or {}).get('best_category')} "
+                    f"tf_topic={self._tf_topic} "
+                    f"tf_count={tf_count}"
+                ),
+                color="green",
+            )
 
     def close(self) -> None:
         try:

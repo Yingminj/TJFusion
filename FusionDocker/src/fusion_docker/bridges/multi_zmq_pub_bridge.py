@@ -24,7 +24,7 @@ def _mutate_multi_zmq_pub_bridge_config(config):
 
 def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool = False) -> None:
     from fusion_docker.bridge_pub import BridgeResultPublisher
-    from fusion_docker.bridge_service import run_bridge_service
+    from fusion_docker.bridge_service import run_bridge_service, run_zmq_source_bridge_service_decoupled
     from fusion_docker.console import print_status
 
     publisher = BridgeResultPublisher(
@@ -41,12 +41,20 @@ def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool 
     print_status("PUB", f"TF topic         : {config.result_tf_topic}", color="cyan")
 
     try:
-        run_bridge_service(
-            config,
-            verbose=verbose,
-            save_json=save_json,
-            result_callback=publisher.publish,
-        )
+        if str(config.source_mode).strip().lower() == "zmq_source":
+            run_zmq_source_bridge_service_decoupled(
+                config,
+                verbose=verbose,
+                save_json=save_json,
+                result_callback=publisher.publish,
+            )
+        else:
+            run_bridge_service(
+                config,
+                verbose=verbose,
+                save_json=save_json,
+                result_callback=publisher.publish,
+            )
     finally:
         publisher.close()
 
