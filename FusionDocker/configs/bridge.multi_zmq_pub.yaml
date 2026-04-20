@@ -6,8 +6,6 @@ bridge:
   result_pub_frame_id: camera_rgb_link
   result_siglip_topic: /siglip2/result
   result_siglip_vote_window: 5
-  result_siglip_sync_with_pose: true
-  result_siglip_pose_wait_timeout_sec: 1.0
   result_tf_topic: /tf
   prompts:
     - pink small object
