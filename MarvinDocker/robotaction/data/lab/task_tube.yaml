@@ -1,0 +1,32 @@
+tasks:
+  - target: "blue_cap"
+    action_name: "pick"
+    arm: "left"
+    speed: 0.8  
+    correction_mode: "forward"
+  - target: "yellow_rubber"
+    action_name: "pick"
+    arm: "right"
+    speed: 0.8  
+    correction_mode: "forward"
+  - target: "beaker"
+    action_name: "absorb"
+    arm: "right"
+    speed: 0.8  
+    correction_mode: "forward"
+  - target: "test_tube"
+    action_name: "drop"
+    arm: "right"
+    speed: 0.8  
+    correction_mode: "forward"
+  - target: "beaker"
+    action_name: "place"
+    arm: "right"
+    speed: 0.8  
+    correction_mode: "forward"
+    finish_home: true
+  - target: "test_tube"
+    action_name: "place"
+    arm: "left"
+    speed: 0.8  
+    correction_mode: "forward"

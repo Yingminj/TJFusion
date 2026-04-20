@@ -74,7 +74,7 @@ tmux set-option -t "${SESSION_ACTION}" -g pane-border-status top
 tmux set-option -t "${SESSION_ACTION}" -g pane-border-format "#{pane_title}"
 
 tmux select-pane -t "${SESSION_ACTION}:0" -T "SESSION_ACTION"
-tmux send-keys -t "${SESSION_ACTION}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 3 && python3 /robotaction/robot_action.py --object_yaml_path /robotaction/data/test_box.yaml --status_json_path /robotaction/data/graph_info.json --status_topic /siglip2/result --progress_topic /control/task_percentage --object_tf_topic /tf'" C-m
+tmux send-keys -t "${SESSION_ACTION}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 3 && python3 /robotaction/robot_action.py --object_yaml_path /robotaction/data/lab/test_tube.yaml --status_json_path /robotaction/data/lab/graph_info_lab.json --status_topic /siglip2/result --progress_topic /control/task_percentage --object_tf_topic /tf'" C-m
 
 # 进入主 session
 tmux attach -t "${SESSION_MAIN}"

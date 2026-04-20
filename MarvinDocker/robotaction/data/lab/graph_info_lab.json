@@ -1,0 +1,87 @@
+{
+  "nodes": [
+    {
+      "node_id": "001",
+      "state_description": "tube is empty and capped",
+      "next_action": [
+        { 
+          "target": "blue_cap",
+          "action_name": "pick",
+          "arm": "left",
+          "speed": 0.8  ,
+          "correction_mode": "forward"
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "002",
+      "state_description": "ttube is empty and cap opened",
+      "next_action": [
+        { 
+          "target": "yellow_rubber",
+          "action_name": "pick",
+          "arm": "right",
+          "speed": 0.8  ,
+          "correction_mode": "forward"
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "003",
+      "state_description": "tube is empty and dropper in beaker",
+      "next_action": [
+        { 
+          "target": "beaker",
+          "action_name": "absorb",
+          "arm": "right",
+          "speed": 0.8 ,
+          "correction_mode": "forward"
+        },
+        { 
+          "target": "test_tube",
+          "action_name": "drop",
+          "arm": "right",
+          "speed": 0.8  ,
+          "correction_mode": "forward"
+        }        
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "004",
+      "state_description": "tube has red solution and cap on table",
+      "next_action": [
+        { 
+          "target": "beaker",
+          "action_name": "place",
+          "arm": "right",
+          "speed": 0.8  ,
+          "correction_mode": "forward",
+          "finish_home": true
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    },
+    {
+      "node_id": "005",
+      "state_description": "tube has red solution and capped",
+      "next_action": [
+        { 
+          "target": "test_tube",
+          "action_name": "place",
+          "arm": "left",
+          "speed": 0.8  ,
+          "correction_mode": "forward"
+        }
+      ],
+      "parents": null,
+      "center_feature": null
+    }
+  ]
+}

@@ -7,10 +7,9 @@ bridge:
   result_siglip_topic: /siglip2/result
   result_tf_topic: /tf
   prompts:
-    - pink small object
-    - toy car
-    - red box
-    - green small box
+    - blue cap
+    - yellow object
+    - red beaker
 sam3:
   server_addr: tcp://127.0.0.1:5562
   timeout_ms: 5000

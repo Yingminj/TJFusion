@@ -1,0 +1,298 @@
+import torch
+import time
+import zmq
+import base64
+from PIL import Image
+from sam3.model_builder import build_sam3_image_model
+from sam3.model.sam3_image_processor import Sam3Processor
+import numpy as np
+import io
+import cv2
+import yaml
+import traceback
+import concurrent.futures  # 新增：用于多线程 base64 编码
+
+SERVER_VERSION = "v2 (Optimized)"
+
+
+def load_config(config_path="/workspace/config.yaml"):
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def _ts():
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def print_sam3_startup(version, config_path, host, port, visualize=True, vis_wait=0):
+    print("=" * 70)
+    print("SAM3 ZeroMQ Server")
+    print("=" * 70)
+    print(f"[{_ts()}] version      : {version}")
+    print(f"[{_ts()}] config_path  : {config_path}")
+    print(f"[{_ts()}] host         : {host}")
+    print(f"[{_ts()}] port         : {port}")
+    print(f"[{_ts()}] visualize    : {visualize}")
+    print(f"[{_ts()}] vis_wait     : {vis_wait}")
+    print("=" * 70)
+
+
+def log_info(msg):
+    print(f"[{_ts()}] [INFO] {msg}", flush=True)
+
+
+def log_warn(msg):
+    print(f"[{_ts()}] [WARN] {msg}", flush=True)
+
+
+def log_error(msg):
+    print(f"[{_ts()}] [ERROR] {msg}", flush=True)
+
+
+def log_success(msg):
+    print(f"[{_ts()}] [OK] {msg}", flush=True)
+
+
+def log_kv(key, value):
+    print(f"[{_ts()}] [INFO] {key}: {value}", flush=True)
+
+
+def show_mask(image_bgr, mask, color=None):
+    if color is None:
+        color = tuple(np.random.randint(0, 256, 3).tolist())
+    h, w = mask.shape[-2:]
+    color_bgr = (color[2], color[1], color[0])
+    overlay = image_bgr.copy()
+    mask_bool = mask > 0.5
+    overlay[mask_bool] = (
+        overlay[mask_bool] * 0.5 + np.array(color_bgr) * 0.5
+    ).astype(np.uint8)
+    return overlay
+
+
+def show_box(image_bgr, box, score, label):
+    x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+    cv2.rectangle(image_bgr, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    text = f"{label}: {score:.2f}"
+    (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
+    cv2.rectangle(
+        image_bgr,
+        (x1, y1 - th - 6),
+        (x1 + tw, y1),
+        (0, 255, 0),
+        -1,
+    )
+    cv2.putText(image_bgr, text, (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+
+
+def encode_mask_to_base64_png(mask: np.ndarray) -> str:
+    if mask.dtype != np.uint8:
+        mask = mask.astype(np.uint8)
+    success, buf = cv2.imencode(".png", mask, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+    if not success:
+        raise RuntimeError("Failed to encode mask to PNG.")
+    return base64.b64encode(buf.tobytes()).decode("utf-8")
+
+
+def main():
+    cfg = load_config()
+
+    host = cfg["server"].get("host", "0.0.0.0")
+    port = int(cfg["server"]["port"])
+    score_threshold = float(cfg["sam3"].get("score_threshold", 0.4))
+
+    print_sam3_startup(
+        version=SERVER_VERSION,
+        config_path="ServerConfig.yaml",
+        host=host,
+        port=port,
+        visualize=True,
+        vis_wait=0,
+    )
+
+    log_info("Initializing ZeroMQ context...")
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+
+    bind_host = "*" if host in ("0.0.0.0", "*") else host
+    socket.bind(f"tcp://{bind_host}:{port}")
+    log_success(f"ZeroMQ REP socket bound at tcp://{bind_host}:{port}")
+
+    log_info("Loading SAM3 model, please wait...")
+    start_load_time = time.time()
+
+    model = build_sam3_image_model(
+        checkpoint_path=cfg["sam3"]["checkpoint_path"],
+        load_from_HF=False,
+        enable_segmentation=True,
+    )
+    # 确保模型在 CUDA 上并设为评估模式
+    if torch.cuda.is_available():
+        model.to("cuda")
+    model.eval()
+    processor = Sam3Processor(model)
+
+    end_load_time = time.time()
+    log_success(f"Model loaded successfully in {end_load_time - start_load_time:.2f} seconds")
+
+    log_info("SAM3 runtime configuration:")
+    log_kv("checkpoint_path", cfg["sam3"]["checkpoint_path"])
+    log_kv("score_threshold", score_threshold)
+    log_kv("segmentation", True)
+
+    log_success(f"Server is running and listening on port {port}")
+
+    cv2.namedWindow("SAM3 Visualization", cv2.WINDOW_NORMAL)
+
+    while True:
+        message = socket.recv_json()
+        request_total_start = time.time()
+
+        request_id = message.get("request_id", "")
+        prompts = message.get("prompts", [])
+        clear_previous = message.get("clear_previous", True)
+
+        log_info(f"Received request_id={request_id}")
+        log_kv("prompts", prompts)
+        log_kv("clear_previous", clear_previous)
+
+        try:
+            t_decode_start = time.time()
+
+            image_b64 = message.get("rgb_image", None)
+            if image_b64 is None:
+                raise ValueError("Missing required field 'rgb_image' in request.")
+
+            image_data = base64.b64decode(image_b64)
+            image = Image.open(io.BytesIO(image_data)).convert("RGB")
+            image_np = np.array(image)
+
+            decode_time = time.time() - t_decode_start
+            log_info(f"Image decode time: {decode_time:.4f} s")
+
+            t_vis_prep_start = time.time()
+            image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+            vis_image = image_bgr.copy()
+            # vis_prep_time = time.time() - t_vis_prep_start
+
+            log_info("Extracting global image features...")
+            t_embed_start = time.time()
+            
+            # --- 加速核心：开启无梯度模式和半精度上下文 ---
+            with torch.inference_mode(), torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                inference_state = processor.set_image(image)
+                embed_time = time.time() - t_embed_start
+                log_info(f"Image embedding time: {embed_time:.4f} s")
+
+                t_prompt_total_start = time.time()
+                
+                # 阶段1：纯 GPU 推理 (不执行 .cpu() 阻塞)
+                gpu_outputs = []
+                for prompt in prompts:
+                    log_info(f"Running prompt on GPU: '{prompt}'")
+                    start_prompt_time = time.time()
+                    
+                    output = processor.set_text_prompt(state=inference_state, prompt=prompt)
+                    
+                    prompt_duration = time.time() - start_prompt_time
+                    gpu_outputs.append((prompt, output, prompt_duration))
+                    log_success(f"GPU Inference for '{prompt}' finished in {prompt_duration:.4f} s")
+                    print(gpu_outputs)
+
+            # 阶段2：CPU 转换与绘图 (移出关键 GPU 推理路径)
+            detections = []
+            prompt_timings = []
+            global_det_id = 1
+            
+            masks_to_encode = []
+            det_metadata = []
+
+            for prompt, output, prompt_duration in gpu_outputs:
+                prompt_timings.append({
+                    "prompt": prompt,
+                    "elapsed_sec": round(prompt_duration, 4),
+                })
+                
+                # 此时统一进行数据搬运同步
+                current_masks = output["masks"].float().cpu().numpy()
+                current_boxes = output["boxes"].float().cpu().numpy()
+                current_scores = output["scores"].float().cpu().numpy()
+                # print(current_masks)
+
+                for i in range(len(current_scores)):
+                    score = float(current_scores[i])
+                    if score <= score_threshold:
+                        continue
+
+                    box = current_boxes[i]
+                    mask = current_masks[i].squeeze()
+
+                    instance_color = tuple(np.random.randint(50, 255, 3).tolist())
+                    vis_image = show_mask(vis_image, mask, color=instance_color)
+                    show_box(vis_image, box, score, prompt)
+
+                    binary_mask = (mask > 0.5).astype(np.uint8) * 255
+
+                    # 收集等待 base64 编码的 mask，以及其对应的检测信息
+                    masks_to_encode.append(binary_mask)
+                    det_metadata.append({
+                        "id": int(global_det_id),
+                        "label": str(prompt),
+                        "score": score,
+                        "bbox": [float(v) for v in box.tolist()],
+                    })
+                    global_det_id += 1
+
+            # 阶段3：多线程并行 Base64 编码
+            # print(masks_to_encode)
+            if masks_to_encode:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    b64_results = list(executor.map(encode_mask_to_base64_png, masks_to_encode))
+                
+                for det, b64_str in zip(det_metadata, b64_results):
+                    det["mask_png_b64"] = b64_str
+                    detections.append(det)
+
+            prompt_total_time = time.time() - t_prompt_total_start
+            log_info(f"All prompts total time (incl. post-processing): {prompt_total_time:.4f} s")
+
+            total_request_time = time.time() - request_total_start
+            fps = 1.0 / total_request_time if total_request_time > 1e-8 else 0.0
+
+            log_info(f"Total request time: {total_request_time:.4f} s")
+            log_info(f"FPS: {fps:.2f}")
+
+            t_draw_start = time.time()
+            cv2.imshow("SAM3 Visualization", vis_image)
+            cv2.waitKey(1)
+            # draw_time = time.time() - t_draw_start
+            # log_info(f"OpenCV draw time: {draw_time:.4f} s")
+
+            response = {
+                "status": "ok",
+                "request_id": request_id,
+                "detections": detections,
+                "elapsed_sec": round(total_request_time, 4),
+            }
+
+            socket.send_json(response)
+            log_success(
+                f"Response sent successfully | request_id={request_id} | "
+                f"num_detections={len(detections)} | total={total_request_time:.4f}s | fps={fps:.2f}"
+            )
+
+        except Exception as e:
+            total_request_time = time.time() - request_total_start
+            log_error(f"Request failed: {e}")
+            print(traceback.format_exc())
+            log_info(f"Elapsed before failure: {total_request_time:.4f} s")
+            socket.send_json({
+                "status": "error",
+                "request_id": request_id,
+                "message": str(e),
+                "elapsed_sec": round(total_request_time, 4),
+            })
+
+
+if __name__ == "__main__":
+    main()
