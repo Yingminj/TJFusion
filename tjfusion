@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec "/home/yang/Downloads/TJFusion/.venv-tjfusion/bin/python" -m fusion_docker "$@"
