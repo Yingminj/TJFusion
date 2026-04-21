@@ -1,5 +1,15 @@
 # TJFUSION
 
+## Version
+
+Current version: `0.0.1`
+
+Check version:
+
+```bash
+tjfusion -v
+```
+
 ## Install `tjfusion`
 
 ```bash
@@ -12,7 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/insta
 export DOCKER_MODEL_ROOT=/path/to/DockerModel
 ```
 
-## `tjfusion docker-select`
+## `tjfusion docker-config`
 
 Use interactive selection for which dockers should be started.
 
@@ -22,7 +32,7 @@ Use interactive selection for which dockers should be started.
 - q: cancel
 
 ```bash
-tjfusion docker-select
+tjfusion docker-config
 ```
 
 ## `tjfusion start`
