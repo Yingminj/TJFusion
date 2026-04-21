@@ -20,6 +20,7 @@ import yaml
 from fusion_docker.bridge_scaffold import create_bridge_scaffold
 from fusion_docker.bridge_runtime import run_bridge_from_config
 from fusion_docker.bridges.registry import list_bridges as list_registered_bridges
+from fusion_docker import __version__
 from fusion_docker.config import load_docker_launch_config
 from fusion_docker.launch_config_bridge_editor import add_bridge_to_launch_config
 from fusion_docker.console import (
@@ -201,6 +202,12 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Marvin Robot System CLI for FusionDocker, bridge service, and docker launch flow.",
         epilog=_release_debug_help_footer(),
         formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

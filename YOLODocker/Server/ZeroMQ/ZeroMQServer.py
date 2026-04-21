@@ -79,7 +79,7 @@ class YOLOZMQServer:
         self.persist = True
         self.return_masks = True
         self.return_annotated_image = True
-        self.show_window = False
+        self.show_window = True
         self.window_name = "YOLO Detections"
         self._window_available = True
 
@@ -198,14 +198,11 @@ class YOLOZMQServer:
                     )
                     label_norm = label.strip().lower()
                     if prompt_set:
-                        prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                        if not prompt_hit:
-                            for prompt in prompt_set:
-                                prompt_id = self.get_class_id(prompt)
-                                if prompt_id is not None and int(prompt_id) == class_id:
-                                    prompt_hit = True
-                                    break
-                        if not prompt_hit:
+                        if (
+                            label_norm not in prompt_set
+                            and str(class_id) not in prompt_set
+                            and self.get_class_id(next(iter(prompt_set), "")) != class_id
+                        ):
                             continue
                     detections.append(
                         {

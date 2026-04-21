@@ -1,2 +1,7 @@
 FlowPoseDocker/model/
 FlowPoseDocker/FlowPose_
+__pycache__/
+*.pyc
+*.pyo
+*.log
+FusionDocker/logs/

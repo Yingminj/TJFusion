@@ -13,6 +13,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RGB = Path(__file__).resolve().parent / "test.jpg"
 DEFAULT_JSON_OUTPUT = PROJECT_ROOT / "RequestFormat" / "output.json"
 DEFAULT_ANNOTATED_OUTPUT = PROJECT_ROOT / "RequestFormat" / "annotated_latest.jpg"
+DEFAULT_MASKS_DIR = PROJECT_ROOT / "RequestFormat" / "masks_latest"
+DEFAULT_MASK_OVERLAY_OUTPUT = PROJECT_ROOT / "RequestFormat" / "mask_overlay_latest.jpg"
 
 
 def encode_file_to_base64(path: Path) -> str:
@@ -34,6 +36,30 @@ def decode_base64_image_to_bgr(image_b64: str) -> np.ndarray:
     if image_bgr is None:
         raise RuntimeError("Failed to decode annotated_image_b64.")
     return image_bgr
+
+
+def decode_mask_png_b64_to_gray(mask_b64: str) -> np.ndarray:
+    mask_bytes = base64.b64decode(mask_b64)
+    mask_arr = np.frombuffer(mask_bytes, dtype=np.uint8)
+    mask_gray = cv2.imdecode(mask_arr, cv2.IMREAD_GRAYSCALE)
+    if mask_gray is None:
+        raise RuntimeError("Failed to decode mask_png_b64.")
+    return mask_gray
+
+
+def draw_mask_overlay(base_bgr: np.ndarray, masks: list[np.ndarray], alpha: float = 0.45) -> np.ndarray:
+    overlay = base_bgr.copy()
+    rng = np.random.default_rng(2026)
+    for mask in masks:
+        if mask is None:
+            continue
+        color = rng.integers(40, 255, size=3, dtype=np.uint8)
+        binary = mask > 0
+        overlay[binary] = (
+            (1.0 - alpha) * overlay[binary].astype(np.float32)
+            + alpha * color.astype(np.float32)
+        ).astype(np.uint8)
+    return overlay
 
 
 def build_dummy_rgb(width: int, height: int) -> np.ndarray:
@@ -88,6 +114,18 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=str(DEFAULT_ANNOTATED_OUTPUT),
         help="Save response annotated image to this file (jpg/png).",
+    )
+    parser.add_argument(
+        "--save-masks-dir",
+        type=str,
+        default=str(DEFAULT_MASKS_DIR),
+        help="Save each returned mask PNG into this directory.",
+    )
+    parser.add_argument(
+        "--save-mask-overlay",
+        type=str,
+        default=str(DEFAULT_MASK_OVERLAY_OUTPUT),
+        help="Save a colored mask overlay image to this file.",
     )
     return parser.parse_args()
 
@@ -183,6 +221,39 @@ def main() -> None:
                     print(f"[SAVE] Annotated image -> {image_path}")
                 else:
                     print("[WARN] Response has no annotated_image_b64, skip saving image.")
+
+            mask_arrays = []
+            if args.save_masks_dir:
+                masks_dir = Path(args.save_masks_dir).expanduser().resolve()
+                masks_dir.mkdir(parents=True, exist_ok=True)
+                for det in detections:
+                    mask_b64 = det.get("mask_png_b64", "")
+                    if not mask_b64:
+                        continue
+                    mask_gray = decode_mask_png_b64_to_gray(mask_b64)
+                    mask_arrays.append(mask_gray)
+                    det_id = det.get("id", "x")
+                    det_label = str(det.get("label", "obj")).replace("/", "_")
+                    mask_path = masks_dir / f"mask_{det_id}_{det_label}.png"
+                    ok = cv2.imwrite(str(mask_path), mask_gray)
+                    if not ok:
+                        raise RuntimeError(f"Failed to write mask image: {mask_path}")
+                if mask_arrays:
+                    print(f"[SAVE] Masks -> {masks_dir} ({len(mask_arrays)} files)")
+
+            if args.save_mask_overlay and mask_arrays:
+                annotated_b64 = response.get("annotated_image_b64", "")
+                if annotated_b64:
+                    base_bgr = decode_base64_image_to_bgr(annotated_b64)
+                else:
+                    base_bgr = decode_base64_image_to_bgr(rgb_b64)
+                overlay = draw_mask_overlay(base_bgr, mask_arrays)
+                overlay_path = Path(args.save_mask_overlay).expanduser().resolve()
+                overlay_path.parent.mkdir(parents=True, exist_ok=True)
+                ok = cv2.imwrite(str(overlay_path), overlay)
+                if not ok:
+                    raise RuntimeError(f"Failed to write mask overlay image: {overlay_path}")
+                print(f"[SAVE] Mask overlay -> {overlay_path}")
 
             if i < args.count - 1 and args.interval_sec > 0:
                 time.sleep(args.interval_sec)

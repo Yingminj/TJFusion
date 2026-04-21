@@ -36,6 +36,7 @@ log_err() { echo -e "${C_RED}$*${C_RESET}"; }
 MODE="local"               # cwd | local | system
 REPO_URL="https://github.com/yangzhaofeng496/TJFusion.git"
 CLONE_DIR="$PWD"
+CLONE_DIR_EXPLICIT="0"
 SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
 VERBOSE="0"
@@ -136,7 +137,10 @@ for arg in "$@"; do
     --skip-clone) SKIP_CLONE="1" ;;
     --skip-env-install) SKIP_ENV_INSTALL="1" ;;
     --repo-url=*) REPO_URL="${arg#*=}" ;;
-    --clone-dir=*) CLONE_DIR="${arg#*=}" ;;
+    --clone-dir=*)
+      CLONE_DIR="${arg#*=}"
+      CLONE_DIR_EXPLICIT="1"
+      ;;
     --conda=on) CONDA_MODE="on" ;;
     --conda=off) CONDA_MODE="off" ;;
     --conda=auto) CONDA_MODE="auto" ;;
@@ -388,6 +392,9 @@ clone_or_update_repo() {
 
   local target_dir="$CLONE_DIR"
   local repo_name
+  local fallback_base=""
+  local fallback_dir=""
+  local i=2
   repo_name="$(basename "${REPO_URL%.git}")"
 
   if [[ -d "$target_dir" ]]; then
@@ -408,6 +415,20 @@ clone_or_update_repo() {
           (cd "$target_dir" && git pull --ff-only || true)
           CLONE_DIR="$target_dir"
           return 0
+        fi
+      fi
+      if [[ -e "$target_dir" && -n "$(ls -A "$target_dir" 2>/dev/null || true)" ]]; then
+        if [[ "$CLONE_DIR_EXPLICIT" != "1" ]]; then
+          fallback_base="$HOME/Downloads/${repo_name}"
+          fallback_dir="$fallback_base"
+          while [[ -d "$fallback_dir" && -n "$(ls -A "$fallback_dir" 2>/dev/null || true)" ]]; do
+            fallback_dir="${fallback_base}-${i}"
+            i=$((i + 1))
+          done
+          log_warn "[install] Default clone dir is not empty: ${target_dir}"
+          log_info "[install] Auto-selecting clone target: ${fallback_dir}"
+          target_dir="$fallback_dir"
+          mkdir -p "$(dirname "$target_dir")"
         fi
       fi
       if [[ -e "$target_dir" && -n "$(ls -A "$target_dir" 2>/dev/null || true)" ]]; then
@@ -596,6 +617,18 @@ verify_tjfusion_command() {
   log_err "[install] Verification failed: 'tjfusion -h' cannot run successfully."
   log_warn "You can retry manually with: PATH=\"${launcher_dir}:\$PATH\" tjfusion -h"
   return 1
+}
+
+get_tjfusion_version() {
+  local launcher_path="$1"
+  local launcher_dir
+  local test_path="${PATH:-}"
+  launcher_dir="$(dirname "$launcher_path")"
+  if [[ ":${test_path}:" != *":${launcher_dir}:"* ]]; then
+    test_path="${launcher_dir}:${test_path}"
+  fi
+
+  PATH="$test_path" tjfusion -v 2>/dev/null | tr -d '\r' | head -n 1 || true
 }
 
 check_docker_install() {
@@ -811,6 +844,13 @@ main() {
   log_ok "[install] Command: $launcher_path"
   log_info "[install] Reload shell: source ~/.bashrc  (or source ~/.zshrc)"
   log_ok "[install] Verified: tjfusion -h"
+  local tjfusion_version
+  tjfusion_version="$(get_tjfusion_version "$launcher_path")"
+  if [[ -n "$tjfusion_version" ]]; then
+    log_ok "[install] tjfusion version: ${tjfusion_version}"
+  else
+    log_warn "[install] tjfusion version: unknown (run 'tjfusion -v' manually)"
+  fi
   log_step "Printing summary (docker folders/git repos/runtime checks)"
   list_docker_folders "$repo_root"
   list_git_repos "$repo_root"
