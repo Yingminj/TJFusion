@@ -58,12 +58,6 @@ def encode_bgr_to_base64_jpg(image_bgr: np.ndarray, quality: int = 90) -> str:
     return base64.b64encode(buf.tobytes()).decode("utf-8")
 
 
-def normalize_prompt_set(prompts):
-    if not prompts:
-        return set()
-    return {str(p).strip().lower() for p in prompts if str(p).strip()}
-
-
 class YOLOZMQServer:
     def __init__(self, config_path: str = "/workspace/config.yaml"):
         self.cfg = load_config(config_path)
@@ -131,7 +125,7 @@ class YOLOZMQServer:
         request_total_start = time.time()
 
         request_id = req.get("request_id", "")
-        prompts = req.get("prompts", [])
+        _ = req.get("prompts", [])  # Keep request schema compatibility, but ignore prompt filtering.
         _ = req.get("clear_previous", True)  # Keep same input interface as SAM3
 
         if "bgr_image" in req:
@@ -163,8 +157,6 @@ class YOLOZMQServer:
                 verbose=False,
                 conf=conf,
             )
-
-        prompt_set = normalize_prompt_set(prompts)
 
         detections = []
         global_det_id = 1
@@ -200,14 +192,6 @@ class YOLOZMQServer:
                         if isinstance(names, dict) and class_id in names
                         else str(class_id)
                     )
-                    label_norm = label.strip().lower()
-                    if prompt_set:
-                        if (
-                            label_norm not in prompt_set
-                            and str(class_id) not in prompt_set
-                            and self.get_class_id(next(iter(prompt_set), "")) != class_id
-                        ):
-                            continue
                     detections.append(
                         {
                             "id": int(global_det_id),
@@ -235,19 +219,6 @@ class YOLOZMQServer:
                 score = float(scores[i]) if scores is not None else 0.0
 
                 label = str(names[class_id]) if isinstance(names, dict) and class_id in names else str(class_id)
-                label_norm = label.strip().lower()
-
-                if prompt_set:
-                    prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                    if not prompt_hit:
-                        for prompt in prompt_set:
-                            prompt_id = self.get_class_id(prompt)
-                            if prompt_id is not None and int(prompt_id) == class_id:
-                                prompt_hit = True
-                                break
-                    if not prompt_hit:
-                        continue
-
                 det = {
                     "id": int(global_det_id),
                     "label": label,
@@ -260,6 +231,18 @@ class YOLOZMQServer:
                 if return_masks and mask_data is not None and i < len(mask_data):
                     binary_mask = (mask_data[i] > 0.5).astype(np.uint8) * 255
                     det["mask_png_b64"] = encode_mask_to_base64_png(binary_mask)
+                elif return_masks and xyxy is not None:
+                    # Fallback for detect-only models without segmentation heads.
+                    x1, y1, x2, y2 = [int(round(v)) for v in xyxy[i].tolist()]
+                    h, w = bgr.shape[:2]
+                    x1 = max(0, min(x1, w - 1))
+                    x2 = max(0, min(x2, w))
+                    y1 = max(0, min(y1, h - 1))
+                    y2 = max(0, min(y2, h))
+                    if x2 > x1 and y2 > y1:
+                        binary_mask = np.zeros((h, w), dtype=np.uint8)
+                        binary_mask[y1:y2, x1:x2] = 255
+                        det["mask_png_b64"] = encode_mask_to_base64_png(binary_mask)
 
                 detections.append(det)
                 global_det_id += 1
@@ -268,6 +251,7 @@ class YOLOZMQServer:
         return {
             "status": "ok",
             "request_id": request_id,
+            "num_detections": len(detections),
             "detections": detections,
             "annotated_image_b64": annotated_image_b64,
             "elapsed_sec": round(total_request_time, 4),
