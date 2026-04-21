@@ -1,6 +1,5 @@
 import argparse
 import base64
-import io
 import time
 import traceback
 
@@ -8,7 +7,6 @@ import cv2
 import numpy as np
 import yaml
 import zmq
-from PIL import Image
 from ultralytics import YOLO
 
 SERVER_VERSION = "v2"
@@ -35,10 +33,13 @@ def log_success(msg):
     print(f"[{_ts()}] [OK] {msg}", flush=True)
 
 
-def decode_rgb_from_base64(image_b64: str) -> np.ndarray:
+def decode_bgr_from_base64(image_b64: str) -> np.ndarray:
     image_data = base64.b64decode(image_b64)
-    image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    return np.array(image)
+    image_array = np.frombuffer(image_data, dtype=np.uint8)
+    image_bgr = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    if image_bgr is None:
+        raise ValueError("Failed to decode input image from base64.")
+    return image_bgr
 
 
 def encode_mask_to_base64_png(mask: np.ndarray) -> str:
@@ -133,10 +134,13 @@ class YOLOZMQServer:
         prompts = req.get("prompts", [])
         _ = req.get("clear_previous", True)  # Keep same input interface as SAM3
 
-        if "rgb_image" not in req:
-            raise ValueError("Missing required field 'rgb_image' in request.")
-
-        rgb = decode_rgb_from_base64(req["rgb_image"])
+        if "bgr_image" in req:
+            bgr = decode_bgr_from_base64(req["bgr_image"])
+        elif "rgb_image" in req:
+            # Backward-compatible fallback for older clients.
+            bgr = decode_bgr_from_base64(req["rgb_image"])
+        else:
+            raise ValueError("Missing required field 'bgr_image' in request.")
 
         conf = float(req.get("conf", self.score_threshold))
         tracker = req.get("tracker", self.tracker)
@@ -147,13 +151,13 @@ class YOLOZMQServer:
 
         if self.model_task == "classify":
             results = self.yolo.predict(
-                rgb,
+                bgr,
                 verbose=False,
                 conf=conf,
             )
         else:
             results = self.yolo.track(
-                rgb,
+                bgr,
                 persist=persist,
                 tracker=tracker,
                 verbose=False,
@@ -170,7 +174,7 @@ class YOLOZMQServer:
         if result0 is not None:
             annotated_bgr = result0.plot()
         else:
-            annotated_bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+            annotated_bgr = bgr.copy()
 
         if return_annotated_image:
             annotated_image_b64 = encode_bgr_to_base64_jpg(annotated_bgr)
