@@ -1,4 +1,5 @@
-FlowPoseDocker/model/
+FlowPoseDocker/model/**
+!FlowPoseDocker/model/download.sh
 FlowPoseDocker/FlowPose_
 __pycache__/
 *.pyc
