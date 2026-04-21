@@ -8,3 +8,4 @@ FusionDocker/logs/
 # Ignore top-level docker model artifacts, keep downloader scripts.
 */model/**
 !*/model/download.sh
+./tjfusion
