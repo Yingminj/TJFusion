@@ -24,6 +24,12 @@ tjfusion -v
 export DOCKER_MODEL_ROOT=/path/to/DockerModel
 ```
 
+查看当前 `DOCKER_MODEL_ROOT` 路径：
+
+```bash
+tjfusion root
+```
+
 交互式选择要启动的 docker（写入 docker_launch.yaml）：
 
 ```bash

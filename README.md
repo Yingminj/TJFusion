@@ -22,6 +22,14 @@ curl -fsSL https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/insta
 export DOCKER_MODEL_ROOT=/path/to/DockerModel
 ```
 
+## `tjfusion root`
+
+Show current `DOCKER_MODEL_ROOT` path.
+
+```bash
+tjfusion root
+```
+
 ## `tjfusion docker-config`
 
 Use interactive selection for which dockers should be started.

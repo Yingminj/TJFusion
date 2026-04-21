@@ -601,22 +601,21 @@ ensure_local_path() {
   append_if_missing "$HOME/.zshrc" "# >>> tjfusion path >>>" "# <<< tjfusion path <<<" 'export PATH="$HOME/.local/bin:$PATH"'
 }
 
-verify_tjfusion_command() {
-  local launcher_path="$1"
-  local launcher_dir
-  local test_path="${PATH:-}"
-  launcher_dir="$(dirname "$launcher_path")"
-  if [[ ":${test_path}:" != *":${launcher_dir}:"* ]]; then
-    test_path="${launcher_dir}:${test_path}"
+extract_version_number() {
+  local version_text="$1"
+  if [[ "$version_text" =~ ([0-9]+(\.[0-9]+)+([._-][0-9A-Za-z]+)*) ]]; then
+    echo "${BASH_REMATCH[1]}"
+  fi
+}
+
+get_expected_tjfusion_version() {
+  local repo_root="$1"
+  local version_file="${repo_root}/FusionDocker/src/fusion_docker/__init__.py"
+  if [[ ! -f "$version_file" ]]; then
+    return 1
   fi
 
-  if PATH="$test_path" tjfusion -h >/dev/null 2>&1; then
-    return 0
-  fi
-
-  log_err "[install] Verification failed: 'tjfusion -h' cannot run successfully."
-  log_warn "You can retry manually with: PATH=\"${launcher_dir}:\$PATH\" tjfusion -h"
-  return 1
+  awk -F'"' '/^__version__[[:space:]]*=[[:space:]]*"/ { print $2; exit }' "$version_file"
 }
 
 get_tjfusion_version() {
@@ -629,6 +628,38 @@ get_tjfusion_version() {
   fi
 
   PATH="$test_path" tjfusion -v 2>/dev/null | tr -d '\r' | head -n 1 || true
+}
+
+verify_tjfusion_version() {
+  local launcher_path="$1"
+  local expected_version="$2"
+  local actual_line
+  local actual_version
+  local launcher_dir
+
+  launcher_dir="$(dirname "$launcher_path")"
+  actual_line="$(get_tjfusion_version "$launcher_path")"
+  actual_version="$(extract_version_number "$actual_line")"
+
+  if [[ -z "$actual_line" ]]; then
+    log_err "[install] 安装或更新失败：无法执行 'tjfusion -v'。"
+    log_warn "You can retry manually with: PATH=\"${launcher_dir}:\$PATH\" tjfusion -v"
+    return 1
+  fi
+
+  if [[ -z "$actual_version" ]]; then
+    log_err "[install] 安装或更新失败：'tjfusion -v' 输出无法解析版本号。"
+    log_warn "[install] tjfusion -v output: ${actual_line}"
+    return 1
+  fi
+
+  if [[ "$actual_version" != "$expected_version" ]]; then
+    log_err "[install] 安装或更新失败：版本不匹配。期望 ${expected_version}，实际 ${actual_version}。"
+    log_warn "[install] tjfusion -v output: ${actual_line}"
+    return 1
+  fi
+
+  return 0
 }
 
 check_docker_install() {
@@ -832,25 +863,24 @@ main() {
   install_bash_completion
   install_zsh_completion
 
-  log_step "Verifying installation via command check"
-  if ! verify_tjfusion_command "$launcher_path"; then
+  log_step "Verifying installation/update via tjfusion -v version check"
+  local expected_version
+  expected_version="$(get_expected_tjfusion_version "$repo_root")"
+  if [[ -z "$expected_version" ]]; then
+    log_err "[install] 安装或更新失败：无法读取目标版本号（FusionDocker/src/fusion_docker/__init__.py）。"
+    exit 1
+  fi
+  if ! verify_tjfusion_version "$launcher_path" "$expected_version"; then
     exit 1
   fi
 
   log_step "Running environment checks"
-  log_ok "[install] Done"
+  log_ok "[install] 安装或更新成功"
   log_info "[install] Repo root: $repo_root"
   log_info "[install] Venv: $venv_dir"
   log_ok "[install] Command: $launcher_path"
   log_info "[install] Reload shell: source ~/.bashrc  (or source ~/.zshrc)"
-  log_ok "[install] Verified: tjfusion -h"
-  local tjfusion_version
-  tjfusion_version="$(get_tjfusion_version "$launcher_path")"
-  if [[ -n "$tjfusion_version" ]]; then
-    log_ok "[install] tjfusion version: ${tjfusion_version}"
-  else
-    log_warn "[install] tjfusion version: unknown (run 'tjfusion -v' manually)"
-  fi
+  log_ok "[install] Verified: tjfusion -v version matched (${expected_version})"
   log_step "Printing summary (docker folders/git repos/runtime checks)"
   list_docker_folders "$repo_root"
   list_git_repos "$repo_root"

@@ -138,6 +138,10 @@ def main() -> None:
             _handle_docker_config(args)
             return
 
+        if args.command == "root":
+            _handle_root()
+            return
+
         if args.command == "serve-ui":
             _handle_serve_ui(args)
             return
@@ -376,6 +380,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--docker-model-root",
         default=_default_docker_model_root(),
         help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
+    )
+
+    subparsers.add_parser(
+        "root",
+        help=_release_help("Show the current DOCKER_MODEL_ROOT path."),
     )
 
     subparsers.add_parser(
@@ -1031,6 +1040,14 @@ def _handle_docker_config(args: argparse.Namespace) -> None:
         print_status("SELECT", ", ".join(selected), color="green")
     else:
         print_warning("No docker selected.")
+
+
+def _handle_root() -> None:
+    docker_model_root = _default_docker_model_root()
+    if not docker_model_root:
+        raise RuntimeError("DOCKER_MODEL_ROOT is not set.")
+    resolved = Path(docker_model_root).expanduser().resolve()
+    print_status("ROOT", f"DOCKER_MODEL_ROOT: {resolved}", color="cyan")
 
 
 def _read_selected_dockers(launch_config_path: Path) -> list[str]:
