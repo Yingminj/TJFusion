@@ -1,6 +1,6 @@
 #!/bin/bash
 source /ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=10
+export ROS_DOMAIN_ID=13
 sleep 3
 # 调用两个 service
 ros2 service call /control/set_ready std_srvs/srv/Trigger "{}"
