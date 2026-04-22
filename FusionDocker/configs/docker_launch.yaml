@@ -49,6 +49,5 @@ docker_launcher:
   selected_dockers:
   - Fast-FoundationSteroDocker
   - FlowPoseDocker
-  - MarvinDocker
   - Sam3Docker
   - SiglipDocker

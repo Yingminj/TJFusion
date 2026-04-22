@@ -2,13 +2,11 @@
 set -euo pipefail
 
 WS="/ros2_ws"
-SESSION_MAIN="marvin"
-SESSION_BRIDGE="marvin_bridge"
-SESSION_ACTION="marvin_action"
+SESSION="marvin"
 
 # ---------- 通用：每个 pane 先 source ----------
 PRELUDE="cd ${WS} && source /opt/ros/humble/setup.bash && source /ros2_ws/install/setup.bash && source /robotaction/install/setup.bash"
-SET_ROS_DOMAIN_ID="export ROS_DOMAIN_ID=10"
+SET_ROS_DOMAIN_ID="export ROS_DOMAIN_ID=13"
 
 # ---------- 修改 robot_ip（在 launch 前生效） ----------
 YAML="${WS}/install/marvin_ros_control/share/marvin_ros_control/config/robot_param_m6.yaml"
@@ -23,58 +21,50 @@ else
 fi
 
 # 关闭旧 session
-tmux kill-session -t "${SESSION_MAIN}" 2>/dev/null || true
-tmux kill-session -t "${SESSION_ACTION}" 2>/dev/null || true
-tmux kill-session -t "${SESSION_BRIDGE}" 2>/dev/null || true
+tmux kill-session -t "${SESSION}" 2>/dev/null || true
 
-# ========== Session 1: marvin ==========
-tmux new-session -d -s "${SESSION_MAIN}" -n "MAIN" bash
+# ========== 单 Session，所有 Pane 集中管理 ==========
+tmux new-session -d -s "${SESSION}" -x 200 -y 50 bash
 
-tmux set-option -t "${SESSION_MAIN}" -g pane-border-status top
-tmux set-option -t "${SESSION_MAIN}" -g pane-border-format "#{pane_title}"
+tmux set-option -t "${SESSION}" -g pane-border-status top
+tmux set-option -t "${SESSION}" -g pane-border-format " #{pane_index}: #{pane_title} "
 
-# 布局：左侧上下；左上分左右；右侧分上下
-tmux split-window -v -t "${SESSION_MAIN}:0" bash
-tmux select-pane -t "${SESSION_MAIN}:0.0"
-tmux split-window -h -t "${SESSION_MAIN}:0.0" bash
-tmux split-window -v -t "${SESSION_MAIN}:0.1" bash
+# --- 创建 7 个 pane ---
+# 初始 pane 0，然后逐个 split
+tmux split-window -v -t "${SESSION}:0" bash          # pane 1
+tmux split-window -v -t "${SESSION}:0" bash          # pane 2
+tmux split-window -v -t "${SESSION}:0" bash          # pane 3
+tmux split-window -h -t "${SESSION}:0" bash          # pane 4
+tmux split-window -h -t "${SESSION}:0" bash          # pane 5
+tmux split-window -h -t "${SESSION}:0" bash          # pane 6
 
-tmux select-pane -t "${SESSION_MAIN}:0.0" -T "PLANNER"
-tmux select-pane -t "${SESSION_MAIN}:0.1" -T "GRIPPER"
-tmux select-pane -t "${SESSION_MAIN}:0.2" -T "CONTROL"
-tmux select-pane -t "${SESSION_MAIN}:0.3" -T "TASK_MANAGER"
+# 使用 tiled 布局自动排列（左 4 右 3）
+tmux select-layout -t "${SESSION}:0" tiled
 
-tmux send-keys -t "${SESSION_MAIN}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; ros2 launch marvin_fabric planner_m6.launch.py'" C-m
-tmux send-keys -t "${SESSION_MAIN}:0.1" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 5; ros2 launch dm_gripper_py dm_gripper.launch.py'" C-m
-tmux send-keys -t "${SESSION_MAIN}:0.3" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 8 && python3 ${WS}/src/marvin_fabric/scripts/world/test_task_manager_dynamic0323.py'" C-m
-tmux send-keys -t "${SESSION_MAIN}:0.2" "${SET_ROS_DOMAIN_ID}; bash -lc 'bash /scripts/ServiceCall.sh'" C-m
+# --- 设置标题 & 发送命令 ---
+tmux select-pane -t "${SESSION}:0.0" -T "PLANNER"
+tmux send-keys -t "${SESSION}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; ros2 launch marvin_fabric planner_m6.launch.py'" C-m
 
-tmux select-layout -t "${SESSION_MAIN}:0" tiled
+tmux select-pane -t "${SESSION}:0.1" -T "GRIPPER"
+tmux send-keys -t "${SESSION}:0.1" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 5; ros2 launch dm_gripper_py dm_gripper.launch.py'" C-m
 
-# ========== Session 2: marvin_bridge ==========
-tmux new-session -d -s "${SESSION_BRIDGE}" -n "BRIDGE" bash
+tmux select-pane -t "${SESSION}:0.2" -T "CONTROL"
+tmux send-keys -t "${SESSION}:0.2" "${SET_ROS_DOMAIN_ID}; bash -lc 'bash /scripts/ServiceCall.sh'" C-m
 
-tmux set-option -t "${SESSION_BRIDGE}" -g pane-border-status top
-tmux set-option -t "${SESSION_BRIDGE}" -g pane-border-format "#{pane_title}"
+tmux select-pane -t "${SESSION}:0.3" -T "TASK_MANAGER"
+tmux send-keys -t "${SESSION}:0.3" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 8 && python3 ${WS}/src/marvin_fabric/scripts/world/test_task_manager_dynamic0323.py'" C-m
 
-tmux split-window -h -t "${SESSION_BRIDGE}:0" bash
-tmux select-layout -t "${SESSION_BRIDGE}:0" even-horizontal
+tmux select-pane -t "${SESSION}:0.4" -T "TF_BRIDGE"
+tmux send-keys -t "${SESSION}:0.4" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /tf'" C-m
 
+tmux select-pane -t "${SESSION}:0.5" -T "SIGLIP_BRIDGE"
+tmux send-keys -t "${SESSION}:0.5" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /siglip2/result'" C-m
 
-tmux select-pane -t "${SESSION_BRIDGE}:0.0" -T "RUN_DRAWER"
-tmux send-keys   -t "${SESSION_BRIDGE}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /tf'" C-m
+tmux select-pane -t "${SESSION}:0.6" -T "ROBOT_ACTION"
+tmux send-keys -t "${SESSION}:0.6" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 3 && python3 /robotaction/robot_action.py --object_yaml_path /robotaction/data/lab/test_tube.yaml --status_json_path /robotaction/data/lab/graph_info_lab.json --status_topic /siglip2/result --progress_topic /control/task_percentage --object_tf_topic /tf'" C-m
 
-tmux select-pane -t "${SESSION_BRIDGE}:0.1" -T "REALSENSE_BRIDGE"
-tmux send-keys   -t "${SESSION_BRIDGE}:0.1" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /siglip2/result'" C-m
+# 默认聚焦 PLANNER
+tmux select-pane -t "${SESSION}:0.0"
 
-# ========== Session 3: marvin_action ==========
-tmux new-session -d -s "${SESSION_ACTION}" -n "ACTION" bash
-
-tmux set-option -t "${SESSION_ACTION}" -g pane-border-status top
-tmux set-option -t "${SESSION_ACTION}" -g pane-border-format "#{pane_title}"
-
-tmux select-pane -t "${SESSION_ACTION}:0" -T "SESSION_ACTION"
-tmux send-keys -t "${SESSION_ACTION}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 3 && python3 /robotaction/robot_action.py --object_yaml_path /robotaction/data/lab/test_tube.yaml --status_json_path /robotaction/data/lab/graph_info_lab.json --status_topic /siglip2/result --progress_topic /control/task_percentage --object_tf_topic /tf'" C-m
-
-# 进入主 session
-tmux attach -t "${SESSION_MAIN}"
+# 进入 session
+tmux attach -t "${SESSION}"

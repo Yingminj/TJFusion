@@ -1,0 +1,86 @@
+# Dockerfile for NVIDIA Jetson Orin (ARM64)
+# Target: JetPack 6.1 (L4T R36.4) — Inference only
+#
+# NOTE: This image MUST be built on the Jetson device itself
+# (not cross-compiled from x86 unless using QEMU emulation)
+#
+# Build: docker build -f Dockerfile.jetson -t fast-foundation-stereo:jetson .
+# Run:   docker run --runtime nvidia -it --gpus all fast-foundation-stereo:jetson
+
+FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
+
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /workspace
+
+# Mirror for ARM (aarch64 uses ports.ubuntu.com)
+RUN sed -i 's|http://ports.ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/|g' /etc/apt/sources.list 2>/dev/null; \
+    sed -i 's|http://archive.ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/|g' /etc/apt/sources.list 2>/dev/null; \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/|g' /etc/apt/sources.list 2>/dev/null; \
+    true
+
+# Pip mirror
+RUN mkdir -p /root/.pip && \
+    printf "[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntrusted-host = pypi.tuna.tsinghua.edu.cn\n" > /root/.pip/pip.conf
+
+# System dependencies (inference only, no build-essential by default)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git ca-certificates wget curl \
+    python3-pip python3-setuptools python3-wheel python3-pkg-resources \
+    libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libxcb1 \
+    libusb-1.0-0 libzmq3-dev pkg-config tmux python3-tk \
+    && rm -rf /var/lib/apt/lists/*
+
+# L4T container has CUDA pre-installed (CUDA 12.2)
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+
+RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
+
+# PyTorch for Jetson — NVIDIA pre-built ARM wheels (CUDA 12.2 bundled)
+# Do NOT use download.pytorch.org (x86 only)
+RUN pip3 install --no-cache-dir \
+    torch==2.5.0 \
+    torchvision==0.20.0 \
+    torchaudio==2.5.0 \
+    --index-url https://developer.download.nvidia.com/compute/redist/jp/v61
+
+# Python dependencies
+# NOTE: open3d skipped — no ARM wheel available, not needed for core inference
+#       (Utils.py already has try/except fallback)
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir \
+    timm einops omegaconf scipy numpy \
+    scikit-image opencv-contrib-python-headless imageio pyyaml zmq
+
+# Build librealsense2 + pyrealsense2 from source for Jetson (ARM)
+# This is required because PyPI does not provide ARM wheels for pyrealsense2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential cmake python3-dev libusb-1.0-0-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && cd /tmp \
+    && git clone --depth 1 --branch v2.56.2 https://github.com/IntelRealSense/librealsense.git \
+    && cd librealsense \
+    && mkdir build && cd build \
+    && cmake .. \
+        -DBUILD_PYTHON_BINDINGS=ON \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_TESTS=OFF \
+        -DBUILD_GRAPHICAL_EXAMPLES=OFF \
+        -DBUILD_WITH_CUDA_REALSENSE=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+    && make -j$(nproc) \
+    && make install \
+    && ldconfig \
+    && cd /tmp/librealsense \
+    && pip3 install --no-cache-dir . \
+    && rm -rf /tmp/librealsense
+
+# Additional runtime dependencies (decord not needed — not used in codebase)
+RUN pip3 install --no-cache-dir psutil flask
+
+COPY ./Fast-FoundationStereo-master /workspace/Fast-FoundationStereo-master
+WORKDIR /workspace/Fast-FoundationStereo-master
+
+WORKDIR /workspace
+CMD ["/bin/bash"]
