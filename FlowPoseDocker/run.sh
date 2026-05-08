@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE="flowpose"
+IMAGE="flowpose:jetson"
 CONTAINER_NAME="flowpose_run"
 
 DINO_CKPT_HOST="./dinov2_vits14_pretrain.pth"
@@ -15,6 +15,7 @@ xhost +local:root >/dev/null 2>&1 || true
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 docker run -it --rm \
+    --runtime nvidia \
     --name "${CONTAINER_NAME}" \
     --gpus all \
     --net=host \

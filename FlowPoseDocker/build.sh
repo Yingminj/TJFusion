@@ -1,1 +1,1 @@
-docker build -t flowpose .
+docker build -f Dockerfile.jetson -t flowpose:jetson .
