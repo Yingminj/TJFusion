@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t sam3 .
+docker build -f Dockerfile.jetson -t sam3:jetson .

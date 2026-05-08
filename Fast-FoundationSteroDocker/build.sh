@@ -1,1 +1,1 @@
-docker build -t ffs .
+docker build -f Dockerfile.jetson -t fast-foundation-stereo:jetson .

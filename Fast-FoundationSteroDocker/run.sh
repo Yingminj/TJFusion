@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE="ffs"
+IMAGE="fast-foundation-stereo:jetson"
 CONTAINER_NAME="ffs_tmp"
 
 xhost +local:root >/dev/null 2>&1 || true
@@ -10,6 +10,7 @@ xhost +local:root >/dev/null 2>&1 || true
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 docker run -it --rm \
+    --runtime nvidia \
     --name "${CONTAINER_NAME}" \
     --gpus all \
     --net=host \

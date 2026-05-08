@@ -37,6 +37,7 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 # Run the Docker container
 docker run -it --rm \
+    --runtime nvidia \
     --name "${CONTAINER_NAME}" \
     --gpus all \
     --net=host \
