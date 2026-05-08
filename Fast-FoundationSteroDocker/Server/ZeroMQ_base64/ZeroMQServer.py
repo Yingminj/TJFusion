@@ -222,12 +222,14 @@ def main():
             depth_u16 = depth_float_m_to_uint16_mm(depth_aligned)
 
             # ── RGB JPG -> base64 ──────────────────────────────────────────────
+            t3 = time.time()
             color_bytes = encode_color_jpg(color_img, jpg_quality=cfg.zmq.jpg_quality)
             color_b64 = to_base64_str(color_bytes)
 
             # Depth PNG -> base64
             depth_bytes = encode_depth_png(depth_u16)
             depth_b64 = to_base64_str(depth_bytes)
+            t4 = time.time()
 
             # ── 单 JSON 发送 ───────────────────────────────────────────────────
             payload = {
@@ -242,12 +244,31 @@ def main():
 
             socket.send_string(json.dumps(payload))
 
+            # ── OpenCV 可视化 ──────────────────────────────────────────────────
+            cv2.imshow("Color", color_img)
+
+            depth_vis = depth_aligned.copy()
+            depth_vis[~np.isfinite(depth_vis) | (depth_vis <= 0)] = 0
+            depth_vis_mm = depth_vis * 1000.0  # 转为毫米
+            depth_vis_mm = np.clip(depth_vis_mm, 0, 10000).astype(np.uint16)
+            depth_color = cv2.applyColorMap(
+                cv2.convertScaleAbs(depth_vis_mm, alpha=255.0 / 10000),
+                cv2.COLORMAP_JET,
+            )
+            cv2.imshow("Depth", depth_color)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == 27:  # ESC
+                print("ESC pressed, exiting...")
+                break
+
             if frame_id % 30 == 0:
-                print(f"[PUB] frame_id={frame_id}, infer_time={t1 - t0:.4f}s")
+                print(f"[PUB] frame_id={frame_id}, infer_time={t1 - t0:.4f}s, encode_time={t4 - t3:.4f}s")
 
             frame_id += 1
 
     finally:
+        cv2.destroyAllWindows()
         pipeline.stop()
         socket.close(0)
         context.term()

@@ -8,7 +8,7 @@ docker run -it --rm \
   --network host \
   --privileged \
   -e DISPLAY=$DISPLAY \
-  -e ROS_DOMAIN_ID=10 \
+  -e ROS_DOMAIN_ID=13 \
   -e QT_X11_NO_MITSHM=1 \
   -e TERM=xterm-256color \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \

@@ -6,7 +6,7 @@ server:
   port: 6667
 paths:
   py_runner_path: /workspace/FlowPose/py_runners
-  pretrained_flow_model_path: /workspace/model/scorenet.pth
+  pretrained_flow_model_path: /workspace/model/flowpose.pth
   pretrained_scale_model_path: /workspace/model/scalenet.pth
 visualization:
   fx: 606.9654541015625
