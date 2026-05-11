@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import queue
 import time
 from typing import List, Optional
 
@@ -69,11 +70,15 @@ class FusionStateMixin:
             data = json.load(f) or {}
         nodes = data.get("nodes", [])
         mapping = {}
+        state_list = []
         for node in nodes:
             state_name = normalize_state_text(node.get("state_description"))
             if not state_name:
                 continue
             mapping[state_name] = node.get("next_action")
+            node_id = str(node.get("node_id", "")).strip()
+            state_list.append((node_id, state_name))
+        self._status_state_list = state_list
         return mapping
 
     def _build_steps_for_state(self, state_name: str, tasks) -> List[Step]:
@@ -119,6 +124,8 @@ class FusionStateMixin:
         self._tf_miss_key = None
 
     def _activate_state(self, state_name: str):
+        if self.active_state is not None and self.active_state != state_name:
+            self._state_history.append(self.active_state)
         tasks = self.status_tasks.get(state_name)
         self._reset_tf_miss_streak()
         if tasks is None:
@@ -158,6 +165,8 @@ class FusionStateMixin:
         return isinstance(tasks, list) and len(tasks) > 0
 
     def _get_preempt_state(self) -> Optional[str]:
+        if self._manual_mode:
+            return None
         stable_state = self.status_watcher.get_stable_state()
         if stable_state is None:
             return None
@@ -231,13 +240,100 @@ class FusionStateMixin:
             time.sleep(poll_interval)
         return TaskStatus.STOP, None
 
+    def _drain_manual_cmd(self):
+        try:
+            return self._manual_cmd_queue.get_nowait()
+        except Exception:
+            return None
+
+    def _handle_manual_cmd(self, cmd: str):
+        cmd = cmd.strip().lower()
+
+        if cmd == "c" and not self._manual_mode:
+            self._manual_mode = True
+            arm = self.last_arm or "right"
+            self._release_gripper(arm)
+            error_state = self.active_state
+            self.active_state = None
+            self.active_steps = []
+            self.active_step_idx = 0
+            self.get_logger().info(
+                f"[Manual] 切换至手动模式 (中断状态: {error_state})"
+            )
+            return
+
+        if cmd == "a" and self._manual_mode:
+            self._manual_mode = False
+            self.get_logger().info("[Manual] 切换至自动模式")
+            return
+
+        if not self._manual_mode:
+            return
+
+        if cmd == "h":
+            self._release_gripper("both")
+            self.get_logger().info("[Manual] 执行: 回初始位置")
+            self._publish_home_action("both")
+            self.publish_home_both()
+            return
+
+        if cmd == "c":
+            if self._state_history:
+                prev = self._state_history.pop()
+                if self._has_actions_for_state(prev):
+                    arm = self._first_action_arm_of_state(prev) or self.last_arm or "right"
+                    self._release_gripper(arm)
+                    self.get_logger().info(f"[Manual] 执行: 回到上一个状态 '{prev}'")
+                    self._activate_state(prev)
+                else:
+                    self._state_history.append(prev)
+                    self.get_logger().warning(f"[Manual] 状态 '{prev}' 无可用动作")
+            else:
+                self.get_logger().warning("[Manual] 无历史状态可回退")
+            return
+
+        if cmd.startswith("c") and len(cmd) > 1:
+            try:
+                state_idx = int(cmd[1:])
+            except ValueError:
+                self.get_logger().warning(f"[Manual] 无法解析命令: '{cmd}'")
+                return
+            state_name = self._get_state_by_index(state_idx)
+            if state_name and self._has_actions_for_state(state_name):
+                arm = self._first_action_arm_of_state(state_name) or self.last_arm or "right"
+                self._release_gripper(arm)
+                self.get_logger().info(f"[Manual] 执行: 状态 C{state_idx} '{state_name}'")
+                self._activate_state(state_name)
+            else:
+                self.get_logger().warning(f"[Manual] 状态 C{state_idx} 无可用动作")
+            return
+
+        self.get_logger().warning(
+            f"[Manual] 未知命令: '{cmd}' (手动: h=初始, c=上一步, cN=状态N, a=自动)"
+        )
+
+    def _get_state_by_index(self, idx: int) -> Optional[str]:
+        for node_id, state_name in self._status_state_list:
+            if node_id.upper() == f"C{idx}":
+                return state_name
+        if 1 <= idx <= len(self._status_state_list):
+            return self._status_state_list[idx - 1][1]
+        return None
+
     def on_timer(self):
         if not self._control_lock.acquire(blocking=False):
             return
         try:
+            cmd = self._drain_manual_cmd()
+            if cmd is not None:
+                self._handle_manual_cmd(cmd)
+                return
+
             stable_state = self.status_watcher.get_stable_state()
             if self.active_state is None:
                 if stable_state is None:
+                    return
+                if self._manual_mode:
                     return
                 self._activate_state(stable_state)
                 return

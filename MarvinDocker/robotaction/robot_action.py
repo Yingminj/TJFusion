@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import queue
+import select
+import sys
 import threading
 from typing import Dict, List, Optional
 
@@ -12,7 +15,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
 from std_msgs.msg import String
 from tf2_ros import Buffer, TransformListener
-import sys
+
 sys.path.append("/")  # Ensure robotaction is in the path for imports
 from robotaction.common import (
     ActionHandler,
@@ -108,11 +111,41 @@ class FusionNode(FusionStateMixin, FusionExecutionMixin, FusionTfMixin, Node):
         self._tf_miss_streak = 0
         self._tf_miss_key = None
 
+        self._manual_mode = False
+        self._state_history: List[str] = []
+        self._manual_cmd_queue: queue.Queue = queue.Queue()
+
         self.get_logger().info(
             f"[Config] status_topic={status_topic}, progress_topic={progress_topic}, "
             f"object_tf_topic={object_tf_topic or '<tf_buffer>'}, base_frame={self.base_frame}"
         )
 
+        self.manual_cmd_sub = self.create_subscription(
+            String,
+            "/fusion/manual_cmd",
+            self._manual_cmd_callback,
+            10,
+        )
+        self._kb_thread = threading.Thread(target=self._keyboard_listener, daemon=True)
+        self._kb_thread.start()
+        self.get_logger().info(
+            "[Manual] 按 'c' 切换手动模式 | 手动: 'h'=初始, 'c'=上一步, 'cN'=状态N, 'a'=自动"
+        )
+
+
+
+    def _manual_cmd_callback(self, msg):
+        self._manual_cmd_queue.put(msg.data.strip().lower())
+
+    def _keyboard_listener(self):
+        while rclpy.ok():
+            try:
+                if select.select([sys.stdin], [], [], 0.2)[0]:
+                    line = sys.stdin.readline().strip()
+                    if line:
+                        self._manual_cmd_queue.put(line.lower())
+            except Exception:
+                break
 
 
 def main():

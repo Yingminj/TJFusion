@@ -85,6 +85,20 @@ class FusionExecutionMixin:
             if i < 2:
                 time.sleep(0.1)
 
+    def _release_gripper(self, arm: str):
+        release_seq = [{
+            "name": "gripper_release",
+            "arm": arm,
+            "poses": [],
+            "constraints": [100, 100, 100],
+            "speed": 0.5,
+            "gripper_value": [0.0, 0.0],
+            "time": [0, 0.3],
+        }]
+        self.publish_kp_separately(release_seq)
+        self.get_logger().info(f"[Manual] 松开夹爪 arm='{arm}'")
+        time.sleep(0.5)
+
     def publish_home_both(self):
         for arm in ["right", "left"]:
             self._home(arm)
