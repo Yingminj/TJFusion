@@ -24,7 +24,7 @@ def _mutate_multi_zmq_pub_bridge_config(config):
 
 def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool = False) -> None:
     from fusion_docker.bridge_pub import BridgeResultPublisher
-    from fusion_docker.bridge_service import run_bridge_service
+    from fusion_docker.bridge_service import run_bridge_service, run_zmq_source_bridge_service_decoupled
     from fusion_docker.console import print_status
 
     publisher = BridgeResultPublisher(
@@ -33,28 +33,28 @@ def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool 
         siglip_topic=config.result_siglip_topic,
         tf_topic=config.result_tf_topic,
         siglip_vote_window=config.result_siglip_vote_window,
-        siglip_sync_with_pose=config.result_siglip_sync_with_pose,
-        siglip_pose_wait_timeout_sec=config.result_siglip_pose_wait_timeout_sec,
     )
     print_status("PUB", f"Result PUB       : {config.result_pub_addr}", color="cyan")
     print_status("PUB", f"TF frame id      : {config.result_pub_frame_id}", color="cyan")
     print_status("PUB", f"Siglip topic     : {config.result_siglip_topic}", color="cyan")
     print_status("PUB", f"Siglip vote k    : {config.result_siglip_vote_window}", color="cyan")
-    print_status("PUB", f"Siglip sync pose : {config.result_siglip_sync_with_pose}", color="cyan")
-    print_status(
-        "PUB",
-        f"Siglip pose t/o  : {config.result_siglip_pose_wait_timeout_sec}s",
-        color="cyan",
-    )
     print_status("PUB", f"TF topic         : {config.result_tf_topic}", color="cyan")
 
     try:
-        run_bridge_service(
-            config,
-            verbose=verbose,
-            save_json=save_json,
-            result_callback=publisher.publish,
-        )
+        if str(config.source_mode).strip().lower() == "zmq_source":
+            run_zmq_source_bridge_service_decoupled(
+                config,
+                verbose=verbose,
+                save_json=save_json,
+                result_callback=publisher.publish,
+            )
+        else:
+            run_bridge_service(
+                config,
+                verbose=verbose,
+                save_json=save_json,
+                result_callback=publisher.publish,
+            )
     finally:
         publisher.close()
 

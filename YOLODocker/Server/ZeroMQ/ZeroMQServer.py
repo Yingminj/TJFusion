@@ -1,6 +1,5 @@
 import argparse
 import base64
-import io
 import time
 import traceback
 
@@ -8,7 +7,6 @@ import cv2
 import numpy as np
 import yaml
 import zmq
-from PIL import Image
 from ultralytics import YOLO
 
 SERVER_VERSION = "v2"
@@ -35,10 +33,13 @@ def log_success(msg):
     print(f"[{_ts()}] [OK] {msg}", flush=True)
 
 
-def decode_rgb_from_base64(image_b64: str) -> np.ndarray:
+def decode_bgr_from_base64(image_b64: str) -> np.ndarray:
     image_data = base64.b64decode(image_b64)
-    image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    return np.array(image)
+    image_array = np.frombuffer(image_data, dtype=np.uint8)
+    image_bgr = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    if image_bgr is None:
+        raise ValueError("Failed to decode input image from base64.")
+    return image_bgr
 
 
 def encode_mask_to_base64_png(mask: np.ndarray) -> str:
@@ -57,12 +58,6 @@ def encode_bgr_to_base64_jpg(image_bgr: np.ndarray, quality: int = 90) -> str:
     return base64.b64encode(buf.tobytes()).decode("utf-8")
 
 
-def normalize_prompt_set(prompts):
-    if not prompts:
-        return set()
-    return {str(p).strip().lower() for p in prompts if str(p).strip()}
-
-
 class YOLOZMQServer:
     def __init__(self, config_path: str = "/workspace/config.yaml"):
         self.cfg = load_config(config_path)
@@ -79,7 +74,7 @@ class YOLOZMQServer:
         self.persist = True
         self.return_masks = True
         self.return_annotated_image = True
-        self.show_window = False
+        self.show_window = True
         self.window_name = "YOLO Detections"
         self._window_available = True
 
@@ -130,13 +125,16 @@ class YOLOZMQServer:
         request_total_start = time.time()
 
         request_id = req.get("request_id", "")
-        prompts = req.get("prompts", [])
+        _ = req.get("prompts", [])  # Keep request schema compatibility, but ignore prompt filtering.
         _ = req.get("clear_previous", True)  # Keep same input interface as SAM3
 
-        if "rgb_image" not in req:
-            raise ValueError("Missing required field 'rgb_image' in request.")
-
-        rgb = decode_rgb_from_base64(req["rgb_image"])
+        if "bgr_image" in req:
+            bgr = decode_bgr_from_base64(req["bgr_image"])
+        elif "rgb_image" in req:
+            # Backward-compatible fallback for older clients.
+            bgr = decode_bgr_from_base64(req["rgb_image"])
+        else:
+            raise ValueError("Missing required field 'bgr_image' in request.")
 
         conf = float(req.get("conf", self.score_threshold))
         tracker = req.get("tracker", self.tracker)
@@ -147,20 +145,18 @@ class YOLOZMQServer:
 
         if self.model_task == "classify":
             results = self.yolo.predict(
-                rgb,
+                bgr,
                 verbose=False,
                 conf=conf,
             )
         else:
             results = self.yolo.track(
-                rgb,
+                bgr,
                 persist=persist,
                 tracker=tracker,
                 verbose=False,
                 conf=conf,
             )
-
-        prompt_set = normalize_prompt_set(prompts)
 
         detections = []
         global_det_id = 1
@@ -170,7 +166,7 @@ class YOLOZMQServer:
         if result0 is not None:
             annotated_bgr = result0.plot()
         else:
-            annotated_bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+            annotated_bgr = bgr.copy()
 
         if return_annotated_image:
             annotated_image_b64 = encode_bgr_to_base64_jpg(annotated_bgr)
@@ -196,17 +192,6 @@ class YOLOZMQServer:
                         if isinstance(names, dict) and class_id in names
                         else str(class_id)
                     )
-                    label_norm = label.strip().lower()
-                    if prompt_set:
-                        prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                        if not prompt_hit:
-                            for prompt in prompt_set:
-                                prompt_id = self.get_class_id(prompt)
-                                if prompt_id is not None and int(prompt_id) == class_id:
-                                    prompt_hit = True
-                                    break
-                        if not prompt_hit:
-                            continue
                     detections.append(
                         {
                             "id": int(global_det_id),
@@ -234,19 +219,6 @@ class YOLOZMQServer:
                 score = float(scores[i]) if scores is not None else 0.0
 
                 label = str(names[class_id]) if isinstance(names, dict) and class_id in names else str(class_id)
-                label_norm = label.strip().lower()
-
-                if prompt_set:
-                    prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                    if not prompt_hit:
-                        for prompt in prompt_set:
-                            prompt_id = self.get_class_id(prompt)
-                            if prompt_id is not None and int(prompt_id) == class_id:
-                                prompt_hit = True
-                                break
-                    if not prompt_hit:
-                        continue
-
                 det = {
                     "id": int(global_det_id),
                     "label": label,
@@ -259,6 +231,18 @@ class YOLOZMQServer:
                 if return_masks and mask_data is not None and i < len(mask_data):
                     binary_mask = (mask_data[i] > 0.5).astype(np.uint8) * 255
                     det["mask_png_b64"] = encode_mask_to_base64_png(binary_mask)
+                elif return_masks and xyxy is not None:
+                    # Fallback for detect-only models without segmentation heads.
+                    x1, y1, x2, y2 = [int(round(v)) for v in xyxy[i].tolist()]
+                    h, w = bgr.shape[:2]
+                    x1 = max(0, min(x1, w - 1))
+                    x2 = max(0, min(x2, w))
+                    y1 = max(0, min(y1, h - 1))
+                    y2 = max(0, min(y2, h))
+                    if x2 > x1 and y2 > y1:
+                        binary_mask = np.zeros((h, w), dtype=np.uint8)
+                        binary_mask[y1:y2, x1:x2] = 255
+                        det["mask_png_b64"] = encode_mask_to_base64_png(binary_mask)
 
                 detections.append(det)
                 global_det_id += 1
@@ -267,6 +251,7 @@ class YOLOZMQServer:
         return {
             "status": "ok",
             "request_id": request_id,
+            "num_detections": len(detections),
             "detections": detections,
             "annotated_image_b64": annotated_image_b64,
             "elapsed_sec": round(total_request_time, 4),

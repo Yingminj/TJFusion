@@ -20,6 +20,7 @@ import yaml
 from fusion_docker.bridge_scaffold import create_bridge_scaffold
 from fusion_docker.bridge_runtime import run_bridge_from_config
 from fusion_docker.bridges.registry import list_bridges as list_registered_bridges
+from fusion_docker import __version__
 from fusion_docker.config import load_docker_launch_config
 from fusion_docker.launch_config_bridge_editor import add_bridge_to_launch_config
 from fusion_docker.console import (
@@ -137,6 +138,10 @@ def main() -> None:
             _handle_docker_config(args)
             return
 
+        if args.command == "root":
+            _handle_root()
+            return
+
         if args.command == "serve-ui":
             _handle_serve_ui(args)
             return
@@ -201,6 +206,12 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Marvin Robot System CLI for FusionDocker, bridge service, and docker launch flow.",
         epilog=_release_debug_help_footer(),
         formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -369,6 +380,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--docker-model-root",
         default=_default_docker_model_root(),
         help="DockerModel root path. Defaults to DOCKER_MODEL_ROOT when set.",
+    )
+
+    subparsers.add_parser(
+        "root",
+        help=_release_help("Show the current DOCKER_MODEL_ROOT path."),
     )
 
     subparsers.add_parser(
@@ -698,6 +714,19 @@ def _handle_start(args: argparse.Namespace) -> None:
         if default_launch_config.exists():
             args.launch_config = str(default_launch_config)
 
+    launch_config = _load_optional_launch_config(args.launch_config)
+    docker_model_root_value = _resolve_docker_model_root_value(
+        args.docker_model_root,
+        launch_config.docker_model_root if launch_config else None,
+    )
+    if docker_model_root_value:
+        args.docker_model_root = docker_model_root_value
+        print_status(
+            "CONFIG",
+            f"DOCKER_MODEL_ROOT: {Path(docker_model_root_value).expanduser().resolve()}",
+            color="cyan",
+        )
+
     docker_names = _resolve_start_docker_names(args)
     if not docker_names:
         raise ValueError(
@@ -980,10 +1009,12 @@ def _run_docker_launch_flow(
 def _handle_docker_config(args: argparse.Namespace) -> None:
     launch_config_path = Path(args.launch_config).expanduser().resolve()
     launch_config = _load_optional_launch_config(str(launch_config_path)) if launch_config_path.exists() else None
-    docker_model_root_value = args.docker_model_root or (
-        launch_config.docker_model_root if launch_config else None
+    docker_model_root_value = _resolve_docker_model_root_value(
+        args.docker_model_root,
+        launch_config.docker_model_root if launch_config else None,
     )
     docker_model_root = _require_docker_model_root(docker_model_root_value)
+    print_status("CONFIG", f"DOCKER_MODEL_ROOT: {docker_model_root}", color="cyan")
     docker_names = describe_targets(docker_model_root)
     if not docker_names:
         raise FileNotFoundError(f"No run.sh files found under DockerModel path: {docker_model_root}")
@@ -1009,6 +1040,14 @@ def _handle_docker_config(args: argparse.Namespace) -> None:
         print_status("SELECT", ", ".join(selected), color="green")
     else:
         print_warning("No docker selected.")
+
+
+def _handle_root() -> None:
+    docker_model_root = _default_docker_model_root()
+    if not docker_model_root:
+        raise RuntimeError("DOCKER_MODEL_ROOT is not set.")
+    resolved = Path(docker_model_root).expanduser().resolve()
+    print_status("ROOT", f"DOCKER_MODEL_ROOT: {resolved}", color="cyan")
 
 
 def _read_selected_dockers(launch_config_path: Path) -> list[str]:
@@ -1956,6 +1995,18 @@ def _require_docker_model_root(raw_path: str | None) -> Path:
     return Path(raw_path).expanduser().resolve()
 
 
+def _resolve_docker_model_root_value(
+    cli_value: str | None,
+    launch_config_value: str | None = None,
+) -> str | None:
+    if cli_value:
+        return str(cli_value).strip()
+    if launch_config_value:
+        return str(launch_config_value).strip()
+    env_value = str(os.getenv("DOCKER_MODEL_ROOT", "")).strip()
+    return env_value or None
+
+
 def _load_optional_launch_config(raw_path: str | None):
     resolved = _resolve_launch_config_path(raw_path)
     if resolved is not None:
@@ -1969,6 +2020,9 @@ def _resolve_launch_config_path(raw_path: str | None) -> Path | None:
     if raw_path:
         candidate_paths.append(Path(raw_path))
     else:
+        env_default = Path(_default_docker_config_launch_path())
+        if env_default.exists():
+            candidate_paths.append(env_default)
         default_path = Path("configs/docker_launch.yaml")
         if default_path.exists():
             candidate_paths.append(default_path)
