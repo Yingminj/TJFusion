@@ -10,3 +10,5 @@ FusionDocker/logs/
 */model/**
 !*/model/download.sh
 ./tjfusion
+.venv-tjfusion
+Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets
