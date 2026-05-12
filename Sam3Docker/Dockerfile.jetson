@@ -36,13 +36,18 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
 
-# PyTorch for Jetson — NVIDIA pre-built ARM wheels (CUDA 12.2 bundled)
-# Do NOT use download.pytorch.org (x86 only)
-RUN pip3 install --no-cache-dir \
-    torch==2.5.0 \
-    torchvision==0.20.0 \
-    torchaudio==2.5.0 \
-    --index-url https://developer.download.nvidia.com/compute/redist/jp/v61
+# PyTorch for Jetson — NVIDIA pre-built ARM wheels
+# IMPORTANT:
+# - DO NOT use download.pytorch.org (x86 wheels)
+# - NVIDIA's directory listing is not a strict PEP503 simple index, so use --find-links
+# - Do NOT pin exact torch version (NVIDIA wheel filenames/metadata can be inconsistent)
+# - Do NOT install torchvision/torchaudio (per your request)
+ARG JP_PYTORCH_WHL=https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/
+
+RUN python3 -m pip install --no-cache-dir \
+      --find-links ${JP_PYTORCH_WHL} \
+      torch \
+ && python3 -m pip show torch
 
 # Install sam3 core only (skip [train], [dev], [notebooks] extras for inference)
 COPY ./sam3-main /workspace/sam3-main
@@ -51,13 +56,13 @@ RUN pip3 install --no-cache-dir -e .
 
 # Additional inference dependencies
 RUN pip3 install --no-cache-dir \
-    decord \
     psutil \
     flask \
     pyyaml \
-    zmq \
+    pyzmq \
     matplotlib \
-    Pillow
+    Pillow && \
+    (pip3 install --no-cache-dir decord || echo "Skipping decord on Jetson: no compatible wheel available")
 
 # NOTE: pyrealsense2 is NOT installed here
 #   - Only used in Server/ZeroMQ_v1/ (old version), not in core inference

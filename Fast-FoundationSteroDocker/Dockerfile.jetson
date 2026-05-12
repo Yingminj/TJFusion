@@ -39,24 +39,21 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 # Keep pip tooling up-to-date
 RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
 
-# PyTorch for Jetson — NVIDIA pre-built ARM wheels
-# IMPORTANT:
-# - DO NOT use download.pytorch.org (x86 wheels)
-# - NVIDIA's directory listing is not a strict PEP503 simple index, so use --find-links
-# - Do NOT pin exact torch version (NVIDIA wheel filenames/metadata can be inconsistent)
-# - Do NOT install torchvision/torchaudio (per your request)
-ARG JP_PYTORCH_WHL=https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/
+# PyTorch for Jetson — pin to a JetPack 6.1 compatible NVIDIA wheel.
+# JetPack 6.1 / L4T R36.4 uses CUDA 12.6, so avoid cu130 wheels.
+# Do NOT install torchvision/torchaudio here.
+ARG TORCH_WHL_URL=https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/torch-2.5.0a0+872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
 
-RUN python3 -m pip install --no-cache-dir \
-      --find-links ${JP_PYTORCH_WHL} \
-      torch \
- && python3 -m pip show torch
+RUN python3 -m pip install --no-cache-dir "${TORCH_WHL_URL}" 
 
 # Python dependencies (inference/runtime)
+# NOTE: install timm without dependency resolution so pip will not try to pull
+# a different torch wheel on Jetson.
 # NOTE: open3d skipped — no ARM wheel available, not needed for core inference
 RUN python3 -m pip install --no-cache-dir \
-    timm einops omegaconf scipy numpy \
-    scikit-image opencv-contrib-python-headless imageio pyyaml pyzmq
+    einops omegaconf scipy numpy \
+    scikit-image opencv-contrib-python-headless imageio pyyaml pyzmq \
+ && python3 -m pip install --no-cache-dir --no-deps timm
 
 # 构建 librealsense2 + pyrealsense2
 ARG LIBREALSENSE_VER=v2.56.2
