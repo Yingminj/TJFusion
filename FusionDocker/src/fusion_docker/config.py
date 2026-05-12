@@ -15,6 +15,7 @@ from fusion_docker.models import (
     BridgeServiceConfig,
     DockerLaunchConfig,
     DockerTargetEntry,
+    ModelNode,
     ZmqEndpointConfig,
 )
 
@@ -176,6 +177,13 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
     )
     default_run_sam3_flowpose = False if bridge_type == "siglip2_bridge" else True
     run_sam3_flowpose = bool(bridge_raw.get("run_sam3_flowpose", default_run_sam3_flowpose))
+
+    # When an explicit pipeline is defined, legacy address validation is
+    # relaxed: the pipeline replaces the hard-coded SAM3/FlowPose path.
+    has_explicit_pipeline = isinstance(bridge_raw.get("pipeline"), list) and len(
+        bridge_raw["pipeline"]
+    ) > 0
+
     source_mode = str(bridge_raw.get("source_mode", "")).strip().lower() or "external_json"
     if source_mode not in {"external_json", "zmq_source"}:
         raise ValueError("bridge.source_mode must be 'external_json' or 'zmq_source'")
@@ -185,16 +193,17 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
     zmq_timeout_sec = float(bridge_raw.get("zmq_timeout_sec", 3.0))
     if zmq_timeout_sec <= 0:
         raise ValueError("bridge.zmq_timeout_sec must be greater than 0")
-    if run_sam3_flowpose and (not sam3_server_addr or not flowpose_server_addr):
+    if run_sam3_flowpose and not has_explicit_pipeline and (not sam3_server_addr or not flowpose_server_addr):
         raise ValueError(
             "Bridge config requires sam3_server_addr and flowpose_server_addr "
-            "when bridge.run_sam3_flowpose=true"
+            "when bridge.run_sam3_flowpose=true (and no pipeline is defined)"
         )
-    if not run_sam3_flowpose and not siglip2_server_addr and not flowpose_sidecar_server_addr:
+    if not run_sam3_flowpose and not siglip2_server_addr and not flowpose_sidecar_server_addr and not has_explicit_pipeline:
         raise ValueError(
             "Bridge config has no enabled pipeline. Set run_sam3_flowpose=true "
-            "or configure siglip2_server_addr/flowpose_sidecar_server_addr."
-        )
+            "or configure siglip2_server_addr/flowpose_sidecar_server_addr "
+            "or define a pipeline list."
+            )
     if source_mode == "zmq_source" and not zmq_source_addr:
         raise ValueError("bridge.zmq_source_addr is required when source_mode=zmq_source")
 
@@ -241,7 +250,51 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
                 bridge_raw.get("result_tf_topic", "/tf"),
             )
         ),
+        pipeline=_parse_pipeline(bridge_raw.get("pipeline")),
     )
+
+
+def _parse_pipeline(raw: Any) -> list[ModelNode]:
+    """Parse the ``pipeline:`` section of a bridge config.
+
+    Returns an empty list when *raw* is ``None`` (legacy config without
+    an explicit pipeline), so that
+    :meth:`BridgeServiceConfig.effective_pipeline` falls back to
+    :meth:`BridgeServiceConfig.build_default_pipeline`.
+    """
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ValueError("bridge.pipeline must be a list of model nodes")
+    nodes: list[ModelNode] = []
+    for idx, item in enumerate(raw):
+        if not isinstance(item, dict):
+            raise ValueError(f"bridge.pipeline[{idx}] must be a mapping")
+        name = str(item.get("name", "")).strip()
+        if not name:
+            raise ValueError(f"bridge.pipeline[{idx}].name is required")
+        depends_on_raw = item.get("depends_on", [])
+        if depends_on_raw is None:
+            depends_on_raw = []
+        if not isinstance(depends_on_raw, list):
+            raise ValueError(
+                f"bridge.pipeline[{idx}].depends_on must be a list of strings"
+            )
+        nodes.append(
+            ModelNode(
+                name=name,
+                endpoint=str(item.get("endpoint", "")).strip(),
+                enabled=bool(item.get("enabled", True)),
+                timeout_ms=(
+                    int(item["timeout_ms"])
+                    if item.get("timeout_ms") is not None
+                    else None
+                ),
+                depends_on=[str(d) for d in depends_on_raw],
+                role=str(item.get("role", "optional")).strip().lower(),
+            )
+        )
+    return nodes
 
 
 def _parse_bridge_input_mapping(raw_mapping: Any) -> BridgeInputMapping:

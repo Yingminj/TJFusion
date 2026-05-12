@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-setuptools python3-wheel python3-pkg-resources \
     libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libxcb1 \
     libusb-1.0-0 libzmq3-dev pkg-config tmux python3-tk \
+    libopenblas0 libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # L4T container has CUDA pre-installed

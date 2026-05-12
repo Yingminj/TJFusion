@@ -74,6 +74,22 @@ class BridgeSchemaCheckConfig:
 
 
 @dataclass(slots=True)
+class ModelNode:
+    """A single model node in a processing pipeline.
+
+    ``depends_on`` lists model names that must complete before this
+    node starts.  Nodes whose dependencies are all satisfied run in
+    parallel within the same topological layer.
+    """
+    name: str
+    endpoint: str = ""
+    enabled: bool = True
+    timeout_ms: int | None = None
+    depends_on: list[str] = field(default_factory=list)
+    role: str = "optional"
+
+
+@dataclass(slots=True)
 class BridgeServiceConfig:
     sam3_server_addr: str
     flowpose_server_addr: str
@@ -100,6 +116,7 @@ class BridgeServiceConfig:
     result_pub_frame_id: str = "camera_rgb_link"
     result_siglip_topic: str = "/siglip2/result"
     result_tf_topic: str = "/tf"
+    pipeline: list[ModelNode] = field(default_factory=list)
 
     @property
     def downstream_server_addr(self) -> str:
@@ -114,6 +131,55 @@ class BridgeServiceConfig:
     def siglip_server_addr(self) -> str:
         # Backward-compat alias: old config/runtime used "siglip" naming.
         return self.siglip2_server_addr
+
+    @property
+    def effective_pipeline(self) -> list[ModelNode]:
+        """Return the explicitly configured *pipeline*, or build one from
+        legacy fields when *pipeline* is empty."""
+        return self.pipeline if self.pipeline else self.build_default_pipeline()
+
+    def build_default_pipeline(self) -> list[ModelNode]:
+        """Build a pipeline from legacy address fields.
+
+        This is used for backward compatibility when no ``pipeline:`` section
+        is present in the YAML config.
+        """
+        nodes: list[ModelNode] = []
+        if self.run_sam3_flowpose and self.sam3_server_addr:
+            nodes.append(
+                ModelNode(
+                    name="sam3",
+                    endpoint=self.sam3_server_addr,
+                    timeout_ms=self.sam3_timeout_ms or self.req_timeout_ms,
+                    role="required",
+                )
+            )
+            nodes.append(
+                ModelNode(
+                    name="flowpose",
+                    endpoint=self.flowpose_server_addr,
+                    timeout_ms=self.req_timeout_ms,
+                    depends_on=["sam3"],
+                    role="required",
+                )
+            )
+        if self.siglip2_server_addr:
+            nodes.append(
+                ModelNode(
+                    name="siglip2",
+                    endpoint=self.siglip2_server_addr,
+                    timeout_ms=self.req_timeout_ms,
+                )
+            )
+        if self.flowpose_sidecar_server_addr:
+            nodes.append(
+                ModelNode(
+                    name="flowpose_sidecar",
+                    endpoint=self.flowpose_sidecar_server_addr,
+                    timeout_ms=self.req_timeout_ms,
+                )
+            )
+        return nodes
 
 
 @dataclass(slots=True)
