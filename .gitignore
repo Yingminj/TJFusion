@@ -13,6 +13,7 @@ Fast-FoundationSteroDocker/model
 Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets
 
 .venv-tjfusion
+tjfusion-local
 
 FusionDocker/logs
 FusionDocker/src/fusion_docker.egg-info

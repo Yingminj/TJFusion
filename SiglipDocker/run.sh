@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-IMAGE_NAME="siglip2"
+IMAGE_NAME="siglip2:latest"
 CONTAINER_NAME="siglip2_container"
 
 DATA_PATH="$(pwd)"

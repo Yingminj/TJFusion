@@ -1,1 +1,1 @@
-docker build -f Dockerfile.jetson -t flowpose:jetson .
+docker build -f Dockerfile -t flowpose:latest .

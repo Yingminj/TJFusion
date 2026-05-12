@@ -1,5 +1,5 @@
 docker:
-  image: sam3:jetson
+  image: sam3:latest
   container_name: Sam3Docker
 
 server:

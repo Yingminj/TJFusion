@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE="fast-foundation-stereo:jetson"
+IMAGE="ffs:latest"
 CONTAINER_NAME="ffs_tmp"
 
 xhost +local:root >/dev/null 2>&1 || true

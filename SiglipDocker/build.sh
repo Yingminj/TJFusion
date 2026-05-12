@@ -1,1 +1,1 @@
-docker build -t siglip2 .
+docker build -f Dockerfile -t siglip2:latest .

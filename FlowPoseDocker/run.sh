@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE="flowpose:jetson"
+IMAGE="flowpose:latest"
 CONTAINER_NAME="flowpose_run"
 
 DINO_CKPT_HOST="./dinov2_vits14_pretrain.pth"
