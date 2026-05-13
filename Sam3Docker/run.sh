@@ -28,6 +28,22 @@ fi
 
 echo "Using image: ${IMAGE}"
 echo "Container name: ${CONTAINER_NAME}"
+# Detect NVIDIA GPU support; fallback to no-GPU flags if not present
+USE_NVIDIA=false
+if [ -e /dev/nvidia0 ] || [ -e /dev/nvidiactl ]; then
+    if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then
+        USE_NVIDIA=true
+    fi
+fi
+
+if $USE_NVIDIA; then
+    GPU_FLAGS="--runtime nvidia"
+    NVIDIA_ENV="-e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all"
+else
+    echo "Warning: NVIDIA runtime not detected; running without GPU flags."
+    GPU_FLAGS=""
+    NVIDIA_ENV=""
+fi
 
 # Grant X11 access
 xhost +local:root >/dev/null 2>&1 || true
@@ -37,16 +53,15 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 # Run the Docker container
 docker run -it --rm \
-    --runtime nvidia \
+    ${GPU_FLAGS} \
     --name "${CONTAINER_NAME}" \
-    --gpus all \
     --net=host \
     --ipc=host \
     --privileged \
     --device /dev:/dev \
     -e DISPLAY="${DISPLAY}" \
     -e QT_X11_NO_MITSHM=1 \
-    -e NVIDIA_DRIVER_CAPABILITIES=all \
+    ${NVIDIA_ENV} \
     -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     -v /dev:/dev \
     -v "$(pwd)":/workspace \

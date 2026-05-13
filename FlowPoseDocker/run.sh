@@ -5,7 +5,7 @@ set -e
 IMAGE="flowpose:latest"
 CONTAINER_NAME="flowpose_run"
 
-DINO_CKPT_HOST="./dinov2_vits14_pretrain.pth"
+DINO_CKPT_HOST="./model/dinov2_vits14_pretrain.pth"
 DINO_CKPT_CONT="/root/.cache/torch/hub/checkpoints/dinov2_vits14_pretrain.pth"
 
 # 允许容器访问宿主机显示
@@ -17,7 +17,6 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 docker run -it --rm \
     --runtime nvidia \
     --name "${CONTAINER_NAME}" \
-    --gpus all \
     --net=host \
     --ipc=host \
     --privileged \

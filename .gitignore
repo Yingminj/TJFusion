@@ -17,3 +17,6 @@ tjfusion-local
 
 FusionDocker/logs
 FusionDocker/src/fusion_docker.egg-info
+
+.vscode
+*.pyc
