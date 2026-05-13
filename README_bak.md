@@ -43,6 +43,7 @@ sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
 sudo apt update
 sudo apt install -y nvidia-container-toolkit
+sudo apt-get install -y tmux
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 ```

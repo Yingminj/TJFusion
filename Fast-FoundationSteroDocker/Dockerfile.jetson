@@ -29,22 +29,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-setuptools python3-wheel python3-pkg-resources \
     libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libxcb1 \
     libusb-1.0-0 libzmq3-dev pkg-config tmux python3-tk \
+    libopenblas0 libopenblas-dev \
+    && apt-get install -y --no-install-recommends libcusparselt0 2>/dev/null || echo "libcusparselt0 not in repo" \
     && rm -rf /var/lib/apt/lists/*
 
 # L4T container has CUDA pre-installed
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${CUDA_HOME}/targets/aarch64-linux/lib:/usr/local/cuda-12.6/lib64:/opt/nvidia/cusparselt/lib:${LD_LIBRARY_PATH}
 
 # Keep pip tooling up-to-date
 RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
 
-# PyTorch for Jetson — pin to a JetPack 6.1 compatible NVIDIA wheel.
+# PyTorch for Jetson — install from a local wheel (downloaded to repository).
 # JetPack 6.1 / L4T R36.4 uses CUDA 12.6, so avoid cu130 wheels.
 # Do NOT install torchvision/torchaudio here.
-ARG TORCH_WHL_URL=https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/torch-2.5.0a0+872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
-
-RUN python3 -m pip install --no-cache-dir "${TORCH_WHL_URL}" 
+# Copy the pre-downloaded wheel into the image and install without resolving deps.
+COPY torch-2.10.0-cp310-cp310-linux_aarch64.whl /tmp/torch-2.10.0-cp310-cp310-linux_aarch64.whl
+RUN python3 -m pip install --no-cache-dir --no-deps /tmp/torch-2.10.0-cp310-cp310-linux_aarch64.whl
 
 # Python dependencies (inference/runtime)
 # NOTE: install timm without dependency resolution so pip will not try to pull
