@@ -3,7 +3,7 @@ bridge:
   source_mode: zmq_source
   zmq_source_addr: tcp://127.0.0.1:4444
   prompts:
-    - blue cap
+    - cup
     - red box
   pipeline:
     # 第一层：SAM3、SigLIP2 并行执行（都只需要 RGB，互不依赖）
@@ -11,9 +11,9 @@ bridge:
       endpoint: tcp://127.0.0.1:5562
       timeout_ms: 5000
       role: required
-    - name: siglip2
-      endpoint: tcp://127.0.0.1:7777
-      role: optional
+    # - name: siglip2
+    #   endpoint: tcp://127.0.0.1:7777
+    #   role: optional
     # 第二层：FlowPose（依赖 sam3，用 sam3 的 masks + depth）
     - name: flowpose
       endpoint: tcp://127.0.0.1:6667

@@ -82,11 +82,16 @@ class ModelNode:
     parallel within the same topological layer.
     """
     name: str
+    kind: str = "generic"
     endpoint: str = ""
     enabled: bool = True
     timeout_ms: int | None = None
     depends_on: list[str] = field(default_factory=list)
     role: str = "optional"
+    inputs: list[str] = field(default_factory=list)
+    outputs: list[str] = field(default_factory=list)
+    request_map: dict[str, Any] = field(default_factory=dict)
+    response_map: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -117,6 +122,7 @@ class BridgeServiceConfig:
     result_siglip_topic: str = "/siglip2/result"
     result_tf_topic: str = "/tf"
     pipeline: list[ModelNode] = field(default_factory=list)
+    pipeline_outputs: list[str] = field(default_factory=list)
 
     @property
     def downstream_server_addr(self) -> str:

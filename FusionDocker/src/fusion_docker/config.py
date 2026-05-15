@@ -251,6 +251,7 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
             )
         ),
         pipeline=_parse_pipeline(bridge_raw.get("pipeline")),
+        pipeline_outputs=_coerce_pipeline_outputs(bridge_raw.get("pipeline_outputs")),
     )
 
 
@@ -273,6 +274,7 @@ def _parse_pipeline(raw: Any) -> list[ModelNode]:
         name = str(item.get("name", "")).strip()
         if not name:
             raise ValueError(f"bridge.pipeline[{idx}].name is required")
+        kind = str(item.get("kind", item.get("type", "generic"))).strip().lower()
         depends_on_raw = item.get("depends_on", [])
         if depends_on_raw is None:
             depends_on_raw = []
@@ -280,9 +282,34 @@ def _parse_pipeline(raw: Any) -> list[ModelNode]:
             raise ValueError(
                 f"bridge.pipeline[{idx}].depends_on must be a list of strings"
             )
+        inputs_raw = item.get("inputs", [])
+        if inputs_raw is None:
+            inputs_raw = []
+        if not isinstance(inputs_raw, list):
+            raise ValueError(f"bridge.pipeline[{idx}].inputs must be a list of strings")
+        outputs_raw = item.get("outputs", [])
+        if outputs_raw is None:
+            outputs_raw = []
+        if not isinstance(outputs_raw, list):
+            raise ValueError(f"bridge.pipeline[{idx}].outputs must be a list of strings")
+        request_map_raw = item.get("request_map", {})
+        if request_map_raw is None:
+            request_map_raw = {}
+        if not isinstance(request_map_raw, dict):
+            raise ValueError(
+                f"bridge.pipeline[{idx}].request_map must be a mapping"
+            )
+        response_map_raw = item.get("response_map", {})
+        if response_map_raw is None:
+            response_map_raw = {}
+        if not isinstance(response_map_raw, dict):
+            raise ValueError(
+                f"bridge.pipeline[{idx}].response_map must be a mapping"
+            )
         nodes.append(
             ModelNode(
                 name=name,
+                kind=kind or "generic",
                 endpoint=str(item.get("endpoint", "")).strip(),
                 enabled=bool(item.get("enabled", True)),
                 timeout_ms=(
@@ -292,9 +319,30 @@ def _parse_pipeline(raw: Any) -> list[ModelNode]:
                 ),
                 depends_on=[str(d) for d in depends_on_raw],
                 role=str(item.get("role", "optional")).strip().lower(),
+                inputs=[str(v).strip() for v in inputs_raw if str(v).strip()],
+                outputs=[str(v).strip() for v in outputs_raw if str(v).strip()],
+                request_map={
+                    str(key).strip(): value
+                    for key, value in request_map_raw.items()
+                    if str(key).strip()
+                },
+                response_map={
+                    str(key).strip(): value
+                    for key, value in response_map_raw.items()
+                    if str(key).strip()
+                },
             )
         )
     return nodes
+
+
+def _coerce_pipeline_outputs(raw_outputs: Any) -> list[str]:
+    if raw_outputs is None:
+        return []
+    if not isinstance(raw_outputs, list):
+        raise ValueError("bridge.pipeline_outputs must be a list of strings")
+    outputs = [str(item).strip() for item in raw_outputs if str(item).strip()]
+    return outputs
 
 
 def _parse_bridge_input_mapping(raw_mapping: Any) -> BridgeInputMapping:
