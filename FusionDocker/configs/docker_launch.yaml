@@ -10,11 +10,14 @@ docker_launcher:
     port: 8765
     log_lines: 300
   bridges:
-  - name: Sam3 To FlowPose
+  - name: Custom Bridge
     enabled: true
+    config: configs/bridge.custom.yaml
+  - name: Sam3 To FlowPose
+    enabled: false
     config: configs/bridge.sam3_flowpose.yaml
   - name: Siglip2_Bridge
-    enabled: true
+    enabled: false
     config: configs/bridge.siglip2.yaml
   - name: Multi-ZMQ-PUB-Bridge
     enabled: true

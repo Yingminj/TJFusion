@@ -39,6 +39,14 @@ def decode_image_b64(image_b64: str, flags: int) -> np.ndarray:
     return img
 
 
+def _resolve_combined_mask_field(req: dict) -> str:
+    if "combined_mask_b64" in req and req["combined_mask_b64"]:
+        return str(req["combined_mask_b64"])
+    if "combined_mask" in req and req["combined_mask"]:
+        return str(req["combined_mask"])
+    raise KeyError("Missing required field 'combined_mask_b64' or 'combined_mask'.")
+
+
 def to_jsonable(obj):
     if isinstance(obj, torch.Tensor):
         return obj.detach().cpu().tolist()
@@ -242,7 +250,8 @@ class FlowPoseServer:
 
         rgb = decode_image_b64(req["rgb_image"], cv2.IMREAD_COLOR).astype(np.uint8)
         depth = decode_image_b64(req["depth_image"], cv2.IMREAD_ANYDEPTH).astype(np.float32)
-        combined_mask = decode_image_b64(req["combined_mask"], cv2.IMREAD_GRAYSCALE).astype(np.uint8)
+        combined_mask_b64 = _resolve_combined_mask_field(req)
+        combined_mask = decode_image_b64(combined_mask_b64, cv2.IMREAD_GRAYSCALE).astype(np.uint8)
 
         obj_ids = req.get("obj_ids", [])
         class_names = req.get("class_names", [])

@@ -94,6 +94,15 @@ def encode_mask_to_base64_png(mask: np.ndarray) -> str:
     return base64.b64encode(buf.tobytes()).decode("utf-8")
 
 
+def decode_mask_from_base64_png(mask_b64: str) -> np.ndarray:
+    raw = base64.b64decode(mask_b64)
+    arr = np.frombuffer(raw, dtype=np.uint8)
+    mask = cv2.imdecode(arr, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise ValueError("Failed to decode mask from base64 PNG.")
+    return mask
+
+
 def main():
     cfg = load_config()
 
@@ -187,6 +196,10 @@ def main():
             log_info(f"Image embedding time: {embed_time:.4f} s")
 
             detections = []
+            combined_mask = np.zeros((image_np.shape[0], image_np.shape[1]), dtype=np.uint8)
+            obj_ids: list[list[int]] = []
+            class_names: list[str] = []
+            instance_names: list[str] = []
             global_det_id = 1
             prompt_timings = []
 
@@ -232,6 +245,10 @@ def main():
                     }
 
                     detections.append(det)
+                    combined_mask[binary_mask > 0] = global_det_id
+                    obj_ids.append([int(global_det_id), int(global_det_id)])
+                    class_names.append(str(prompt))
+                    instance_names.append(str(prompt))
                     global_det_id += 1
 
             prompt_total_time = time.time() - t_prompt_total_start
@@ -275,6 +292,10 @@ def main():
                 "status": "ok",
                 "request_id": request_id,
                 "detections": detections,
+                "combined_mask_b64": encode_mask_to_base64_png(combined_mask) if detections else "",
+                "obj_ids": obj_ids,
+                "class_names": class_names,
+                "instance_names": instance_names,
                 "elapsed_sec": round(total_request_time, 4),
             }
 

@@ -82,16 +82,6 @@ def _truncate_text(raw: str, limit: int = 280) -> str:
         return text
     return text[: limit - 3] + "..."
 
-
-def _external_request_format_hint() -> str:
-    return (
-        "Expected external JSON payload: "
-        "{'rgb_image': '<base64_image>', 'depth_image': '<base64_image>', "
-        "'request_id': '<optional>'}. "
-        "Also supports aliases like color_image/rgb and depth/depth_raw_base64(+depth_shape)."
-    )
-
-
 def _zmq_source_format_hint() -> str:
     return (
         "Expected ZMQ source payload (base64 preferred): "
@@ -100,7 +90,6 @@ def _zmq_source_format_hint() -> str:
         "with optional meta {'color_encoding':'base64','depth_encoding':'base64'} "
         "or legacy raw depth via meta {'depth_shape':[H,W]}."
     )
-
 
 def _summarize_external_request_payload(payload: Any) -> str:
     if not isinstance(payload, dict):
@@ -126,28 +115,6 @@ def _summarize_zmq_meta(meta: Any) -> str:
     depth_shape = meta.get("depth_shape", "missing")
     frame_id = meta.get("frame_id", "unknown")
     return f"keys={keys}, frame_id={frame_id}, depth_shape={depth_shape}"
-
-
-def _log_external_input_error(
-    exc: Exception,
-    *,
-    raw_message: str | None = None,
-    parsed_payload: Any = None,
-) -> None:
-    print_error(f"{exc}")
-    print_status(
-        "INPUT",
-        f"received_summary={_summarize_external_request_payload(parsed_payload)}",
-        color="yellow",
-    )
-    if raw_message is not None:
-        print_status(
-            "INPUT",
-            f"received_preview={_truncate_text(raw_message)}",
-            color="yellow",
-        )
-    print_status("FORMAT", _external_request_format_hint(), color="yellow")
-
 
 def _log_zmq_input_error(exc: Exception, *, meta: Any = None) -> None:
     print_error(f"{exc}")
@@ -269,56 +236,6 @@ def _bridge_base64_images_payload(
         },
     }
 
-
-def _build_meta_for_siglip2(source_meta: dict[str, Any] | None) -> dict[str, Any]:
-    if isinstance(source_meta, dict):
-        return dict(source_meta)
-    return {}
-
-
-def _normalize_sidecar_result(result: Any, source: str) -> dict[str, Any]:
-    if not isinstance(result, dict):
-        return {
-            "source": source,
-            "ok": False,
-            "error": f"unexpected response type: {type(result).__name__}",
-            "raw_result": str(result),
-            "timestamp": time.time(),
-        }
-    if source in {"yomni", "flowpose"} and isinstance(result.get("response"), dict):
-        outer_elapsed = result.get("elapsed_sec")
-        merged = dict(result["response"])
-        if outer_elapsed is not None and "elapsed_sec" not in merged:
-            merged["elapsed_sec"] = outer_elapsed
-        result = merged
-    ok = bool(result.get("ok", result.get("status") == "ok"))
-    payload = {"source": source, **result, "ok": ok, "timestamp": time.time()}
-    if not ok and "error" not in payload:
-        payload["error"] = str(result.get("message", "inference failed"))
-    return payload
-
-
-def _request_siglip2_once(
-    endpoint: str,
-    *,
-    timeout_ms: int,
-    meta: dict[str, Any],
-    rgb_jpg_bytes: bytes,
-) -> dict[str, Any]:
-    zmq_module = _require_zmq()
-    context = zmq_module.Context.instance()
-    socket = make_req_socket(context, endpoint, timeout_ms)
-    request_payload = dict(meta)
-    request_payload["image_b64"] = base64.b64encode(rgb_jpg_bytes).decode("utf-8")
-    try:
-        socket.send_json(request_payload)
-        return socket.recv_json()
-    except zmq_module.error.Again as exc:
-        raise TimeoutError(f"Siglip2 request timeout after {timeout_ms} ms") from exc
-    finally:
-        safe_close_socket(socket)
-
-
 def _build_model_result(
     *,
     name: str,
@@ -360,171 +277,9 @@ def _safe_int(value: Any, default: int = 0) -> int:
     except Exception:
         return default
 
-
-def _normalize_configured_obj_ids(
-    configured_obj_ids: list[Any] | None,
-    *,
-    fallback_obj_ids: list[list[int]],
-) -> list[Any]:
-    if not configured_obj_ids:
-        return fallback_obj_ids
-
-    normalized: list[Any] = []
-    for index, item in enumerate(configured_obj_ids, start=1):
-        if isinstance(item, (list, tuple)) and len(item) >= 2:
-            track_id = _safe_int(item[0], 0)
-            instance_id = _safe_int(item[1], 0)
-            if track_id > 0 and instance_id > 0:
-                normalized.append([track_id, instance_id])
-                continue
-
-        track_id = _safe_int(item, 0)
-        if track_id > 0:
-            normalized.append([track_id, index])
-
-    return normalized or fallback_obj_ids
-
-
-def _request_flowpose_sidecar_once(
-    endpoint: str,
-    *,
-    timeout_ms: int,
-    request_id: str,
-    rgb_b64: str,
-    depth_b64: str,
-) -> dict[str, Any]:
-    zmq_module = _require_zmq()
-    context = zmq_module.Context.instance()
-    socket = make_req_socket(context, endpoint, timeout_ms)
-    request_payload = {
-        "request_id": request_id,
-        "rgb_image": rgb_b64,
-        "depth_image": depth_b64,
-    }
-    try:
-        socket.send_string(json.dumps(request_payload, ensure_ascii=False))
-        response_raw = socket.recv_string()
-        return json.loads(response_raw)
-    except zmq_module.error.Again as exc:
-        raise TimeoutError(f"FlowPose sidecar request timeout after {timeout_ms} ms") from exc
-    finally:
-        safe_close_socket(socket)
-
-
-def build_combined_mask_and_labels_from_sam3(
-    sam3_response: dict[str, Any],
-    h: int,
-    w: int,
-    obj_id_map: dict[str, int | str] | None = None,
-    prompts: list[str] | None = None,
-) -> tuple[Any, list[list[int]], list[str], list[str]]:
-    _, np_module = _require_image_dependencies()
-
-    if obj_id_map is None:
-        obj_id_map = {}
-    if prompts is None:
-        prompts = []
-
-    response_payload = extract_candidates_from_sam3(sam3_response)
-    detections = response_payload.get("detections", None)
-    if detections is None or not isinstance(detections, list):
-        raise ValueError(
-            "Cannot parse SAM3 response into combined_mask. "
-            f"Top-level keys: {list(response_payload.keys())}"
-        )
-
-    combined_mask = np_module.zeros((h, w), dtype=np_module.uint8)
-    obj_ids: list[list[int]] = []
-    class_names: list[str] = []
-    inst_id = 1
-
-    for detection in detections:
-        if not isinstance(detection, dict):
-            continue
-
-        mask_b64 = detection.get("mask_png_b64")
-        if mask_b64 is None:
-            for key in ("mask", "segmentation", "binary_mask", "bitmap"):
-                if key in detection:
-                    mask_b64 = detection[key]
-                    break
-        if mask_b64 is None:
-            continue
-
-        mask = decode_mask_item(mask_b64, h, w)
-        if np_module.count_nonzero(mask) == 0:
-            continue
-
-        label = detection.get(
-            "label",
-            detection.get("class_name", detection.get("name", detection.get("prompt"))),
-        )
-        if label is None:
-            class_id = detection.get("class_id")
-            try:
-                index = int(class_id)
-            except (TypeError, ValueError):
-                index = -1
-            if 0 <= index < len(prompts):
-                label = prompts[index]
-        if label is None:
-            label = "obj"
-
-        if str(label) in obj_id_map:
-            track_id = int(obj_id_map[str(label)])
-        else:
-            raw_track_id = detection.get("track_id", detection.get("obj_id", detection.get("id")))
-            try:
-                track_id = int(raw_track_id)
-            except (TypeError, ValueError):
-                track_id = inst_id
-
-        if track_id <= 0:
-            track_id = inst_id
-
-        combined_mask[mask > 0] = inst_id
-        obj_ids.append([track_id, inst_id])
-        class_names.append(str(label))
-
-        inst_id += 1
-        if inst_id >= 255:
-            raise ValueError("Too many instances for uint8 combined_mask.")
-
-    if not obj_ids:
-        raise ValueError("SAM3 detections found, but no valid masks were decoded.")
-
-    instance_names = build_instance_names(class_names)
-
-    return combined_mask, obj_ids, class_names, instance_names
-
-
 def build_instance_names(class_names: list[str]) -> list[str]:
     # FlowPose only needs human-readable labels here; obj_ids already carry instance identity.
     return [str(class_name) for class_name in class_names]
-
-
-def extract_candidates_from_sam3(sam3_response: dict[str, Any]) -> dict[str, Any]:
-    if not isinstance(sam3_response, dict):
-        raise ValueError("SAM3 response is not a dict.")
-
-    for nested_key in ("output", "result", "data"):
-        nested = sam3_response.get(nested_key)
-        if isinstance(nested, dict) and any(
-            key in nested
-            for key in (
-                "combined_mask",
-                "masks",
-                "detections",
-                "results",
-                "annotations",
-                "objects",
-                "predictions",
-            )
-        ):
-            return nested
-
-    return sam3_response
-
 
 def decode_mask_item(mask_item: Any, h: int, w: int) -> Any:
     cv2_module, np_module = _require_image_dependencies()
@@ -556,7 +311,6 @@ def decode_mask_item(mask_item: Any, h: int, w: int) -> Any:
 
     return mask
 
-
 def make_req_socket(context: Any, addr: str, timeout_ms: int) -> Any:
     _require_zmq()
     sock = context.socket(zmq.REQ)
@@ -566,21 +320,6 @@ def make_req_socket(context: Any, addr: str, timeout_ms: int) -> Any:
     sock.connect(addr)
     return sock
 
-
-def recreate_req_sockets(
-    context: Any,
-    sam3_addr: str,
-    flowpose_addr: str,
-    sam3_timeout_ms: int,
-    flowpose_timeout_ms: int,
-) -> tuple[Any | None, Any | None]:
-    if not sam3_addr or not flowpose_addr:
-        return None, None
-    sam3_socket = make_req_socket(context, sam3_addr, sam3_timeout_ms)
-    flowpose_socket = make_req_socket(context, flowpose_addr, flowpose_timeout_ms)
-    return sam3_socket, flowpose_socket
-
-
 def safe_close_socket(sock: Any | None) -> None:
     if sock is None:
         return
@@ -588,7 +327,6 @@ def safe_close_socket(sock: Any | None) -> None:
         sock.close(0)
     except Exception:
         pass
-
 
 def decode_external_json_rgbd_message(
     message_str: str,
@@ -900,344 +638,6 @@ class _PipelineContext:
     intermediate: dict[str, Any] = _dc_field(default_factory=dict)
 
 
-# --------------- SAM3 handler ---------------
-
-def _handler_sam3_build_request(
-    node: ModelNode, ctx: _PipelineContext
-) -> dict[str, Any]:
-    return {
-        "request_id": ctx.request_id,
-        "rgb_image": ctx.rgb_b64,
-        "prompts": ctx.prompts,
-        "return_masks": ctx.return_masks,
-        "clear_previous": ctx.clear_previous,
-    }
-
-
-def _handler_sam3_on_result(
-    response: dict[str, Any], node: ModelNode, ctx: _PipelineContext
-) -> None:
-    sam3_elapsed = time.time() - ctx.start_time
-
-    num_detections = response.get("num_detections")
-    detections = response.get("detections")
-    no_detection = False
-    if num_detections is not None and int(num_detections) == 0:
-        no_detection = True
-    elif isinstance(detections, list) and len(detections) == 0:
-        no_detection = True
-
-    ctx.model_results["sam3"] = _build_model_result(
-        name="sam3",
-        enabled=True,
-        ok=not no_detection,
-        summary=(
-            f"detections="
-            f"{len(detections) if isinstance(detections, list) else _safe_int(num_detections, 0)}"
-        ),
-        payload={
-            "status": response.get("status", "unknown"),
-            "request_id": response.get("request_id", ctx.request_id),
-            "num_detections": (
-                _safe_int(num_detections, 0) if num_detections is not None else None
-            ),
-            "detections_count": (
-                len(detections) if isinstance(detections, list) else None
-            ),
-        },
-        elapsed_sec=sam3_elapsed,
-    )
-
-    if no_detection:
-        ctx.intermediate["sam3_has_detections"] = False
-        ctx.store["sam3_has_detections"] = False
-        print_status(
-            "DONE",
-            f"{ctx.request_id} | sam3_only={sam3_elapsed:.3f}s",
-            color="yellow",
-        )
-        ctx.model_results["flowpose"] = _build_model_result(
-            name="flowpose",
-            enabled=True,
-            ok=False,
-            summary="skipped: no valid sam3 detections.",
-            payload=None,
-            elapsed_sec=0.0,
-        )
-    else:
-        _, np_module = _require_image_dependencies()
-        try:
-            (
-                combined_mask_np,
-                resolved_obj_ids,
-                class_names,
-                instance_names,
-            ) = build_combined_mask_and_labels_from_sam3(
-                sam3_response=response,
-                h=ctx.rgb.shape[0],
-                w=ctx.rgb.shape[1],
-                obj_id_map=ctx.obj_id_map,
-                prompts=ctx.prompts,
-            )
-            resolved_obj_ids = _normalize_configured_obj_ids(
-                ctx.obj_ids,
-                fallback_obj_ids=resolved_obj_ids,
-            )
-            if (
-                len(resolved_obj_ids) == 0
-                or np_module.count_nonzero(combined_mask_np) == 0
-            ):
-                ctx.intermediate["sam3_has_detections"] = False
-                ctx.store["sam3_has_detections"] = False
-                ctx.model_results["flowpose"] = _build_model_result(
-                    name="flowpose",
-                    enabled=True,
-                    ok=False,
-                    summary="skipped: empty combined_mask.",
-                    payload=None,
-                    elapsed_sec=0.0,
-                )
-            else:
-                ctx.intermediate["sam3_has_detections"] = True
-                ctx.store["sam3_has_detections"] = True
-                ctx.intermediate["sam3_elapsed"] = sam3_elapsed
-                ctx.intermediate["combined_mask_np"] = combined_mask_np
-                ctx.intermediate["combined_mask_b64"] = encode_png_base64(
-                    combined_mask_np
-                )
-                ctx.intermediate["resolved_obj_ids"] = resolved_obj_ids
-                ctx.intermediate["class_names"] = class_names
-                ctx.intermediate["instance_names"] = instance_names
-                ctx.store["combined_mask"] = combined_mask_np
-                ctx.store["combined_mask_b64"] = ctx.intermediate["combined_mask_b64"]
-                ctx.store["obj_ids"] = resolved_obj_ids
-                ctx.store["class_names"] = class_names
-                ctx.store["instance_names"] = instance_names
-        except Exception as exc:
-            ctx.intermediate["sam3_has_detections"] = False
-            ctx.store["sam3_has_detections"] = False
-            ctx.intermediate["sam3_build_mask_error"] = str(exc)
-            ctx.model_results["flowpose"] = _build_model_result(
-                name="flowpose",
-                enabled=True,
-                ok=False,
-                summary=f"mask build failed: {exc}",
-                payload=None,
-                elapsed_sec=0.0,
-            )
-
-
-def _handler_sam3_on_error(
-    error: Exception, node: ModelNode, ctx: _PipelineContext
-) -> None:
-    ctx.intermediate["sam3_has_detections"] = False
-    ctx.model_results["sam3"] = _build_model_result(
-        name="sam3",
-        enabled=True,
-        ok=False,
-        summary=f"error: {error}",
-        payload={"error": str(error)},
-    )
-    ctx.model_results["flowpose"] = _build_model_result(
-        name="flowpose",
-        enabled=True,
-        ok=False,
-        summary="skipped: sam3 failed.",
-        payload=None,
-        elapsed_sec=0.0,
-    )
-
-
-# --------------- FlowPose handler ---------------
-
-def _handler_flowpose_build_request(
-    node: ModelNode, ctx: _PipelineContext
-) -> dict[str, Any]:
-    return {
-        "request_id": ctx.request_id,
-        "rgb_image": ctx.store.get("rgb_image", ctx.rgb_b64),
-        "depth_image": ctx.store.get("depth_image", ctx.depth_b64),
-        "combined_mask": ctx.store.get("combined_mask_b64", ""),
-        "obj_ids": ctx.store.get("obj_ids", []),
-        "class_names": ctx.store.get("class_names", []),
-        "instance_names": ctx.store.get("instance_names", []),
-    }
-
-
-def _handler_flowpose_on_result(
-    response: dict[str, Any], node: ModelNode, ctx: _PipelineContext
-) -> None:
-    sam3_elapsed: float = ctx.intermediate.get("sam3_elapsed", ctx.start_time)
-    total_elapsed = time.time()
-    class_names = ctx.intermediate.get("class_names", [])
-    instance_names = ctx.intermediate.get("instance_names", [])
-
-    print_success(
-        (
-            f"{ctx.request_id} | sam3={sam3_elapsed - ctx.start_time:.3f}s "
-            f"flow={total_elapsed - sam3_elapsed:.3f}s "
-            f"total={total_elapsed - ctx.start_time:.3f}s "
-            f"class_names={class_names} "
-            f"instance_names={instance_names}"
-        )
-    )
-
-    if isinstance(response, dict):
-        flowpose_response = response
-    else:
-        flowpose_response = {
-            "status": "ok",
-            "request_id": ctx.request_id,
-            "objects": [],
-            "elapsed_sec": round(total_elapsed - ctx.start_time, 4),
-            "raw_response": response,
-        }
-
-    ctx.intermediate["flowpose_response"] = flowpose_response
-    ctx.store["flowpose_response"] = flowpose_response
-    if isinstance(flowpose_response, dict) and "objects" in flowpose_response:
-        ctx.store["objects"] = flowpose_response.get("objects")
-    flowpose_objects = flowpose_response.get("objects", [])
-    flowpose_ok = bool(flowpose_response.get("status", "ok") == "ok")
-    ctx.model_results["flowpose"] = _build_model_result(
-        name="flowpose",
-        enabled=True,
-        ok=flowpose_ok,
-        summary=(
-            f"objects="
-            f"{len(flowpose_objects) if isinstance(flowpose_objects, list) else 0}"
-            f", class_names={class_names}"
-        ),
-        payload={
-            "status": flowpose_response.get("status", "unknown"),
-            "request_id": flowpose_response.get("request_id", ctx.request_id),
-            "objects_count": (
-                len(flowpose_objects) if isinstance(flowpose_objects, list) else None
-            ),
-        },
-        elapsed_sec=total_elapsed - sam3_elapsed,
-    )
-
-
-def _handler_flowpose_on_error(
-    error: Exception, node: ModelNode, ctx: _PipelineContext
-) -> None:
-    ctx.model_results["flowpose"] = _build_model_result(
-        name="flowpose",
-        enabled=True,
-        ok=False,
-        summary=f"error: {error}",
-        payload={"error": str(error)},
-    )
-    ctx.intermediate["flowpose_response"] = build_empty_response(
-        ctx.request_id,
-        ctx.start_time,
-        rgb_b64=ctx.rgb_b64,
-        depth_b64=ctx.depth_b64,
-    )
-    ctx.store["flowpose_response"] = ctx.intermediate["flowpose_response"]
-    ctx.intermediate["flowpose_response"]["message"] = str(error)
-
-
-# --------------- Siglip2 handler ---------------
-
-def _handler_siglip2_build_request(
-    node: ModelNode, ctx: _PipelineContext
-) -> dict[str, Any]:
-    meta = dict(ctx.source_meta) if isinstance(ctx.source_meta, dict) else {}
-    meta["image_b64"] = base64.b64encode(ctx.rgb_jpg_bytes).decode("utf-8")
-    return meta
-
-
-def _handler_siglip2_on_result(
-    response: dict[str, Any], node: ModelNode, ctx: _PipelineContext
-) -> None:
-    siglip2_payload = _normalize_sidecar_result(response, "siglip2")
-    siglip_elapsed = ctx.intermediate.get("siglip_elapsed", 0.0)
-    ctx.intermediate["siglip2_payload"] = siglip2_payload
-    ctx.store["siglip2"] = siglip2_payload
-    ctx.model_results["siglip2"] = _build_model_result(
-        name="siglip2",
-        enabled=True,
-        ok=bool(siglip2_payload.get("ok", False)),
-        summary=(
-            f"best_category={siglip2_payload.get('best_category', 'unknown')}, "
-            f"best_similarity={siglip2_payload.get('best_similarity', 'N/A')}"
-        ),
-        payload={
-            "status": siglip2_payload.get("status", "unknown"),
-            "best_category": siglip2_payload.get("best_category"),
-            "best_similarity": siglip2_payload.get("best_similarity"),
-        },
-        elapsed_sec=siglip_elapsed,
-    )
-
-
-def _handler_siglip2_on_error(
-    error: Exception, node: ModelNode, ctx: _PipelineContext
-) -> None:
-    ctx.intermediate["siglip2_payload"] = {
-        "source": "siglip2",
-        "ok": False,
-        "error": str(error),
-        "timestamp": time.time(),
-    }
-    ctx.store["siglip2"] = ctx.intermediate["siglip2_payload"]
-    ctx.model_results["siglip2"] = _build_model_result(
-        name="siglip2",
-        enabled=True,
-        ok=False,
-        summary=f"error: {error}",
-        payload={"error": str(error)},
-    )
-
-
-# --------------- FlowPose sidecar handler ---------------
-
-def _handler_flowpose_sidecar_build_request(
-    node: ModelNode, ctx: _PipelineContext
-) -> dict[str, Any]:
-    return {
-        "request_id": ctx.request_id,
-        "rgb_image": ctx.rgb_b64,
-        "depth_image": ctx.depth_b64,
-    }
-
-
-def _handler_flowpose_sidecar_on_result(
-    response: dict[str, Any], node: ModelNode, ctx: _PipelineContext
-) -> None:
-    payload = _normalize_sidecar_result(response, "flowpose")
-    ctx.intermediate["flowpose_sidecar_payload"] = payload
-    ctx.store["flowpose_sidecar"] = payload
-    ctx.model_results["flowpose_sidecar"] = _build_model_result(
-        name="flowpose_sidecar",
-        enabled=True,
-        ok=bool(payload.get("ok", False)),
-        summary=f"source=flowpose, ok={payload.get('ok')}",
-        payload=payload,
-    )
-
-
-def _handler_flowpose_sidecar_on_error(
-    error: Exception, node: ModelNode, ctx: _PipelineContext
-) -> None:
-    ctx.intermediate["flowpose_sidecar_payload"] = {
-        "source": "flowpose",
-        "ok": False,
-        "error": str(error),
-        "timestamp": time.time(),
-    }
-    ctx.store["flowpose_sidecar"] = ctx.intermediate["flowpose_sidecar_payload"]
-    ctx.model_results["flowpose_sidecar"] = _build_model_result(
-        name="flowpose_sidecar",
-        enabled=True,
-        ok=False,
-        summary=f"error: {error}",
-        payload={"error": str(error)},
-    )
-
-
 # --------------- Handler registry ---------------
 
 def _get_by_path(payload: Any, path: Any) -> Any:
@@ -1348,33 +748,12 @@ def _generic_on_error(error: Exception, node: ModelNode, ctx: _PipelineContext) 
 
 
 ADAPTER_REGISTRY: dict[str, dict[str, Callable]] = {
-    "sam3": {
-        "build_request": _handler_sam3_build_request,
-        "on_result": _handler_sam3_on_result,
-        "on_error": _handler_sam3_on_error,
-    },
-    "flowpose": {
-        "build_request": _handler_flowpose_build_request,
-        "on_result": _handler_flowpose_on_result,
-        "on_error": _handler_flowpose_on_error,
-    },
-    "siglip2": {
-        "build_request": _handler_siglip2_build_request,
-        "on_result": _handler_siglip2_on_result,
-        "on_error": _handler_siglip2_on_error,
-    },
-    "flowpose_sidecar": {
-        "build_request": _handler_flowpose_sidecar_build_request,
-        "on_result": _handler_flowpose_sidecar_on_result,
-        "on_error": _handler_flowpose_sidecar_on_error,
-    },
     "generic": {
         "build_request": _generic_build_request,
         "on_result": _generic_on_result,
         "on_error": _generic_on_error,
     },
 }
-
 
 # --------------- DAG executor ---------------
 
@@ -1404,7 +783,6 @@ def _topological_layers(
         completed.update(n.name for n in layer)
 
     return layers
-
 
 def _run_single_model(
     node: ModelNode,
@@ -1768,100 +1146,6 @@ def run_bridge_service(
         )
         return
 
-    _require_image_dependencies()
-    zmq_module = _require_zmq()
-
-    output_json = config.output_json if save_json else None
-    context = zmq_module.Context()
-    sam3_timeout_ms = int(config.sam3_timeout_ms or config.req_timeout_ms)
-    flowpose_timeout_ms = int(config.req_timeout_ms)
-
-    external_socket = context.socket(zmq_module.REP)
-    external_socket.setsockopt(zmq_module.LINGER, 0)
-    external_socket.bind(f"tcp://{config.listen_host}:{config.listen_port}")
-
-    print_status("BRIDGE", f"Pipeline nodes   : {len(effective_pipeline)}", color="cyan")
-    print_status(
-        "BRIDGE",
-        f"External listen  : tcp://{config.listen_host}:{config.listen_port}",
-        color="cyan",
-    )
-    print_status("BRIDGE", f"SAM3 timeout     : {sam3_timeout_ms} ms", color="cyan")
-    print_status("BRIDGE", f"FlowPose timeout : {flowpose_timeout_ms} ms", color="cyan")
-    print_status("WAIT", "Waiting external JSON RGB-D requests...", color="yellow")
-
-    try:
-        while True:
-            raw_message: str | None = None
-            parsed_payload: Any = None
-            try:
-                raw_message = external_socket.recv_string()
-                try:
-                    parsed_payload = json.loads(raw_message)
-                except Exception:
-                    parsed_payload = None
-
-                rgb, depth, request_data = decode_external_json_rgbd_message(
-                    raw_message,
-                    input_mapping=config.input_mapping,
-                )
-                parsed_payload = request_data
-                prompts = _extract_prompts_from_source_meta(
-                    request_data,
-                    fallback_prompts=config.prompts,
-                    required=requires_prompts,
-                )
-                result = process_once(
-                    rgb=rgb,
-                    depth=depth,
-                    prompts=prompts,
-                    obj_ids=config.obj_ids,
-                    obj_id_map=config.obj_id_map,
-                    req_timeout_ms=config.req_timeout_ms,
-                    return_masks=config.return_masks,
-                    clear_previous=config.clear_previous,
-                    output_json=output_json,
-                    verbose=verbose,
-                    rgb_jpg_quality=config.rgb_jpg_quality,
-                    source_meta=request_data,
-                    pipeline=effective_pipeline,
-                    zmq_context=context,
-                    output_keys=config.pipeline_outputs,
-                )
-                if request_id := request_data.get("request_id"):
-                    result.setdefault("external_request_id", request_id)
-                if result_callback is not None:
-                    result_callback(result)
-                external_socket.send_string(json.dumps(result, ensure_ascii=False))
-            except TimeoutError as exc:
-                error_payload = {"status": "error", "message": str(exc)}
-                _log_external_input_error(
-                    exc,
-                    raw_message=raw_message,
-                    parsed_payload=parsed_payload,
-                )
-                try:
-                    external_socket.send_string(json.dumps(error_payload, ensure_ascii=False))
-                except Exception:
-                    pass
-                pass
-            except Exception as exc:
-                error_payload = {"status": "error", "message": str(exc)}
-                _log_external_input_error(
-                    exc,
-                    raw_message=raw_message,
-                    parsed_payload=parsed_payload,
-                )
-                try:
-                    external_socket.send_string(json.dumps(error_payload, ensure_ascii=False))
-                except Exception:
-                    pass
-                pass
-    except KeyboardInterrupt:
-        print_warning("Bridge service stopped.")
-    finally:
-        safe_close_socket(external_socket)
-        context.term()
 def _require_image_dependencies() -> tuple[Any, Any]:
     if cv2 is None or np is None:
         raise RuntimeError(
@@ -1869,7 +1153,6 @@ def _require_image_dependencies() -> tuple[Any, Any]:
             "Please install the project requirements first."
         )
     return cv2, np
-
 
 def _require_zmq() -> Any:
     if zmq is None:

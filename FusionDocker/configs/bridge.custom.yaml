@@ -5,18 +5,57 @@ bridge:
   prompts:
     - cup
     - red box
+  pipeline_outputs:
+    - objects
+    - rgb_image
+    - depth_image
+    - combined_mask_b64
   pipeline:
     # 第一层：SAM3、SigLIP2 并行执行（都只需要 RGB，互不依赖）
     - name: sam3
+      kind: generic
       endpoint: tcp://127.0.0.1:5562
       timeout_ms: 5000
       role: required
+      inputs:
+        - rgb_image
+        - prompts
+      request_map:
+        request_id: $request_id
+        rgb_image: $rgb_image
+        prompts: $prompts
+        return_masks:
+          value: true
+        clear_previous:
+          value: true
+      response_map:
+        combined_mask_b64: combined_mask_b64
+        obj_ids: obj_ids
+        class_names: class_names
+        instance_names: instance_names
     # - name: siglip2
+    #   kind: siglip2
     #   endpoint: tcp://127.0.0.1:7777
     #   role: optional
     # 第二层：FlowPose（依赖 sam3，用 sam3 的 masks + depth）
     - name: flowpose
+      kind: generic
       endpoint: tcp://127.0.0.1:6667
       depends_on:
         - sam3
       role: required
+      inputs:
+        - rgb_image
+        - depth_image
+        - combined_mask_b64
+        - obj_ids
+      request_map:
+        request_id: $request_id
+        rgb_image: $rgb_image
+        depth_image: $depth_image
+        combined_mask: $combined_mask_b64
+        obj_ids: $obj_ids
+        class_names: $class_names
+        instance_names: $instance_names
+      response_map:
+        objects: objects
