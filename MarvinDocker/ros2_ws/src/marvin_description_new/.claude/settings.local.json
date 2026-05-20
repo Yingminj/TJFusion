@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/marvin/marvin_ultra_apex_new_sdk/Kernalmind_Apex/src/robot_node/**)",
+      "Read(//home/marvin/marvin_ultra_apex_new_sdk/Kernalmind_Apex/src/**)",
+      "Bash(mv \"urdf/Gento Luna\" urdf/Gento_Luna)",
+      "Bash(mv \"urdf/Gento Sky\" urdf/Gento_Sky)",
+      "Bash(mv \"meshes/Gento Luna/meshes\" meshes/Gento_Luna_tmp)",
+      "Bash(rmdir \"meshes/Gento Luna\")",
+      "Bash(mv meshes/Gento_Luna_tmp meshes/Gento_Luna)",
+      "Bash(mv meshes/marvin_pro/meshes/base meshes/marvin_pro/base)",
+      "Bash(mv meshes/marvin_pro/meshes/m3 meshes/marvin_pro/m3)",
+      "Bash(mv meshes/marvin_pro/meshes/m6 meshes/marvin_pro/m6)",
+      "Bash(mv meshes/marvin_pro/meshes/omnigripper meshes/marvin_pro/omnigripper)",
+      "Bash(mv meshes/marvin_pro/meshes/SRS meshes/marvin_pro/SRS)"
+    ]
+  }
+}

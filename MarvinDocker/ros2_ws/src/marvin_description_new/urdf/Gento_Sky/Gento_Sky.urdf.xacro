@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Gento_Sky_2026.4.03" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find marvin_description)/urdf/Marvin_Ultra/M6-S-L-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/Marvin_Ultra/M6-S-R-CCS-696-V4.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/Gento_Sky/Gento_Sky_body.urdf.xacro" />
+  <xacro:M6-S-L-CCS-696-V4 />
+  <xacro:M6-S-R-CCS-696-V4 />
+  <xacro:gento_sky_body />
+  <joint
+    name="left_base_joint"
+    type="fixed">
+    <origin
+      xyz="0 0.056 0.4335"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="waist_Link_3" />
+    <child
+      link="Base_L" />
+  </joint>
+
+  <joint
+    name="right_base_joint"
+    type="fixed">
+    <origin
+      xyz="0 -0.056 0.4335"
+      rpy="1.5708 0 0" />
+    <parent
+      link="waist_Link_3" />
+    <child
+      link="Base_R" />
+  </joint>
+  <link name="tracking_base_link"/>
+  
+<joint
+    name="tracking_base"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="tracking_base_link" />
+  </joint>
+</robot>
