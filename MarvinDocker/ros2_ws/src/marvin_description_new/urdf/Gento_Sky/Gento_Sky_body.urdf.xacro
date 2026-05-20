@@ -1,0 +1,806 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Gento_Sky_URDF_2026.4.03" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro  name="gento_sky_body">
+    <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.05101 -4.4993E-05 0.46366"
+        rpy="0 0 0" />
+      <mass
+        value="140.56" />
+      <inertia
+        ixx="12.882"
+        ixy="0.0053297"
+        ixz="-0.78019"
+        iyy="13.477"
+        iyz="0.0054896"
+        izz="2.3024" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/Underpan_Base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/Underpan_Base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="left_front_wheel_Link_1">
+    <inertial>
+      <origin
+        xyz="4.7248E-05 -0.024805 0.07456"
+        rpy="0 0 0" />
+      <mass
+        value="0.62536" />
+      <inertia
+        ixx="0.000737"
+        ixy="-1.7696E-08"
+        ixz="-3.4083E-07"
+        iyy="0.00056421"
+        iyz="-0.00022951"
+        izz="0.00050493" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_front_wheel_Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.89804 0.91765 0.92941 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_front_wheel_Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_front wheel_joint_1"
+    type="fixed">
+    <origin
+      xyz="0.23 0.218 0.07"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_front_wheel_Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="left_front_wheel_Link_2">
+    <inertial>
+      <origin
+        xyz="-2.452E-06 -1.127E-05 0.00050827"
+        rpy="0 0 0" />
+      <mass
+        value="1.2504" />
+      <inertia
+        ixx="0.0020936"
+        ixy="-1.2678E-08"
+        ixz="8.0222E-08"
+        iyy="0.0020939"
+        iyz="-1.3183E-07"
+        izz="0.0038354" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_front_wheel_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.8902 0.8902 0.91373 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_front_wheel_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_front wheel_joint_2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="left_front_wheel_Link_1" />
+    <child
+      link="left_front_wheel_Link_2" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="right_front_wheel_Link_1">
+    <inertial>
+      <origin
+        xyz="-4.7248E-05 0.024805 0.07456"
+        rpy="0 0 0" />
+      <mass
+        value="0.62536" />
+      <inertia
+        ixx="0.000737"
+        ixy="-1.7694E-08"
+        ixz="3.4083E-07"
+        iyy="0.00056421"
+        iyz="0.00022951"
+        izz="0.00050493" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_front_wheel_Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.89804 0.91765 0.92941 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_front_wheel_Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_front wheel_joint_1"
+    type="fixed">
+    <origin
+      xyz="0.23 -0.218 0.07"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_front_wheel_Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="right_front_wheel_Link_2">
+    <inertial>
+      <origin
+        xyz="2.452E-06 -1.127E-05 -0.00050827"
+        rpy="0 0 0" />
+      <mass
+        value="1.2504" />
+      <inertia
+        ixx="0.0020936"
+        ixy="1.2678E-08"
+        ixz="8.0222E-08"
+        iyy="0.0020939"
+        iyz="1.3183E-07"
+        izz="0.0038354" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_front_wheel_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.8902 0.8902 0.91373 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_front_wheel_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_front wheel_joint_2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="right_front_wheel_Link_1" />
+    <child
+      link="right_front_wheel_Link_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="left_back_wheel_Link_1">
+    <inertial>
+      <origin
+        xyz="4.72480990756363E-05 -0.0248051423968753 0.0745596997023048"
+        rpy="0 0 0" />
+      <mass
+        value="0.625359297818115" />
+      <inertia
+        ixx="0.00073700083969477"
+        ixy="-1.76970193786471E-08"
+        ixz="-3.40833146740822E-07"
+        iyy="0.000564207634215223"
+        iyz="-0.000229507675996817"
+        izz="0.000504930064007062" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_back_wheel_Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_back_wheel_Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_back wheel_joint_1"
+    type="fixed">
+    <origin
+      xyz="-0.23 0.218 0.07"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_back_wheel_Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="left_back_wheel_Link_2">
+    <inertial>
+      <origin
+        xyz="-2.45199884629788E-06 -1.126982498156E-05 0.000508270150065854"
+        rpy="0 0 0" />
+      <mass
+        value="1.25042321080329" />
+      <inertia
+        ixx="0.00209364819448314"
+        ixy="-1.26783283227871E-08"
+        ixz="8.02220562908989E-08"
+        iyy="0.0020938760257053"
+        iyz="-1.3182542191118E-07"
+        izz="0.00383544895123036" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_back_wheel_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.890196078431372 0.890196078431372 0.913725490196078 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/left_back_wheel_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_back wheel_joint_2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="left_back_wheel_Link_1" />
+    <child
+      link="left_back_wheel_Link_2" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="right_back_wheel_Link_1">
+    <inertial>
+      <origin
+        xyz="-4.72479201441833E-05 0.0248051425012648 0.0745596996435598"
+        rpy="0 0 0" />
+      <mass
+        value="0.625359293020441" />
+      <inertia
+        ixx="0.000737000834389918"
+        ixy="-1.76942751149633E-08"
+        ixz="3.4083031481744E-07"
+        iyy="0.000564207629212768"
+        iyz="0.000229507673496893"
+        izz="0.000504930059143131" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_back_wheel_Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_back_wheel_Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_back wheel_joint_1"
+    type="fixed">
+    <origin
+      xyz="-0.23 -0.218 0.07"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_back_wheel_Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="right_back_wheel_Link_2">
+    <inertial>
+      <origin
+        xyz="2.45199884629788E-06 -1.12698249817404E-05 -0.000508270150065659"
+        rpy="0 0 0" />
+      <mass
+        value="1.25042321080329" />
+      <inertia
+        ixx="0.00209364819448314"
+        ixy="1.26783283226824E-08"
+        ixz="8.02220562907171E-08"
+        iyy="0.0020938760257053"
+        iyz="1.31825421908989E-07"
+        izz="0.00383544895123036" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_back_wheel_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.890196078431372 0.890196078431372 0.913725490196078 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/right_back_wheel_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_back wheel_joint_2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="right_back_wheel_Link_1" />
+    <child
+      link="right_back_wheel_Link_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.97"
+      upper="2.97"
+      effort="0"
+      velocity="6.28" />
+  </joint>
+  <link
+    name="waist_Link_1_prismatic">
+    <inertial>
+      <origin
+        xyz="-0.0430437093468533 -0.000990409500769455 -0.0031406743101291"
+        rpy="0 0 0" />
+      <mass
+        value="6.05415467108093" />
+      <inertia
+        ixx="0.0138855670746497"
+        ixy="0.000258195995213007"
+        ixz="-0.00147166478552455"
+        iyy="0.0418468499408627"
+        iyz="1.87897375203689E-05"
+        izz="0.036639938436386" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_1_prismatic.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.592156862745098 0.619607843137255 0.650980392156863 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_1_prismatic.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="waist_joint_1"
+    type="prismatic">
+    <origin
+      xyz="0.18048 0 0.36213"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="waist_Link_1_prismatic" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0.86"
+      effort="0"
+      velocity="0.2" />
+  </joint>
+  <link
+    name="waist_Link_2">
+    <inertial>
+      <origin
+        xyz="0.0026398 0.022352 -0.0012175"
+        rpy="0 0 0" />
+      <mass
+        value="5.3546" />
+      <inertia
+        ixx="0.018999"
+        ixy="-0.00025673"
+        ixz="-3.65E-05"
+        iyy="0.017835"
+        iyz="-0.00022272"
+        izz="0.020053" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="waist_joint_2"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="waist_Link_1_prismatic" />
+    <child
+      link="waist_Link_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.5708"
+      upper="0"
+      effort="194"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="waist_Link_3">
+    <inertial>
+      <origin
+        xyz="0.0044004 9.6396E-05 0.34103"
+        rpy="0 0 0" />
+      <mass
+        value="16.415" />
+      <inertia
+        ixx="0.24229"
+        ixy="3.2548E-05"
+        ixz="-0.014747"
+        iyy="0.24461"
+        iyz="7.9231E-05"
+        izz="0.099896" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/waist_Link_3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="waist_joint_3"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="waist_Link_2" />
+    <child
+      link="waist_Link_3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.4363"
+      upper="0.4363"
+      effort="194"
+      velocity="3.14" />
+  </joint>
+ 
+  <link
+    name="head_Link_1">
+    <inertial>
+      <origin
+        xyz="-0.0003618 -0.012521 -0.017538"
+        rpy="0 0 0" />
+      <mass
+        value="1.3932" />
+      <inertia
+        ixx="0.0032972"
+        ixy="6.671E-06"
+        ixz="-4.9572E-05"
+        iyy="0.003207"
+        iyz="0.00030601"
+        izz="0.0016203" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/head_Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/head_Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Head_J1_Joint"
+    type="revolute">
+    <origin
+      xyz="-0.0135 0 0.648"
+      rpy="0 0 0" />
+    <parent
+      link="waist_Link_3" />
+    <child
+      link="head_Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="22"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="head_Link_2">
+    <inertial>
+      <origin
+        xyz="0.056578 0.029149 -0.018877"
+        rpy="0 0 0" />
+      <mass
+        value="1.0575" />
+      <inertia
+        ixx="0.0041115"
+        ixy="-0.00044589"
+        ixz="-0.0004608"
+        iyy="0.0028478"
+        iyz="-0.00034534"
+        izz="0.003764" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/head_Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Gento_Sky/head_Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Head_J2_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="head_Link_1" />
+    <child
+      link="head_Link_2" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-0.6109"
+      upper="0.4363"
+      effort="22"
+      velocity="3.14" />
+  </joint>
+
+  </xacro:macro>
+</robot>

@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Python 依赖
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
-RUN pip install --upgrade scipy && pip install "numpy<2"
+RUN pip install --upgrade scipy && pip install "numpy<2" && pip install "mujoco>=2.3.7"
 
 # 工作空间目录
 WORKDIR /ros2_ws

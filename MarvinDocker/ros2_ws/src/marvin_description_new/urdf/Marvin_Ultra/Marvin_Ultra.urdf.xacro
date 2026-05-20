@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Marvin Ultra_URDF_2026.1.28" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find marvin_description)/urdf/Marvin_Ultra/M3-S-L-CCS-615-V2.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/Marvin_Ultra/M3-S-R-CCS-615-V2.urdf.xacro" />
+  <xacro:include filename="$(find marvin_description)/urdf/Marvin_Ultra/Marvin_Ultra_body.urdf.xacro" />
+  <xacro:M3-S-L-CCS-615-V2 />
+  <xacro:M3-S-R-CCS-615-V2 />
+  <xacro:marvin_ultra_body />
+
+  <joint name="ll6_to_left_arm" type="fixed">
+    <parent link="Leg_J6_Link"/>
+    <child link="Base_L"/>
+    <origin xyz="0 0.0585 0.423" rpy="-1.57 0 0"/>
+  </joint>
+
+  <joint name="ll6_to_right_arm" type="fixed">
+    <parent link="Leg_J6_Link"/>
+    <child link="Base_R"/>
+    <origin xyz="0 -0.0585 0.423" rpy="1.57 0 0"/>
+  </joint>
+
+  <link name="base_link" />
+  <joint name="base_to_base_link" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+   <link name="tracking_base_link" />
+  <link name="floor" />
+  <joint name="base_to_tracking_base_link" type="fixed">
+    <parent link="base_link"/>
+    <child link="tracking_base_link"/>
+    <origin xyz="0.1 0 -0.15" rpy="0 0 0"/>
+    <!--origin xyz="0 0 0.335" rpy="0 0 0"/ -->
+  </joint>
+
+  <joint name="base_to_floor" type="fixed">
+    <parent link="base_link"/>
+    <child link="floor"/>
+    <origin xyz="0 0 -0.335" rpy="0 0 0"/>
+  </joint>
+
+  <link name="torso_link" />
+
+  <joint name="ll6_to_torso_link" type="fixed">
+    <parent link="Leg_J6_Link"/>
+    <child link="torso_link"/>
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+  </joint>
+
+</robot>

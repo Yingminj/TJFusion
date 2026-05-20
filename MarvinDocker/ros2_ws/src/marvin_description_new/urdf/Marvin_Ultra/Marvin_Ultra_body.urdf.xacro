@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Marvin Ultra_URDF_2026.1.28" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro  name="marvin_ultra_body">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.15 -0.0 -0.08533949"
+        rpy="0 0 0" />
+      <mass
+        value="91.13" />
+      <inertia
+        ixx="6.2017231"
+        ixy="0.00119842"
+        ixz="0.03392051"
+        iyy="6.0077372"
+        iyz="-1.3475249"
+        izz="6.6799969" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Underpan_Base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Underpan_Base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Leg_J1_Link">
+    <inertial>
+      <origin
+        xyz="-0.01082075 0.00387295 -0.00593269"
+        rpy="0 0 0" />
+      <mass
+        value="5.518" />
+      <inertia
+        ixx="0.02001314"
+        ixy="-0.00092393"
+        ixz="0.0009989"
+        iyy="0.01789574"
+        iyz="-0.00200503"
+        izz="0.01413422" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J1_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 1 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J1_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J1_Joint"
+    type="revolute">
+    <origin
+      xyz="0.093 0 0"
+      rpy="1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="Leg_J1_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.5236"
+      upper="0.5236"
+      effort="204"
+      velocity="3.1416" />
+  </joint>
+  <link
+    name="Leg_J2_Link">
+    <inertial>
+      <origin
+        xyz="-0.00089738 0.23016029 0.00790954"
+        rpy="0 0 0" />
+      <mass
+        value="7.3099823" />
+      <inertia
+        ixx="0.51536571"
+        ixy="-0.00701612"
+        ixz="-0.0012673"
+        iyy="0.0278392"
+        iyz="0.02636815"
+        izz="0.51521426" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J2_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J2_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J2_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 -1.5708 0" />
+    <parent
+      link="Leg_J1_Link" />
+    <child
+      link="Leg_J2_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.4835"
+      upper="0.5236"
+      effort="204"
+      velocity="3.1416" />
+  </joint>
+  <link
+    name="Leg_J3_Link">
+    <inertial>
+      <origin
+        xyz="0.00865229 0.13494754 -0.01500457"
+        rpy="0 0 0" />
+      <mass
+        value="3.4476637" />
+      <inertia
+        ixx="0.13522209"
+        ixy="0.00473931"
+        ixz="-0.00001569"
+        iyy="-0.00704875"
+        iyz="-0.00704875"
+        izz="0.12848576" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J3_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J3_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J3_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0.3 0"
+      rpy="0 0 0" />
+    <parent
+      link="Leg_J2_Link" />
+    <child
+      link="Leg_J3_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0.0"
+      upper="2.5307"
+      effort="204"
+      velocity="3.1416" />
+  </joint>
+  <link
+    name="Leg_J4_Link">
+    <inertial>
+      <origin
+        xyz="-0.0377824 0.00327962 0.01691895"
+        rpy="0 0 0" />
+      <mass
+        value="6.7521074" />
+      <inertia
+        ixx="0.01633248"
+        ixy="-0.00196807"
+        ixz="-0.00148789"
+        iyy="0.0474537"
+        iyz="0.00113241"
+        izz="0.04593688" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J4_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 1 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J4_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J4_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0.3 0"
+      rpy="0 0 0" />
+    <parent
+      link="Leg_J3_Link" />
+    <child
+      link="Leg_J4_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.4835"
+      upper="0.95993"
+      effort="204"
+      velocity="3.1416" />
+  </joint>
+  <link
+    name="Leg_J5_Link">
+    <inertial>
+      <origin
+        xyz="-0.00114217 0.13017545 -0.01115972"
+        rpy="0 0 0" />
+      <mass
+        value="3.9468269" />
+      <inertia
+        ixx="0.1014756"
+        ixy="-0.00070461"
+        ixz="-0.00001716"
+        iyy="0.02087895"
+        iyz="-0.00168039"
+        izz="0.08986108" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J5_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J5_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J5_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 1.5708 0" />
+    <parent
+      link="Leg_J4_Link" />
+    <child
+      link="Leg_J5_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.523599"
+      upper="0.523599"
+      effort="54"
+      velocity="2.618" />
+  </joint>
+  <link
+    name="Leg_J6_Link">
+    <inertial>
+      <origin
+        xyz="0.00093411 0.00177647 0.34965197"
+        rpy="0 0 0" />
+      <mass
+        value="9.5221899" />
+      <inertia
+        ixx="1.2637405"
+        ixy="0.00037429"
+        ixz="0.00339082"
+        iyy="1.2458381"
+        iyz="0.00560089"
+        izz="0.05627763" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J6_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Leg_J6_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Leg_J6_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 -1.5708 0" />
+    <parent
+      link="Leg_J5_Link" />
+    <child
+      link="Leg_J6_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.5307"
+      upper="2.5307"
+      effort="54"
+      velocity="2.618" />
+  </joint>
+  <link
+    name="Head_J1_Link">
+    <inertial>
+      <origin
+        xyz="-3.5275E-08 -0.0 0.0012515"
+        rpy="0 0 0" />
+      <mass
+        value="1.388" />
+      <inertia
+        ixx="0.0023539"
+        ixy="-1.0775E-09"
+        ixz="-2.2637E-11"
+        iyy="0.00023767"
+        iyz="-6.2114E-05"
+        izz="0.0023367" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Head_J1_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 1 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Head_J1_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Head_J1_Joint"
+    type="revolute">
+    <origin
+      xyz="-0.0135 0 0.64"
+      rpy="0 0 0" />
+    <parent
+      link="Leg_J6_Link" />
+    <child
+      link="Head_J1_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="18"
+      velocity="3.1416" />
+  </joint>
+  <link
+    name="Head_J2_Link">
+    <inertial>
+      <origin
+        xyz="0.021932 0.039063 -0.00027743"
+        rpy="0 0 0" />
+      <mass
+        value="0.50512" />
+      <inertia
+        ixx="0.0016475"
+        ixy="4.9714E-05"
+        ixz="-3.8607E-06"
+        iyy="0.0010555"
+        iyz="2.8944E-06"
+        izz="0.0013656" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Head_J2_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://marvin_description/meshes/Marvin_Ultra/Head_J2_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Head_J2_Joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="Head_J1_Link" />
+    <child
+      link="Head_J2_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-0.4363"
+      upper="0.61087"
+      effort="18"
+      velocity="3.1416" />
+  </joint>
+
+  <link name="eyes_link" />
+  <joint name="head_to_eyes_link" type="fixed">
+    <parent link="Head_J2_Link"/>
+    <child link="eyes_link"/>
+    <origin xyz="0.05 0.03 0" rpy="-1.57 0 0"/>
+  </joint>
+
+    <link name="left_tool" />
+  <joint name="left_tool_joint" type="fixed">
+    <parent link="flange_L"/>
+    <child link="left_tool"/>
+    <origin rpy="3.14 -1.57 0" xyz="0 0.00 .05"/>
+  </joint>
+  <link name="right_tool" />
+  <joint name="right_tool_joint" type="fixed">
+    <parent link="flange_R"/>
+    <child link="right_tool"/>
+    <origin rpy="-3.14 -1.57 0" xyz="0 -0.00 .05"/>
+  </joint>
+
+  </xacro:macro>
+</robot>

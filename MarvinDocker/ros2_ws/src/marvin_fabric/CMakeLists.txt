@@ -108,6 +108,7 @@ install(TARGETS
 install(PROGRAMS
   scripts/controller_udp.py
   scripts/IK_viewer.py
+  scripts/mujoco_node.py
   scripts/vla_client.py
   scripts/world/test_task_manager_dynamic.py
   DESTINATION lib/${PROJECT_NAME}

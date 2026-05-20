@@ -1,0 +1,265 @@
+<mujoco model="Gento Luna_URDF">
+  <compiler angle="radian" />
+
+  <option timestep="0.001" integrator="implicitfast"/>
+
+
+  <default>
+  <default class="ccs_m6">
+  <!--
+  <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="2000" biasprm="0 -2000 -400"
+          forcerange="-150 150"/> 
+  -->
+    <joint damping="2" armature="0.1" frictionloss="0.2"/>
+    <position inheritrange="1"/>
+    <default class="visual">
+      <geom group="2" type="mesh" contype="0" conaffinity="0" rgba="0.3 0.3 0.3 1"/>
+    </default>
+    <default class="collision">
+      <geom type="capsule" group="3" mass="0" density="0"/>
+    </default>
+  </default>
+</default>
+  <asset>
+      <mesh name="base_link" file="../../meshes/Gento_Luna/Underpan_Base_link.STL" />
+      <mesh name="base_link_collision" file="../../meshes/Gento_Luna/Underpan_Base_link_collision.STL" />
+      <mesh name="Leg_J1_Link" file="../../meshes/Gento_Luna/Leg_J1_Link.STL" />
+      <mesh name="Leg_J2_Link" file="../../meshes/Gento_Luna/Leg_J2_Link.STL" />
+      <mesh name="Leg_J3_Link" file="../../meshes/Gento_Luna/Leg_J3_Link.STL" />
+      <mesh name="Leg_J4_Link" file="../../meshes/Gento_Luna/Leg_J4_Link.STL" />
+      <mesh name="Leg_J5_Link" file="../../meshes/Gento_Luna/Leg_J5_Link.STL" />
+      <mesh name="Leg_J6_Link" file="../../meshes/Gento_Luna/Leg_J6_Link.STL" />
+      <mesh name="Arm_R1_Link" file="../../meshes/Gento_Luna/Arm_R1_Link.STL" />
+      <mesh name="Arm_R2_Link" file="../../meshes/Gento_Luna/Arm_R2_Link.STL" />
+      <mesh name="Arm_R3_Link" file="../../meshes/Gento_Luna/Arm_R3_Link.STL" />
+      <mesh name="Arm_R4_Link" file="../../meshes/Gento_Luna/Arm_R4_Link.STL" />
+      <mesh name="Arm_R5_Link" file="../../meshes/Gento_Luna/Arm_R5_Link.STL" />
+      <mesh name="Arm_R6_Link" file="../../meshes/Gento_Luna/Arm_R6_Link.STL" />
+      <mesh name="Arm_R7_Link" file="../../meshes/Gento_Luna/Arm_R7_Link.STL" />
+      <mesh name="Arm_L1_Link" file="../../meshes/Gento_Luna/Arm_L1_Link.STL" />
+      <mesh name="Arm_L2_Link" file="../../meshes/Gento_Luna/Arm_L2_Link.STL" />
+      <mesh name="Arm_L3_Link" file="../../meshes/Gento_Luna/Arm_L3_Link.STL" />
+      <mesh name="Arm_L4_Link" file="../../meshes/Gento_Luna/Arm_L4_Link.STL" />
+      <mesh name="Arm_L5_Link" file="../../meshes/Gento_Luna/Arm_L5_Link.STL" />
+      <mesh name="Arm_L6_Link" file="../../meshes/Gento_Luna/Arm_L6_Link.STL" />
+      <mesh name="Arm_L7_Link" file="../../meshes/Gento_Luna/Arm_L7_Link.STL" />
+      <mesh name="Head_J1_Link" file="../../meshes/Gento_Luna/Head_J1_Link.STL" />
+      <mesh name="Head_J2_Link" file="../../meshes/Gento_Luna/Head_J2_Link.STL" />
+      <material name="base_link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Gento_Luna_Leg_J1_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Gento_Luna_Leg_J2_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Gento_Luna_Leg_J3_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Gento_Luna_Leg_J4_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Gento_Luna_Leg_J5_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Gento_Luna_Leg_J6_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Arm_R1_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Arm_R2_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Arm_R3_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Arm_R4_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Arm_R5_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Arm_R6_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Arm_R7_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Arm_L1_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Arm_L2_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Arm_L3_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Arm_L4_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Arm_L5_Link_mat" rgba="0 0 1 1" specular="0" />
+      <material name="Arm_L6_Link_mat" rgba="1 0 0 1" specular="0" />
+      <material name="Arm_L7_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Head_J1_Link_mat" rgba="0 1 0 1" specular="0" />
+      <material name="Head_J2_Link_mat" rgba="0 0 1 1" specular="0" />
+  </asset>
+
+  <contact>
+    <exclude body1="base_link" body2="Leg_J1_Link" />
+    <exclude body1="base_link" body2="Leg_J2_Link" />
+    <exclude body1="Leg_J1_Link" body2="Leg_J2_Link" />
+    <exclude body1="Leg_J2_Link" body2="Leg_J3_Link" />
+    <exclude body1="Leg_J3_Link" body2="Leg_J4_Link" />
+    <exclude body1="Leg_J3_Link" body2="Leg_J5_Link" />
+    <exclude body1="Leg_J4_Link" body2="Leg_J5_Link" />
+    <exclude body1="Leg_J5_Link" body2="Leg_J6_Link" />
+    <exclude body1="Leg_J6_Link" body2="Arm_R1_Link" />
+    <exclude body1="Arm_R1_Link" body2="Arm_R2_Link" />
+    <exclude body1="Arm_R2_Link" body2="Arm_R3_Link" />
+    <exclude body1="Arm_R3_Link" body2="Arm_R4_Link" />
+    <exclude body1="Arm_R4_Link" body2="Arm_R5_Link" />
+    <exclude body1="Arm_R5_Link" body2="Arm_R6_Link" />
+    <exclude body1="Arm_R6_Link" body2="Arm_R7_Link" />
+    <exclude body1="Leg_J6_Link" body2="Arm_L1_Link" />
+    <exclude body1="Arm_L1_Link" body2="Arm_L2_Link" />
+    <exclude body1="Arm_L2_Link" body2="Arm_L3_Link" />
+    <exclude body1="Arm_L3_Link" body2="Arm_L4_Link" />
+    <exclude body1="Arm_L4_Link" body2="Arm_L5_Link" />
+    <exclude body1="Arm_L5_Link" body2="Arm_L6_Link" />
+    <exclude body1="Arm_L6_Link" body2="Arm_L7_Link" />
+    <exclude body1="Leg_J6_Link" body2="Head_J1_Link" />
+    <exclude body1="Leg_J6_Link" body2="Head_J2_Link" />
+    <exclude body1="Arm_R1_Link" body2="Head_J1_Link" />
+    <exclude body1="Head_J1_Link" body2="Head_J2_Link" />
+  </contact>
+
+  <worldbody>
+    <body name="base_link" pos="0 0 0">
+      <inertial pos="-0.057032 -0.0000217 0.069035" mass="90.8" fullinertia="0.030091 0.027232 0.021579 0.0000002 0.0008246 -0.0000006"/>
+      <geom class="visual"  rgba="0.8 0.8 0.8 1" mesh="base_link" />
+      <geom name="base_link_collision" class="collision" type="mesh" mesh="base_link_collision" rgba="1 0 0 1"/>
+      <body name="Leg_J1_Link" pos="0 0 0.1" quat="0.4999982 0.5 0.5000018 0.5">
+        <joint name="Leg_J1_Joint" type="hinge" axis="0 0 1" limited="true" range="-0.1919862 0.1919862" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+        <inertial pos="-0.003056 0.1187962 0.0009057" mass="6.042" fullinertia="0.1354195 0.011899 0.1313832 -0.0030438 0.0000204 0.0002973"/>
+        <geom class="visual"  rgba="1 0 0 1" mesh="Leg_J1_Link" />
+        <geom class="collision"  rgba="1 0 0 1" mesh="Leg_J1_Link" />
+        <body name="Leg_J2_Link" pos="0 0.165 0" quat="0.7071055 0 -0.7071081 0">
+          <joint name="Leg_J2_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.5707963 1.5707963" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+          <inertial pos="-0.003056 0.1187962 0.0009057" mass="6.0418597" fullinertia="0.4395204 0.0266458 0.4371103 0.0026477 0.00003 0.0150165"/>
+          <geom class="visual"  rgba="0 1 0 1" mesh="Leg_J2_Link" />
+          <geom class="collision"  rgba="0 1 0 1" mesh="Leg_J2_Link" />
+          <body name="Leg_J3_Link" pos="0 0.3 0">
+            <joint name="Leg_J3_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.443461 1.0471976" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+            <inertial pos="-0.0035701 0.1457356 -0.00025" mass="4.6712167" fullinertia="0.0109326 0.0386262 0.0369372 0.0000332 -0.0000713 -0.0000062"/>
+            <geom class="visual"  rgba="0 0 1 1" mesh="Leg_J3_Link" />
+            <geom class="collision"  rgba="0 0 1 1" mesh="Leg_J3_Link" />
+            <body name="Leg_J4_Link" pos="0 0.3 0">
+              <joint name="Leg_J4_Joint" type="hinge" axis="0 0 1" limited="true" range="-0.9599311 1.9198622" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+                <inertial pos="-0.0369066 -0.0000743 0.30101986" mass="5.9004635" fullinertia="0.0109326 0.0386262 0.0369372 0.0000332 -0.0000713 -0.0000062"/>
+              <geom class="visual"  rgba="1 0 0 1" mesh="Leg_J4_Link" />
+              <geom class="collision"  rgba="1 0 0 1" mesh="Leg_J4_Link" />
+              <body name="Leg_J5_Link" pos="0 0 0" quat="0.7071055 0 0.7071081 0">
+                <joint name="Leg_J5_Joint" type="hinge" axis="0 0 1" limited="true" range="-0.5235988 0.5235988" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+                <inertial pos="-0.0015476 0.127669 -0.015651" mass="3.7617757" fullinertia="0.0965216 0.021556 0.0816608 -0.0008929 -0.0000491 -0.003795"/>
+                <geom class="visual"  rgba="0 1 0 1" mesh="Leg_J5_Link" />
+                <geom class="collision"  rgba="0 1 0 1" mesh="Leg_J5_Link" />
+                <body name="Leg_J6_Link" pos="0 0 0" quat="0.4999982 -0.5 -0.5 -0.5000018">
+                  <joint name="Leg_J6_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.9670597 2.9670597" actuatorfrclimited="true" actuatorfrcrange="-700 700" damping="3" frictionloss="0.3"/>
+                  <inertial pos="-0.0025232 0.0002389 0.3535202" mass="7.693925" fullinertia="1.0594735 1.0462903 0.0668307 0.0003976 -0.002991 0.0005628"/>
+                  <geom class="visual"  rgba="0 0 1 1" mesh="Leg_J6_Link" />
+                  <geom class="collision"  rgba="0 0 1 1" mesh="Leg_J6_Link" />
+                  <body name="Arm_R1_Link" pos="0 -0.2146 0.3915" quat="0.7071055 0.7071081 0 0">
+                    <joint name="Arm_R1_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-35 35" damping="3" frictionloss="0.3"/>
+                    <inertial pos="-0.0003318 -0.0042669 -0.0352247" mass="1.537551" fullinertia="0.0036691 0.0039453 0.0013177 0.0000018 0.0000134 -0.0002344"/>
+                    <geom class="visual"  rgba="0 1 0 1" mesh="Arm_R1_Link" />
+                    <geom class="collision"  rgba="0 1 0 1" mesh="Arm_R1_Link" />
+                    <body name="Arm_R2_Link" pos="0 0 0" quat="0.7071055 0.7071081 0 0">
+                      <joint name="Arm_R2_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.0595 2.0595" actuatorfrclimited="true" actuatorfrcrange="-35 35" damping="3" frictionloss="0.3"/>
+                      <inertial pos="-0.0001629 0.049837 -0.0083337" mass="1.540624" fullinertia="0.0059894 0.0018324 0.0056436 0.0000166 0.0000086 0.0006433"/>
+                      <geom class="visual"  rgba="0 0 1 1" mesh="Arm_R2_Link" />
+                      <geom class="collision"  rgba="0 0 1 1" mesh="Arm_R2_Link" />
+                      <body name="Arm_R3_Link" pos="0 0.264 0" quat="0.7071055 -0.7071081 0 0">
+                        <joint name="Arm_R3_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="2.5" frictionloss="0.25"/>
+                        <inertial pos="0.0082949 -0.0041116 -0.0491662" mass="1.361743" fullinertia="0.0046736 0.0049805 0.0011967 -0.000057 0.0005888 -0.0002721"/>
+                        <geom class="visual"  rgba="1 0 0 1" mesh="Arm_R3_Link" />
+                        <geom class="collision"  rgba="1 0 0 1" mesh="Arm_R3_Link" />
+                        <body name="Arm_R4_Link" pos="0.018 0 0" quat="-0.0000026 0.0000026 0.7071081 -0.7071055">
+                          <joint name="Arm_R4_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.5307 0.7854" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="2.5" frictionloss="0.25"/>
+                          <inertial pos="0.0085239 -0.0385707 -0.0080154" mass="1.034295" fullinertia="0.0030396 0.0011855 0.0028817 -0.0003792 0.0000679 -0.0003105"/>
+                          <geom class="visual"  rgba="0 1 0 1" mesh="Arm_R4_Link" />
+                          <geom class="collision"  rgba="0 1 0 1" mesh="Arm_R4_Link" />
+                          <body name="Arm_R5_Link" pos="0.018 -0.264 0" quat="-0.0000026 0.0000026 -0.7071081 0.7071055">
+                            <joint name="Arm_R5_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.5" frictionloss="0.15"/>
+                            <inertial pos="0.0005008 -0.0022392 -0.0925342" mass="1.000479" fullinertia="0.0021706 0.0019513 0.0008422 -0.0000114 0.0000067 -0.0000306"/>
+                            <geom class="visual"  rgba="0 0 1 1" mesh="Arm_R5_Link" />
+                            <geom class="collision"  rgba="0 0 1 1" mesh="Arm_R5_Link" />
+                            <body name="Arm_R6_Link" pos="0 0 0" quat="0.4999982 0.5 -0.5 0.5000018">
+                              <joint name="Arm_R6_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.0472 1.0472" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.2" frictionloss="0.12"/>
+                              <inertial pos="-0.0001863 0.0002382 0.0005829" mass="0.3906229" fullinertia="0.0001994 0.0001716 0.0001857 -0.0000012 -0.0000003 0.0000035"/>
+                              <geom class="visual"  rgba="1 0 0 1" mesh="Arm_R6_Link" />
+                              <geom class="collision"  rgba="1 0 0 1" mesh="Arm_R6_Link" />
+                              <body name="Arm_R7_Link" pos="0 0 0" quat="0.4999982 0.5 -0.5 0.5000018">
+                                <joint name="Arm_R7_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.5708 1.5708" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.2" frictionloss="0.12"/>
+                                <inertial pos="-0.0005243 -0.0397623 0.0072734" mass="0.37939" fullinertia="0.0007031 0.0003036 0.0005883 0.000006 0.0000007 0.0001277"/>
+                                <geom class="visual"  rgba="0 1 0 1" mesh="Arm_R7_Link" />
+                                <geom class="collision"  rgba="0 1 0 1" mesh="Arm_R7_Link" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                  <body name="Arm_L1_Link" pos="0 0.2146 0.3915" quat="0.7071055 -0.7071081 0 0">
+                    <joint name="Arm_L1_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-35 35" damping="3" frictionloss="0.3"/>
+                    <inertial pos="-0.0003318 -0.0042669 -0.0352247" mass="1.537551" fullinertia="0.0036691 0.0039453 0.0013177 0.0000018 0.0000134 -0.0002344"/>
+                    <geom class="visual"  rgba="0 1 0 1" mesh="Arm_L1_Link" />
+                    <geom class="collision"  rgba="0 1 0 1" mesh="Arm_L1_Link" />
+                    <body name="Arm_L2_Link" pos="0 0 0" quat="-0.0000026 0.0000026 -0.7071081 0.7071055">
+                      <joint name="Arm_L2_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.0595 2.0595" actuatorfrclimited="true" actuatorfrcrange="-35 35" damping="3" frictionloss="0.3"/>
+                      <inertial pos="-0.0001629 0.049837 -0.0083337" mass="1.540624" fullinertia="0.0059894 0.0018324 0.0056436 0.0000166 0.0000086 0.0006433"/>
+                      <geom class="visual"  rgba="0 0 1 1" mesh="Arm_L2_Link" />
+                      <geom class="collision"  rgba="0 0 1 1" mesh="Arm_L2_Link" />
+                      <body name="Arm_L3_Link" pos="0 -0.264 0" quat="-0.0000026 0.0000026 0.7071081 -0.7071055">
+                        <joint name="Arm_L3_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="2.5" frictionloss="0.25"/>
+                        <inertial pos="0.0082949 -0.0041116 -0.0491662" mass="1.361743" fullinertia="0.0046736 0.0049805 0.0011967 -0.000057 0.0005888 -0.0002721"/>
+                        <geom class="visual"  rgba="1 0 0 1" mesh="Arm_L3_Link" />
+                        <geom class="collision"  rgba="1 0 0 1" mesh="Arm_L3_Link" />
+                        <body name="Arm_L4_Link" pos="0.018 0 0" quat="-0.0000026 0.0000026 -0.7071081 0.7071055">
+                          <joint name="Arm_L4_Joint" type="hinge" axis="0 0 1" limited="true" range="-2.5307 0.7854" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="2.5" frictionloss="0.25"/>
+                          <inertial pos="0.0085239 -0.0385707 -0.0080154" mass="1.034295" fullinertia="0.0030396 0.0011855 0.0028817 -0.0003792 0.0000679 -0.0003105"/>
+                          <geom class="visual"  rgba="0 1 0 1" mesh="Arm_L4_Link" />
+                          <geom class="collision"  rgba="0 1 0 1" mesh="Arm_L4_Link" />
+                          <body name="Arm_L5_Link" pos="0.018 -0.264 0" quat="-0.0000026 0.0000026 0.7071081 -0.7071055">
+                            <joint name="Arm_L5_Joint" type="hinge" axis="0 0 1" limited="true" range="-3.0194 3.0194" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.5" frictionloss="0.15"/>
+                            <inertial pos="-0.0005008 0.0022392 -0.0925342" mass="1.000479" fullinertia="0.0021706 0.0019513 0.0008422 -0.0000114 -0.0000067 0.0000306"/>
+                            <geom class="visual"  rgba="0 0 1 1" mesh="Arm_L5_Link" />
+                            <geom class="collision"  rgba="0 0 1 1" mesh="Arm_L5_Link" />
+                            <body name="Arm_L6_Link" pos="0 0 0" quat="0.4999982 0.5 -0.5 0.5000018">
+                              <joint name="Arm_L6_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.0472 1.0472" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.2" frictionloss="0.12"/>
+                              <inertial pos="0.0001863 0.0002382 -0.0005829" mass="0.3906229" fullinertia="0.0001994 0.0001716 0.0001857 0.0000012 -0.0000003 -0.0000035"/>
+                              <geom class="visual"  rgba="1 0 0 1" mesh="Arm_L6_Link" />
+                              <geom class="collision"  rgba="1 0 0 1" mesh="Arm_L6_Link" />
+                              <body name="Arm_L7_Link" pos="0 0 0" quat="0.4999982 0.5 -0.5 0.5000018">
+                                <joint name="Arm_L7_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.5708 1.5708" actuatorfrclimited="true" actuatorfrcrange="-50 50" damping="1.2" frictionloss="0.12"/>
+                                <inertial pos="-0.0005243 -0.0397623 0.0072734" mass="0.37939" fullinertia="0.0007031 0.0003036 0.0005883 0.000006 0.0000007 0.0001277"/>
+                                <geom class="visual"  rgba="0 1 0 1" mesh="Arm_L7_Link" />
+                                <geom class="collision"  rgba="0 1 0 1" mesh="Arm_L7_Link" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                  <body name="Head_J1_Link" pos="-0.013496 0 0.49898" quat="0.7071055 0.7071081 0 0">
+                    <joint name="Head_J1_joint" type="hinge" axis="0 0 1" limited="true" range="-0.5235958 0.5235958" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="3" frictionloss="0.3"/>
+                    <inertial pos="0.0000009 0.017441 -0.0043026" mass="0.7216" fullinertia="0.0011491 0.0007734 0.0011134 0 0 -0.0000568"/>
+                    <geom pos="0 0 0" group="1" contype="0" conaffinity="0" material="Head_J1_Link_mat" type="mesh" mesh="Head_J1_Link" />
+                    <geom pos="0 0 0" rgba="0.9373 0.2667 0.2667 1" group="3" contype="1" conaffinity="1" type="mesh" mesh="Head_J1_Link" />
+                    <body name="Head_J2_Link" pos="0 0 0" quat="0.7071055 -0.7071081 0 0">
+                      <joint name="Head_J2_Joint" type="hinge" axis="0 0 1" limited="true" range="-1.5707963 1.5707963" actuatorfrclimited="true" actuatorfrcrange="-18 18" damping="3" frictionloss="0.3"/>
+                      <inertial pos="0.052332 0.0001081 0.15733" mass="2.3905" fullinertia="0.0083456 0.010445 0.0071811 -0.0000091 -0.0012055 -0.0000032"/>
+                      <geom pos="0 0 0" group="1" contype="0" conaffinity="0" material="Head_J2_Link_mat" type="mesh" mesh="Head_J2_Link" />
+                      <geom pos="0 0 0" rgba="0.9373 0.2667 0.2667 1" group="3" contype="1" conaffinity="1" type="mesh" mesh="Head_J2_Link" />
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="Leg_J1_Joint_servo" joint="Leg_J1_Joint" kp="2200" kv="320" ctrllimited="true" ctrlrange="-0.1919862 0.1919862" forcelimited="true" forcerange="-700 700" />
+    <position name="Leg_J2_Joint_servo" joint="Leg_J2_Joint" kp="2200" kv="320" ctrllimited="true" ctrlrange="-1.5707963 1.5707963" forcelimited="true" forcerange="-700 700" />
+    <position name="Leg_J3_Joint_servo" joint="Leg_J3_Joint" kp="2200" kv="320" ctrllimited="true" ctrlrange="-2.443461 1.0471976" forcelimited="true" forcerange="-700 700" />
+    <position name="Leg_J4_Joint_servo" joint="Leg_J4_Joint" kp="5000" kv="700" ctrllimited="true" ctrlrange="-0.9599311 1.9198622" forcelimited="true" forcerange="-700 700" />
+    <position name="Leg_J5_Joint_servo" joint="Leg_J5_Joint" kp="5000" kv="700" ctrllimited="true" ctrlrange="-0.5235988 0.5235988" forcelimited="true" forcerange="-700 700" />
+    <position name="Leg_J6_Joint_servo" joint="Leg_J6_Joint" kp="5000" kv="700" ctrllimited="true" ctrlrange="-2.9670597 2.9670597" forcelimited="true" forcerange="-700 700" />
+    <position name="Arm_R1_Joint_servo" joint="Arm_R1_Joint" kp="220" kv="40" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-35 35" />
+    <position name="Arm_R2_Joint_servo" joint="Arm_R2_Joint" kp="220" kv="40" ctrllimited="true" ctrlrange="-2.0595 2.0595" forcelimited="true" forcerange="-35 35" />
+    <position name="Arm_R3_Joint_servo" joint="Arm_R3_Joint" kp="180" kv="35" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-18 18" />
+    <position name="Arm_R4_Joint_servo" joint="Arm_R4_Joint" kp="180" kv="35" ctrllimited="true" ctrlrange="-2.5307 0.7854" forcelimited="true" forcerange="-18 18" />
+    <position name="Arm_R5_Joint_servo" joint="Arm_R5_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-50 50" />
+    <position name="Arm_R6_Joint_servo" joint="Arm_R6_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-1.0472 1.0472" forcelimited="true" forcerange="-50 50" />
+    <position name="Arm_R7_Joint_servo" joint="Arm_R7_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-50 50" />
+    <position name="Arm_L1_Joint_servo" joint="Arm_L1_Joint" kp="220" kv="40" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-35 35" />
+    <position name="Arm_L2_Joint_servo" joint="Arm_L2_Joint" kp="220" kv="40" ctrllimited="true" ctrlrange="-2.0595 2.0595" forcelimited="true" forcerange="-35 35" />
+    <position name="Arm_L3_Joint_servo" joint="Arm_L3_Joint" kp="180" kv="35" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-18 18" />
+    <position name="Arm_L4_Joint_servo" joint="Arm_L4_Joint" kp="180" kv="35" ctrllimited="true" ctrlrange="-2.5307 0.7854" forcelimited="true" forcerange="-18 18" />
+    <position name="Arm_L5_Joint_servo" joint="Arm_L5_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-3.0194 3.0194" forcelimited="true" forcerange="-50 50" />
+    <position name="Arm_L6_Joint_servo" joint="Arm_L6_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-1.0472 1.0472" forcelimited="true" forcerange="-50 50" />
+    <position name="Arm_L7_Joint_servo" joint="Arm_L7_Joint" kp="600" kv="120" ctrllimited="true" ctrlrange="-1.5708 1.5708" forcelimited="true" forcerange="-50 50" />
+    <position name="Head_J1_joint_servo" joint="Head_J1_joint" kp="100" kv="20" ctrllimited="true" ctrlrange="-0.5235958 0.5235958" forcelimited="true" forcerange="-18 18" />
+    <position name="Head_J2_Joint_servo" joint="Head_J2_Joint" kp="100" kv="20" ctrllimited="true" ctrlrange="-1.5707963 1.5707963" forcelimited="true" forcerange="-18 18" />
+  </actuator>
+</mujoco>
