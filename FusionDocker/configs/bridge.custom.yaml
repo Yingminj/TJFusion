@@ -33,10 +33,6 @@ bridge:
         obj_ids: obj_ids
         class_names: class_names
         instance_names: instance_names
-    # - name: siglip2
-    #   kind: siglip2
-    #   endpoint: tcp://127.0.0.1:7777
-    #   role: optional
     # 第二层：FlowPose（依赖 sam3，用 sam3 的 masks + depth）
     - name: flowpose
       kind: generic

@@ -5898,8 +5898,8 @@ def _build_dashboard_html() -> str:
             }
 
             .config-textarea {
-              width: 100%;
-              min-height: 260px;
+              width: 50%;
+              min-height: 500px;
               padding: 16px 18px;
               border-radius: 18px;
               border: 1px solid rgba(103, 246, 255, 0.18);
@@ -5929,8 +5929,126 @@ def _build_dashboard_html() -> str:
             }
 
             .launcher-config-editor .config-textarea {
+              min-width: 400px;
               min-height: 180px;
               max-height: 320px;
+            }
+
+            .config-editor-split .config-editor-body {
+              display: grid;
+              grid-template-columns: minmax(320px, 1.15fr) minmax(260px, 0.85fr);
+              gap: 16px;
+              align-items: stretch;
+            }
+
+            .config-editor-split .config-textarea {
+              width: 100%;
+              min-height: 420px;
+            }
+
+            .pipeline-graph {
+              display: grid;
+              gap: 10px;
+              min-width: 0;
+            }
+
+            .pipeline-graph-head {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 10px;
+              flex-wrap: wrap;
+            }
+
+            .pipeline-graph-head strong {
+              letter-spacing: 0.12em;
+              text-transform: uppercase;
+              font-size: 0.78rem;
+            }
+
+            .pipeline-graph-head span {
+              color: var(--muted);
+              font-size: 0.78rem;
+            }
+
+            .pipeline-graph-body {
+              position: relative;
+              border-radius: 18px;
+              border: 1px solid rgba(103, 246, 255, 0.16);
+              background:
+                linear-gradient(180deg, rgba(6, 16, 28, 0.96), rgba(4, 12, 22, 0.96));
+              min-height: 360px;
+              max-height: 520px;
+              overflow: auto;
+            }
+
+            .pipeline-graph-lines {
+              position: absolute;
+              inset: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+            }
+
+            .pipeline-graph-lines path {
+              stroke: rgba(103, 246, 255, 0.38);
+              stroke-width: 1.4;
+              fill: none;
+            }
+
+            .pipeline-graph-nodes {
+              position: relative;
+              z-index: 1;
+              display: grid;
+              gap: 14px;
+              padding: 16px;
+              min-height: 100%;
+              align-content: start;
+            }
+
+            .graph-column {
+              display: grid;
+              gap: 12px;
+            }
+
+            .graph-node {
+              border-radius: 14px;
+              border: 1px solid rgba(103, 246, 255, 0.18);
+              background: rgba(10, 24, 39, 0.85);
+              padding: 10px 12px;
+              box-shadow: inset 0 0 18px rgba(103, 246, 255, 0.04);
+              min-width: 0;
+            }
+
+            .graph-node-title {
+              font-size: 0.86rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
+
+            .graph-node-meta {
+              margin-top: 8px;
+              display: grid;
+              gap: 4px;
+              color: var(--muted);
+              font-size: 0.74rem;
+              line-height: 1.4;
+              overflow-wrap: anywhere;
+            }
+
+            .graph-node-meta span {
+              display: block;
+            }
+
+            .graph-node-warning {
+              color: var(--amber);
+            }
+
+            .graph-empty {
+              color: var(--muted);
+              font-size: 0.86rem;
+              padding: 12px;
             }
 
             .docker-connection-card {
@@ -6322,8 +6440,9 @@ def _build_dashboard_html() -> str:
               position: relative;
               margin: 0;
               padding: 20px;
-              min-height: 560px;
-              max-height: 760px;
+              height: 600px;
+              min-height: unset;
+              max-height: none;
               overflow-x: auto;
               overflow-y: auto;
               overscroll-behavior: contain;
@@ -6374,14 +6493,20 @@ def _build_dashboard_html() -> str:
                 min-height: auto;
               }
 
-              .groups,
-              .log-output {
+              .groups {
                 max-height: none;
+              }
+              .log-output {
+                height: 600px;
               }
             }
 
             @media (max-width: 1180px) {
               .hero-top {
+                grid-template-columns: 1fr;
+              }
+
+              .config-editor-split .config-editor-body {
                 grid-template-columns: 1fr;
               }
 
@@ -6695,7 +6820,7 @@ def _build_dashboard_html() -> str:
                       <span class="truncate-text" id="bridge-view-runtime" title="-">-</span>
                     </div>
                   </div>
-                  <div class="config-editor">
+                  <div class="config-editor config-editor-split">
                     <div class="config-editor-head">
                       <div class="config-editor-title">
                         <strong>Config Editor</strong>
@@ -6707,7 +6832,21 @@ def _build_dashboard_html() -> str:
                         <button class="control control-restart" id="bridge-config-save-restart" type="button">Save & Restart</button>
                       </div>
                     </div>
-                    <textarea class="config-textarea" id="bridge-config-editor" spellcheck="false" placeholder="Bridge config will load here."></textarea>
+                    <div class="config-editor-body">
+                      <textarea class="config-textarea" id="bridge-config-editor" spellcheck="false" placeholder="Bridge config will load here."></textarea>
+                      <div class="pipeline-graph" id="bridge-pipeline-graph">
+                        <div class="pipeline-graph-head">
+                          <strong>Pipeline Graph</strong>
+                          <span id="bridge-graph-status">No config loaded.</span>
+                        </div>
+                        <div class="pipeline-graph-body" id="bridge-graph-body">
+                          <svg class="pipeline-graph-lines" id="bridge-graph-lines" aria-hidden="true"></svg>
+                          <div class="pipeline-graph-nodes" id="bridge-graph-nodes">
+                            <div class="graph-empty">No pipeline loaded.</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div class="log-meta">
                     <span id="bridge-log-updated">Waiting for bridge logs</span>
@@ -6880,6 +7019,9 @@ def _build_dashboard_html() -> str:
             let bridgeLogsRefreshInFlight = false;
             let zmqHistoryRefreshInFlight = false;
             let videoRefreshInFlight = false;
+            let bridgeGraphState = null;
+            let bridgeGraphRenderQueued = false;
+            let bridgeGraphEventsReady = false;
 
             function escapeHtml(value) {
               return String(value)
@@ -6933,6 +7075,471 @@ def _build_dashboard_html() -> str:
               } catch (error) {
                 return String(value);
               }
+            }
+
+            function stripYamlComment(value) {
+              let inSingle = false;
+              let inDouble = false;
+              for (let i = 0; i < value.length; i += 1) {
+                const char = value[i];
+                if (char === "'" && !inDouble) {
+                  inSingle = !inSingle;
+                } else if (char === '"' && !inSingle) {
+                  inDouble = !inDouble;
+                } else if (char === "#" && !inSingle && !inDouble) {
+                  return value.slice(0, i);
+                }
+              }
+              return value;
+            }
+
+            function cleanYamlValue(value) {
+              const trimmed = String(value || "").trim();
+              if (!trimmed) {
+                return "";
+              }
+              if (
+                (trimmed.startsWith("'") && trimmed.endsWith("'"))
+                || (trimmed.startsWith('"') && trimmed.endsWith('"'))
+              ) {
+                return trimmed.slice(1, -1);
+              }
+              return trimmed;
+            }
+
+            function parseInlineList(value) {
+              if (value === null || value === undefined) {
+                return null;
+              }
+              const trimmed = String(value).trim();
+              if (!trimmed) {
+                return null;
+              }
+              if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                const inner = trimmed.slice(1, -1).trim();
+                if (!inner) {
+                  return [];
+                }
+                return inner
+                  .split(",")
+                  .map((item) => cleanYamlValue(item))
+                  .filter(Boolean);
+              }
+              return [cleanYamlValue(trimmed)];
+            }
+
+            function uniqueList(values) {
+              return Array.from(
+                new Set(
+                  (values || [])
+                    .map((item) => String(item || "").trim())
+                    .filter(Boolean),
+                ),
+              );
+            }
+
+            function parsePipelineSteps(yamlText) {
+              const steps = [];
+              const warnings = [];
+              if (!yamlText || typeof yamlText !== "string") {
+                return { steps, warnings };
+              }
+
+              const lines = yamlText.split(/\\r?\\n/);
+              let inPipeline = false;
+              let pipelineIndent = 0;
+              let current = null;
+              let listIndent = 0;
+              let expectName = false;
+              let activeList = null;
+              let activeListIndent = 0;
+              let inResponseMap = false;
+              let responseMapIndent = 0;
+
+              const pushCurrent = () => {
+                if (current) {
+                  current.inputs = uniqueList(current.inputs);
+                  current.outputs = uniqueList(current.outputs);
+                  current.dependsOn = uniqueList(current.dependsOn);
+                  steps.push(current);
+                }
+              };
+
+              for (const rawLine of lines) {
+                const lineNoComment = stripYamlComment(rawLine);
+                if (!lineNoComment.trim()) {
+                  continue;
+                }
+                const indentMatch = lineNoComment.match(/^\\s*/);
+                const indent = indentMatch ? indentMatch[0].length : 0;
+                const trimmed = lineNoComment.trim();
+
+                if (!inPipeline) {
+                  if (/^pipeline\\s*:/.test(trimmed)) {
+                    inPipeline = true;
+                    pipelineIndent = indent;
+                  }
+                  continue;
+                }
+
+                if (indent <= pipelineIndent && !trimmed.startsWith("-")) {
+                  inPipeline = false;
+                  continue;
+                }
+
+                const nameInlineMatch = trimmed.match(/^-\\s*name\\s*:\\s*(.+)$/);
+                if (nameInlineMatch) {
+                  pushCurrent();
+                  current = {
+                    name: cleanYamlValue(nameInlineMatch[1]),
+                    inputs: [],
+                    outputs: [],
+                    dependsOn: [],
+                  };
+                  listIndent = indent;
+                  expectName = false;
+                  activeList = null;
+                  inResponseMap = false;
+                  continue;
+                }
+
+                if (trimmed === "-") {
+                  pushCurrent();
+                  current = {
+                    name: "",
+                    inputs: [],
+                    outputs: [],
+                    dependsOn: [],
+                  };
+                  listIndent = indent;
+                  expectName = true;
+                  activeList = null;
+                  inResponseMap = false;
+                  continue;
+                }
+
+                if (!current) {
+                  continue;
+                }
+
+                if (expectName && indent > listIndent) {
+                  const nameMatch = trimmed.match(/^name\\s*:\\s*(.+)$/);
+                  if (nameMatch) {
+                    current.name = cleanYamlValue(nameMatch[1]);
+                    expectName = false;
+                    continue;
+                  }
+                }
+
+                if (activeList && indent <= activeListIndent) {
+                  activeList = null;
+                }
+                if (inResponseMap && indent <= responseMapIndent) {
+                  inResponseMap = false;
+                }
+
+                if (!activeList && !inResponseMap) {
+                  const listMatch = trimmed.match(/^(depends_on|inputs|outputs)\\s*:\\s*(.*)$/);
+                  if (listMatch) {
+                    const listName = listMatch[1];
+                    const listValue = listMatch[2] || "";
+                    const inlineItems = parseInlineList(listValue);
+                    if (inlineItems !== null) {
+                      if (listName === "depends_on") {
+                        current.dependsOn.push(...inlineItems);
+                      } else if (listName === "inputs") {
+                        current.inputs.push(...inlineItems);
+                      } else if (listName === "outputs") {
+                        current.outputs.push(...inlineItems);
+                      }
+                    } else {
+                      activeList = listName;
+                      activeListIndent = indent;
+                    }
+                    continue;
+                  }
+
+                  if (trimmed.startsWith("response_map:")) {
+                    inResponseMap = true;
+                    responseMapIndent = indent;
+                    continue;
+                  }
+                }
+
+                if (activeList) {
+                  const itemMatch = trimmed.match(/^-+\\s*(.+)$/);
+                  if (itemMatch) {
+                    const value = cleanYamlValue(itemMatch[1]);
+                    if (activeList === "depends_on") {
+                      current.dependsOn.push(value);
+                    } else if (activeList === "inputs") {
+                      current.inputs.push(value);
+                    } else if (activeList === "outputs") {
+                      current.outputs.push(value);
+                    }
+                  }
+                  continue;
+                }
+
+                if (inResponseMap) {
+                  const keyMatch = trimmed.match(/^([A-Za-z0-9_.-]+)\\s*:/);
+                  if (keyMatch) {
+                    current.outputs.push(cleanYamlValue(keyMatch[1]));
+                  }
+                }
+              }
+
+              if (current) {
+                pushCurrent();
+              }
+
+              if (!steps.length) {
+                warnings.push("pipeline not found");
+              }
+
+              return { steps, warnings };
+            }
+
+            function buildBridgePipelineGraph(yamlText) {
+              const parsed = parsePipelineSteps(yamlText);
+              const nodes = [];
+              const edges = [];
+              const warnings = [...parsed.warnings];
+              const nameCounts = new Map();
+              const baseToId = new Map();
+
+              parsed.steps.forEach((step, index) => {
+                const baseName = step.name || `step-${index + 1}`;
+                const count = (nameCounts.get(baseName) || 0) + 1;
+                nameCounts.set(baseName, count);
+                const id = count === 1 ? baseName : `${baseName}-${count}`;
+                if (count > 1) {
+                  warnings.push(`duplicate name ${baseName}`);
+                }
+                if (!baseToId.has(baseName)) {
+                  baseToId.set(baseName, id);
+                }
+                nodes.push({
+                  id,
+                  baseName,
+                  displayName: id,
+                  inputs: uniqueList(step.inputs),
+                  outputs: uniqueList(step.outputs),
+                  dependsOn: uniqueList(step.dependsOn),
+                  dependsOnIds: [],
+                  missingDeps: [],
+                });
+              });
+
+              const nodeById = new Map(nodes.map((node) => [node.id, node]));
+              for (const node of nodes) {
+                for (const depName of node.dependsOn) {
+                  const depId = baseToId.get(depName);
+                  if (depId && nodeById.has(depId)) {
+                    node.dependsOnIds.push(depId);
+                    edges.push({ from: depId, to: node.id });
+                  } else if (depName) {
+                    node.missingDeps.push(depName);
+                  }
+                }
+              }
+
+              if (nodes.some((node) => node.missingDeps.length)) {
+                warnings.push("missing depends_on");
+              }
+
+              const depth = new Map();
+              const visiting = new Set();
+              const cycleNodes = new Set();
+
+              function visit(node) {
+                if (depth.has(node.id)) {
+                  return depth.get(node.id);
+                }
+                if (visiting.has(node.id)) {
+                  cycleNodes.add(node.id);
+                  return 0;
+                }
+                visiting.add(node.id);
+                let maxDepth = -1;
+                for (const depId of node.dependsOnIds) {
+                  const depNode = nodeById.get(depId);
+                  if (depNode) {
+                    maxDepth = Math.max(maxDepth, visit(depNode));
+                  }
+                }
+                visiting.delete(node.id);
+                const nodeDepth = maxDepth + 1;
+                depth.set(node.id, nodeDepth);
+                return nodeDepth;
+              }
+
+              for (const node of nodes) {
+                visit(node);
+              }
+
+              if (cycleNodes.size) {
+                warnings.push("cycle detected");
+              }
+
+              const maxDepth = nodes.length
+                ? Math.max(...Array.from(depth.values()))
+                : 0;
+              const layers = Array.from({ length: maxDepth + 1 }, () => []);
+              for (const node of nodes) {
+                const layerIndex = depth.get(node.id) || 0;
+                layers[layerIndex].push(node);
+              }
+              for (const layer of layers) {
+                layer.sort((a, b) => a.displayName.localeCompare(b.displayName));
+              }
+
+              return { nodes, edges, warnings, layers };
+            }
+
+            function setBridgeGraphStatus(message) {
+              const statusNode = document.getElementById("bridge-graph-status");
+              if (statusNode) {
+                statusNode.textContent = message;
+              }
+            }
+
+            function clearBridgePipelineGraph(message) {
+              const nodesRoot = document.getElementById("bridge-graph-nodes");
+              const lines = document.getElementById("bridge-graph-lines");
+              if (nodesRoot) {
+                nodesRoot.innerHTML = `<div class="graph-empty">${escapeHtml(message)}</div>`;
+              }
+              if (lines) {
+                lines.innerHTML = "";
+              }
+              bridgeGraphState = null;
+              setBridgeGraphStatus(message);
+            }
+
+            function renderBridgePipelineGraph(yamlText) {
+              const nodesRoot = document.getElementById("bridge-graph-nodes");
+              const lines = document.getElementById("bridge-graph-lines");
+              const body = document.getElementById("bridge-graph-body");
+              if (!nodesRoot || !lines || !body) {
+                return;
+              }
+              if (!yamlText) {
+                clearBridgePipelineGraph("No config loaded.");
+                return;
+              }
+
+              const model = buildBridgePipelineGraph(yamlText);
+              if (!model.nodes.length) {
+                clearBridgePipelineGraph("No pipeline found.");
+                return;
+              }
+
+              const columnCount = model.layers.length || 1;
+              nodesRoot.style.gridTemplateColumns = `repeat(${columnCount}, minmax(220px, 1fr))`;
+              nodesRoot.innerHTML = "";
+
+              for (const layer of model.layers) {
+                const column = document.createElement("div");
+                column.className = "graph-column";
+                for (const node of layer) {
+                  const card = document.createElement("div");
+                  card.className = "graph-node";
+                  card.dataset.nodeId = node.id;
+                  const inputsLabel = node.inputs.length ? node.inputs.join(", ") : "none";
+                  const outputsLabel = node.outputs.length ? node.outputs.join(", ") : "none";
+                  const missingDeps = node.missingDeps.length
+                    ? `missing: ${node.missingDeps.join(", ")}`
+                    : "";
+                  card.innerHTML = `
+                    <div class="graph-node-title">${escapeHtml(node.displayName)}</div>
+                    <div class="graph-node-meta">
+                      <span>inputs: ${escapeHtml(inputsLabel)}</span>
+                      <span>outputs: ${escapeHtml(outputsLabel)}</span>
+                      ${missingDeps ? `<span class="graph-node-warning">${escapeHtml(missingDeps)}</span>` : ""}
+                    </div>
+                  `;
+                  column.appendChild(card);
+                }
+                nodesRoot.appendChild(column);
+              }
+
+              const summary = `nodes: ${model.nodes.length} | edges: ${model.edges.length}`;
+              const statusMessage = model.warnings.length
+                ? `${summary} | ${model.warnings[0]}`
+                : summary;
+              setBridgeGraphStatus(statusMessage);
+
+              bridgeGraphState = model;
+              scheduleBridgeGraphRedraw();
+            }
+
+            function drawBridgePipelineEdges() {
+              if (!bridgeGraphState || !bridgeGraphState.edges) {
+                return;
+              }
+              const body = document.getElementById("bridge-graph-body");
+              const svg = document.getElementById("bridge-graph-lines");
+              if (!body || !svg) {
+                return;
+              }
+
+              const bodyRect = body.getBoundingClientRect();
+              const scrollLeft = body.scrollLeft;
+              const scrollTop = body.scrollTop;
+              const width = Math.max(body.scrollWidth, body.clientWidth);
+              const height = Math.max(body.scrollHeight, body.clientHeight);
+
+              svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+              svg.setAttribute("width", `${width}`);
+              svg.setAttribute("height", `${height}`);
+              svg.innerHTML = "";
+
+              for (const edge of bridgeGraphState.edges) {
+                const fromNode = document.querySelector(`[data-node-id="${edge.from}"]`);
+                const toNode = document.querySelector(`[data-node-id="${edge.to}"]`);
+                if (!fromNode || !toNode) {
+                  continue;
+                }
+
+                const fromRect = fromNode.getBoundingClientRect();
+                const toRect = toNode.getBoundingClientRect();
+                const startX = fromRect.right - bodyRect.left + scrollLeft;
+                const startY = fromRect.top + fromRect.height / 2 - bodyRect.top + scrollTop;
+                const endX = toRect.left - bodyRect.left + scrollLeft;
+                const endY = toRect.top + toRect.height / 2 - bodyRect.top + scrollTop;
+                const offset = Math.max(40, (endX - startX) * 0.35);
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute(
+                  "d",
+                  `M ${startX} ${startY} C ${startX + offset} ${startY}, ${endX - offset} ${endY}, ${endX} ${endY}`,
+                );
+                svg.appendChild(path);
+              }
+            }
+
+            function scheduleBridgeGraphRedraw() {
+              if (bridgeGraphRenderQueued) {
+                return;
+              }
+              bridgeGraphRenderQueued = true;
+              requestAnimationFrame(() => {
+                bridgeGraphRenderQueued = false;
+                drawBridgePipelineEdges();
+              });
+            }
+
+            function initBridgeGraphEvents() {
+              if (bridgeGraphEventsReady) {
+                return;
+              }
+              const body = document.getElementById("bridge-graph-body");
+              if (body) {
+                body.addEventListener("scroll", () => scheduleBridgeGraphRedraw());
+              }
+              window.addEventListener("resize", () => scheduleBridgeGraphRedraw());
+              bridgeGraphEventsReady = true;
             }
 
             function renderZmqHistory(history) {
@@ -7755,6 +8362,7 @@ def _build_dashboard_html() -> str:
                 statusNode.textContent = "Select a bridge to load and edit its YAML config.";
                 setBridgeConfigDirty(false);
                 updateBridgeConfigControls(false);
+                clearBridgePipelineGraph("Select a bridge to view pipeline.");
                 return;
               }
 
@@ -7769,6 +8377,7 @@ def _build_dashboard_html() -> str:
               updateBridgeConfigControls(true);
               if (bridgeConfigDirty && !resetDraft && !switchedBridge) {
                 statusNode.textContent = `Unsaved changes for ${payload.name}. Save to write the YAML or reload to discard your draft.`;
+                setBridgeGraphStatus("Draft changed. Reload or save to update graph.");
                 return;
               }
 
@@ -7778,6 +8387,7 @@ def _build_dashboard_html() -> str:
               const runtimeMessage = payload.message || "Bridge config is ready to edit.";
               statusNode.textContent = `${bridgeStatus.toUpperCase()} | loaded ${updatedLabel}`;
               statusNode.title = `${configPath}\n${runtimeMessage}`;
+              renderBridgePipelineGraph(editor.value);
             }
 
             function applyTruncateText(nodeId, value, fallback = "-") {
@@ -8565,6 +9175,7 @@ def _build_dashboard_html() -> str:
               setBridgeConfigDirty(true);
               document.getElementById("bridge-config-status").textContent =
                 `Unsaved changes for ${selectedBridge || "bridge"}. Save to write the YAML or reload to discard your draft.`;
+              setBridgeGraphStatus("Draft changed. Reload or save to update graph.");
             });
             for (const tabButton of document.querySelectorAll(".view-tab")) {
               tabButton.addEventListener("click", () => switchWindow(tabButton.dataset.window || "docker"));
@@ -8574,6 +9185,7 @@ def _build_dashboard_html() -> str:
               updateDockerConnectionControls(false);
               updateDockerServiceConfigControls(false);
               updateDockerConnectionVisibility();
+              initBridgeGraphEvents();
               await refreshStatus();
               await refreshLauncherConfig(true);
               await refreshZmqSchema(true);
