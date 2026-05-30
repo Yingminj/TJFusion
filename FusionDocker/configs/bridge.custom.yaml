@@ -2,14 +2,23 @@ bridge:
   type: custom_pipeline
   source_mode: zmq_source
   zmq_source_addr: tcp://127.0.0.1:4444
+  # 结果发布配置（通过 ZMQ PUB 将原始模型输出转发到 MarvinDocker）
+  result_pub_addr: tcp://0.0.0.0:8899
+  result_pub_frame_id: camera_rgb_link
+  result_siglip_topic: /fusion/status
+  result_tf_topic: /fusion/pose
   prompts:
     - cup
     - red box
   pipeline_outputs:
     - objects
-    - rgb_image
-    - depth_image
     - combined_mask_b64
+    - obj_ids
+    - class_names
+    - instance_names
+    - best_category
+    - best_similarity
+    - state_list
   pipeline:
     # 第一层：SAM3、SigLIP2 并行执行（都只需要 RGB，互不依赖）
     - name: sam3
@@ -33,6 +42,22 @@ bridge:
         obj_ids: obj_ids
         class_names: class_names
         instance_names: instance_names
+    - name: siglip2
+      kind: generic
+      endpoint: tcp://127.0.0.1:7777
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - rgb_image
+        - prompts
+      request_map:
+        request_id: $request_id
+        rgb_image: $rgb_image
+        prompts: $prompts
+      response_map:
+        best_category: best_category
+        best_similarity: best_similarity
+        state_list: state_list
     # 第二层：FlowPose（依赖 sam3，用 sam3 的 masks + depth）
     - name: flowpose
       kind: generic

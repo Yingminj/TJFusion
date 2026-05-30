@@ -55,10 +55,10 @@ tmux send-keys -t "${SESSION}:0.0" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; 
 # tmux send-keys -t "${SESSION}:0.3" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 8 && python3 ${WS}/src/marvin_fabric/scripts/world/test_task_manager_dynamic0323.py'" C-m
 
 # tmux select-pane -t "${SESSION}:0.4" -T "TF_BRIDGE"
-# tmux send-keys -t "${SESSION}:0.4" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /tf'" C-m
+# tmux send-keys -t "${SESSION}:0.4" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /fusion/pose --ros_topic /tf'" C-m
 
 # tmux select-pane -t "${SESSION}:0.5" -T "SIGLIP_BRIDGE"
-# tmux send-keys -t "${SESSION}:0.5" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /siglip2/result'" C-m
+# tmux send-keys -t "${SESSION}:0.5" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; cd /robotaction && python3 zmq2ros.py --zmq_topic /fusion/status --ros_topic /siglip2/result'" C-m
 
 # tmux select-pane -t "${SESSION}:0.6" -T "ROBOT_ACTION"
 # tmux send-keys -t "${SESSION}:0.6" "bash -lc '${SET_ROS_DOMAIN_ID}; ${PRELUDE}; sleep 3 && python3 /robotaction/robot_action.py --object_yaml_path /robotaction/data/lab/test_tube.yaml --status_json_path /robotaction/data/lab/graph_info_lab.json --status_topic /siglip2/result --progress_topic /control/task_percentage --object_tf_topic /tf'" C-m

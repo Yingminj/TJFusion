@@ -390,6 +390,11 @@ def main():
         default=[],
         help="optional ZMQ SUB topic prefix, can be repeated",
     )
+    parser.add_argument(
+        "--ros_topic",
+        default=None,
+        help="override the ROS2 output topic (default: same as incoming ZMQ topic)",
+    )
     parser.add_argument("--default_frame_id", default="camera_rgb_link")
     args = parser.parse_args()
 
@@ -448,14 +453,15 @@ def main():
                 if topic:
                     ros_pub.node.get_logger().info(f"received zmq topic: {topic}")
 
+                # Resolve output ROS topic (CLI --ros_topic overrides ZMQ topic)
+                ros_topic = args.ros_topic or topic or "/zmq"
+
                 frame_id = extract_frame_id(payload, args.default_frame_id)
                 tf_items = None
                 if isinstance(payload.get("tf"), list):
                     tf_items = payload["tf"]
                 elif isinstance(payload.get("transforms"), list):
                     tf_items = payload["transforms"]
-
-                ros_topic = topic or "/zmq"
 
                 if tf_items is not None:
                     ros_pub.publish_tf_items(ros_topic, tf_items, frame_id)
@@ -464,6 +470,7 @@ def main():
                 elif any(key in payload for key in ("objects", "pose", "obj_ids", "class_names")):
                     ros_pub.publish_yomni_tf(ros_topic, payload, frame_id)
                 else:
+                    # Status / classification data — publish as JSON String
                     ros_pub.publish_json(ros_topic, payload)
             rclpy.spin_once(ros_pub.node, timeout_sec=0.0)
     except KeyboardInterrupt:

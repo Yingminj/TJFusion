@@ -21,3 +21,4 @@ FusionDocker/src/fusion_docker.egg-info
 .vscode
 *.pyc
 __pycache__/
+.codebuddy

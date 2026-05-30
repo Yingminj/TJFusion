@@ -20,7 +20,7 @@ docker_launcher:
     enabled: false
     config: configs/bridge.siglip2.yaml
   - name: Multi-ZMQ-PUB-Bridge
-    enabled: true
+    enabled: false
     config: configs/bridge.multi_zmq_pub.yaml
   zmq_test:
     timeout_ms: 4000
