@@ -1,0 +1,70 @@
+{
+  "data_type": "mask",
+  "title": "Promptable segmentation",
+  "description": "Segments objects in a color image given text prompts. SAM3 implements this. Output carries per-instance masks plus a single combined mask for convenience, with aligned object/class/instance identity lists.",
+  "request": {
+    "fields": {
+      "prompts": {
+        "type": "string_list",
+        "required": true,
+        "description": "Text prompts, e.g. [\"cup\", \"red box\"]."
+      },
+      "return_masks": {
+        "type": "boolean",
+        "required": false,
+        "default": true
+      },
+      "clear_previous": {
+        "type": "boolean",
+        "required": false,
+        "default": true
+      }
+    },
+    "arrays": {
+      "color": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Color image to segment, shape [H, W, 3]."
+      }
+    }
+  },
+  "response": {
+    "fields": {
+      "obj_ids": {
+        "type": "list",
+        "required": true,
+        "description": "Per-instance object ids, aligned with masks."
+      },
+      "class_names": {
+        "type": "string_list",
+        "required": true,
+        "description": "Per-instance class names, aligned with obj_ids."
+      },
+      "instance_names": {
+        "type": "string_list",
+        "required": false,
+        "description": "Per-instance human-readable names, aligned with obj_ids."
+      },
+      "scores": {
+        "type": "number_list",
+        "required": false,
+        "description": "Per-instance confidence scores."
+      }
+    },
+    "arrays": {
+      "masks": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": false,
+        "description": "Per-instance binary masks, shape [N, H, W] (0/255)."
+      },
+      "combined_mask": {
+        "dtype": "uint8",
+        "ndim": 2,
+        "required": true,
+        "description": "Single combined label/grayscale mask, shape [H, W]."
+      }
+    }
+  }
+}

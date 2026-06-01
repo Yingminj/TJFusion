@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tjfusion-protocol"
+version = "0.1.0"
+description = "Shared wire protocol (envelope + NumPy multipart codec + six data-type schemas) for TJFusion."
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.21"]
+
+[project.optional-dependencies]
+zmq = ["pyzmq>=22"]
+
+[tool.setuptools]
+packages = ["tjfusion_protocol"]
+
+[tool.setuptools.package-data]
+tjfusion_protocol = ["schemas/*.json"]

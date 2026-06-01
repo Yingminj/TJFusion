@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: tjfusion-protocol
+Version: 0.1.0
+Summary: Shared wire protocol (envelope + NumPy multipart codec + six data-type schemas) for TJFusion.
+Requires-Python: >=3.9
+Requires-Dist: numpy>=1.21
+Provides-Extra: zmq
+Requires-Dist: pyzmq>=22; extra == "zmq"

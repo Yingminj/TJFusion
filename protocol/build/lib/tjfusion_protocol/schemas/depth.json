@@ -1,0 +1,79 @@
+{
+  "data_type": "depth",
+  "title": "Stereo depth estimation",
+  "description": "Estimates a depth map from a rectified stereo pair. Input is the left/right images plus stereo geometry; output is a metric float32 depth map. Fast-Foundation implements this; it no longer owns any camera.",
+  "request": {
+    "fields": {
+      "intrinsics": {
+        "type": "matrix3x3",
+        "required": true,
+        "description": "Left-camera intrinsic matrix K (3x3, row-major)."
+      },
+      "baseline_m": {
+        "type": "number",
+        "required": true,
+        "minimum": 0,
+        "description": "Stereo baseline in meters."
+      },
+      "z_far": {
+        "type": "number",
+        "required": false,
+        "default": 10.0,
+        "description": "Far clip in meters; depths beyond are set to 0."
+      },
+      "color_intrinsics": {
+        "type": "matrix3x3",
+        "required": false,
+        "description": "Color-camera K, if the depth should be aligned to color."
+      },
+      "ir_to_color_rotation": {
+        "type": "matrix3x3",
+        "required": false,
+        "description": "Rotation of the IR/left->color extrinsic (3x3)."
+      },
+      "ir_to_color_translation": {
+        "type": "vector3",
+        "required": false,
+        "description": "Translation of the IR/left->color extrinsic (3,)."
+      }
+    },
+    "arrays": {
+      "left": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Left stereo image, shape [H, W, 3]."
+      },
+      "right": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Right stereo image, shape [H, W, 3]."
+      }
+    }
+  },
+  "response": {
+    "fields": {
+      "unit": {
+        "type": "string",
+        "required": true,
+        "enum": ["m", "mm"],
+        "default": "m",
+        "description": "Unit of the depth array values."
+      },
+      "intrinsics": {
+        "type": "matrix3x3",
+        "required": false,
+        "description": "Intrinsics the depth map is expressed in (color K if aligned)."
+      }
+    },
+    "arrays": {
+      "depth": {
+        "dtype": "float32",
+        "ndim": 2,
+        "required": true,
+        "description": "Metric depth map, shape [H, W]. 0 means invalid/no-return."
+      }
+    }
+  }
+}

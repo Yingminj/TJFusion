@@ -1,0 +1,57 @@
+{
+  "data_type": "pose",
+  "title": "6-DoF object pose estimation",
+  "description": "Estimates 6-DoF pose for masked objects given color, depth and masks. FlowPose implements this. Output is a list of per-object pose results.",
+  "request": {
+    "fields": {
+      "intrinsics": {
+        "type": "matrix3x3",
+        "required": false,
+        "description": "Color/depth camera intrinsic matrix K (3x3)."
+      },
+      "obj_ids": {
+        "type": "list",
+        "required": false,
+        "description": "Object ids aligned with the masks array."
+      },
+      "class_names": {
+        "type": "string_list",
+        "required": false
+      },
+      "instance_names": {
+        "type": "string_list",
+        "required": false
+      }
+    },
+    "arrays": {
+      "color": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Color image, shape [H, W, 3]."
+      },
+      "depth": {
+        "dtype": "float32",
+        "ndim": 2,
+        "required": true,
+        "description": "Metric depth map, shape [H, W]."
+      },
+      "combined_mask": {
+        "dtype": "uint8",
+        "ndim": 2,
+        "required": true,
+        "description": "Combined label/grayscale mask, shape [H, W]."
+      }
+    }
+  },
+  "response": {
+    "fields": {
+      "objects": {
+        "type": "list",
+        "required": true,
+        "description": "Per-object results: {name, pose (4x4 or null), length, obj_id, box_id}."
+      }
+    },
+    "arrays": {}
+  }
+}

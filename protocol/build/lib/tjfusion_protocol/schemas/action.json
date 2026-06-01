@@ -1,0 +1,51 @@
+{
+  "data_type": "action",
+  "title": "Action decision",
+  "description": "Decides a robot action from fused perception (pose + status) and task context. MarvinDocker implements this. Pure structured data, no arrays.",
+  "request": {
+    "fields": {
+      "objects": {
+        "type": "list",
+        "required": false,
+        "description": "Pose results from the pose stage (per-object)."
+      },
+      "best_category": {
+        "type": "string",
+        "required": false,
+        "description": "Object state/category from the status stage."
+      },
+      "goal": {
+        "type": "string",
+        "required": false,
+        "description": "Target state or task goal."
+      },
+      "requested_action": {
+        "type": "string",
+        "required": false,
+        "description": "Optional explicit action request."
+      }
+    },
+    "arrays": {}
+  },
+  "response": {
+    "fields": {
+      "action": {
+        "type": "string",
+        "required": true,
+        "description": "Chosen action name."
+      },
+      "action_params": {
+        "type": "object",
+        "required": false,
+        "description": "Parameters for the chosen action (trajectory, gripper, timing)."
+      },
+      "done": {
+        "type": "boolean",
+        "required": false,
+        "default": false,
+        "description": "Whether the task is considered complete."
+      }
+    },
+    "arrays": {}
+  }
+}

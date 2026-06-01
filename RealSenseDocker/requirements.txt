@@ -1,0 +1,5 @@
+# RealSense source server — runtime deps (no torch, no CUDA needed)
+numpy
+pyzmq
+opencv-contrib-python-headless
+pyrealsense2

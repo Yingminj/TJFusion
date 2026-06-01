@@ -1,0 +1,114 @@
+bridge:
+  type: custom_pipeline
+
+  # ── 数据源 ────────────────────────────────────────────────────────────────
+  # 新拆分后，RealSenseDocker 用 PUB 持续推标准协议消息（color/ir_left/ir_right
+  # [+hw_depth]）。bridge 作为 SUB 连上它。
+  source_mode: zmq_source
+  zmq_source_addr: tcp://127.0.0.1:5551     # RealSenseDocker 的 --pub-bind
+
+  # 结果发布给 MarvinDocker（动作模块）
+  result_pub_addr: tcp://0.0.0.0:8899
+  result_tf_topic: /fusion/pose
+  result_siglip_topic: /fusion/status
+
+  prompts:
+    - cup
+    - red box
+
+  # 想最终从 bridge 拿到哪些字段（来自各节点的 response_map / outputs）
+  pipeline_outputs:
+    - depth                 # 来自 fast_foundation 节点
+    - combined_mask         # 来自 sam3
+    - obj_ids
+    - class_names
+    - best_category
+    - best_similarity
+    - objects               # 来自 flowpose
+
+  # ── 流水线（顺序 = depends_on 拓扑；同层并行）────────────────────────────────
+  pipeline:
+    # [1] 立体深度：Fast-Foundation 现在是纯 depth 估计器，吃 ir_left/ir_right
+    - name: fast_foundation
+      kind: generic
+      data_type: depth                       # ← Phase 2 会用它做自动 schema 校验
+      endpoint: tcp://127.0.0.1:4444         # ffs-depth 的 --bind
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - ir_left
+        - ir_right
+        - intrinsics
+        - baseline_m
+      request_map:
+        left: $ir_left
+        right: $ir_right
+        intrinsics: $intrinsics
+        baseline_m: $baseline_m
+        color_intrinsics: $color_intrinsics
+        ir_to_color_rotation: $ir_to_color_rotation
+        ir_to_color_translation: $ir_to_color_translation
+      response_map:
+        depth: depth                         # 把响应里的 depth 写回共享 store
+
+    # [2] 分割：SAM3，只要 color（与 depth 并行，互不依赖）
+    - name: sam3
+      kind: generic
+      data_type: mask
+      endpoint: tcp://127.0.0.1:5562
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - color
+        - prompts
+      request_map:
+        color: $color
+        prompts: $prompts
+        return_masks:
+          value: true
+      response_map:
+        combined_mask: combined_mask
+        obj_ids: obj_ids
+        class_names: class_names
+
+    # [3] 状态分类：SigLIP，只要 color（也与上面并行）
+    - name: siglip2
+      kind: generic
+      data_type: status
+      endpoint: tcp://127.0.0.1:7777
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - color
+        - prompts
+      request_map:
+        color: $color
+        prompts: $prompts
+      response_map:
+        best_category: best_category
+        best_similarity: best_similarity
+
+    # [4] 位姿：FlowPose，依赖 depth(来自[1]) + mask(来自[2])
+    - name: flowpose
+      kind: generic
+      data_type: pose
+      endpoint: tcp://127.0.0.1:6667
+      timeout_ms: 5000
+      depends_on:
+        - fast_foundation
+        - sam3
+      role: required
+      inputs:
+        - color
+        - depth
+        - combined_mask
+        - obj_ids
+      request_map:
+        color: $color
+        depth: $depth
+        combined_mask: $combined_mask
+        obj_ids: $obj_ids
+        class_names: $class_names
+        intrinsics: $intrinsics
+      response_map:
+        objects: objects

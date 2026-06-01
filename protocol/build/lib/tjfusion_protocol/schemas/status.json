@@ -1,0 +1,53 @@
+{
+  "data_type": "status",
+  "title": "Object state / category classification",
+  "description": "Classifies the state or category of an object crop using SigLIP. Input is a color image (optionally narrowed by a mask); output is the best category plus a ranked top-k list.",
+  "request": {
+    "fields": {
+      "prompts": {
+        "type": "string_list",
+        "required": false,
+        "description": "Optional candidate categories to score against."
+      }
+    },
+    "arrays": {
+      "color": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Color image (full frame or object crop), shape [H, W, 3]."
+      },
+      "mask": {
+        "dtype": "uint8",
+        "ndim": 2,
+        "required": false,
+        "description": "Optional mask restricting the region of interest, [H, W]."
+      }
+    }
+  },
+  "response": {
+    "fields": {
+      "best_category": {
+        "type": "string",
+        "required": true,
+        "description": "Top-1 predicted category/state."
+      },
+      "best_similarity": {
+        "type": "number",
+        "required": true,
+        "description": "Similarity score of the top-1 category."
+      },
+      "topk": {
+        "type": "list",
+        "required": false,
+        "description": "Ranked list of {category, similarity}."
+      },
+      "state_list": {
+        "type": "list",
+        "required": false,
+        "description": "Optional per-object state results."
+      }
+    },
+    "arrays": {}
+  }
+}

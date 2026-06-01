@@ -1,0 +1,14 @@
+# Fast-Foundation as a PURE stereo depth estimator (no camera).
+# Same as requirements.txt but WITHOUT pyrealsense2 — the camera now lives in
+# RealSenseDocker.
+timm
+einops
+omegaconf
+scipy
+numpy
+scikit-image
+opencv-contrib-python-headless
+imageio
+pyyaml
+open3d
+pyzmq

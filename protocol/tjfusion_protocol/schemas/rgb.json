@@ -1,0 +1,33 @@
+{
+  "data_type": "rgb",
+  "title": "RGB color image",
+  "description": "A single RGB/BGR color frame, optionally with camera intrinsics. Produced by a camera source (e.g. RealSenseDocker) and consumed by mask/status models.",
+  "request": {
+    "fields": {},
+    "arrays": {}
+  },
+  "response": {
+    "fields": {
+      "intrinsics": {
+        "type": "matrix3x3",
+        "required": false,
+        "description": "Color camera intrinsic matrix K (3x3, row-major)."
+      },
+      "encoding": {
+        "type": "string",
+        "required": false,
+        "enum": ["bgr8", "rgb8"],
+        "default": "bgr8",
+        "description": "Channel order of the color array."
+      }
+    },
+    "arrays": {
+      "color": {
+        "dtype": "uint8",
+        "ndim": 3,
+        "required": true,
+        "description": "Color image, shape [H, W, 3]."
+      }
+    }
+  }
+}
