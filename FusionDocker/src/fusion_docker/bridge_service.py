@@ -755,6 +755,135 @@ ADAPTER_REGISTRY: dict[str, dict[str, Callable]] = {
     },
 }
 
+# --------------- Standard protocol transport (Phase 2) ---------------
+#
+# A node that declares a ``data_type`` talks the shared TJFusion protocol
+# (NumPy multipart + standard envelope + schema validation, see
+# ``protocol/tjfusion_protocol``).  Nodes without a ``data_type`` keep the
+# legacy ``send_json`` base64 path untouched, so existing configs are
+# unaffected during migration.
+
+_PROTOCOL_CACHE: dict[str, Any] = {}
+
+
+def _require_protocol() -> Any:
+    """Lazily import ``tjfusion_protocol`` with a clear error if absent."""
+    if not _PROTOCOL_CACHE:
+        try:
+            from tjfusion_protocol import (  # type: ignore[import-not-found]
+                Message,
+                make_request,
+                pack_message,
+                unpack_message,
+                validate_message,
+            )
+        except ImportError as exc:  # pragma: no cover - exercised at runtime
+            raise RuntimeError(
+                "Pipeline nodes with a 'data_type' require the tjfusion_protocol "
+                "package. Install it (pip install ./protocol) or add it to "
+                "PYTHONPATH."
+            ) from exc
+        _PROTOCOL_CACHE.update(
+            Message=Message,
+            make_request=make_request,
+            pack_message=pack_message,
+            unpack_message=unpack_message,
+            validate_message=validate_message,
+        )
+    return _PROTOCOL_CACHE
+
+
+def _is_ndarray(value: Any) -> bool:
+    return np is not None and isinstance(value, np.ndarray)
+
+
+def _payload_to_message(data_type: str, request_id: str, payload: dict[str, Any]) -> Any:
+    """Split a flat request payload into envelope ``fields`` + ``arrays``.
+
+    NumPy arrays become protocol arrays (raw binary frames); everything else
+    (scalars, lists like intrinsics/prompts, dicts) stays in ``fields``.
+    """
+    proto = _require_protocol()
+    fields: dict[str, Any] = {}
+    arrays: dict[str, Any] = {}
+    for key, value in payload.items():
+        if _is_ndarray(value):
+            arrays[key] = value
+        else:
+            fields[key] = value
+    return proto["make_request"](
+        data_type,
+        request_id=request_id or None,
+        fields=fields,
+        arrays=arrays,
+    )
+
+
+def _message_to_response_dict(message: Any) -> dict[str, Any]:
+    """Flatten a response Message into the dict shape ``on_result`` expects.
+
+    Envelope keys, ``fields`` and ``arrays`` are merged so that ``response_map``
+    can pick up either a field (e.g. ``objects``) or an array (e.g. ``depth``)
+    by name, exactly like the legacy JSON path.
+    """
+    flat: dict[str, Any] = {
+        "status": message.status,
+        "ok": bool(message.ok),
+        "request_id": message.request_id,
+        "elapsed_ms": message.elapsed_ms,
+        "error": message.error,
+    }
+    flat.update(message.fields)
+    flat.update(message.arrays)
+    return flat
+
+
+def _run_single_model_protocol(
+    node: ModelNode,
+    zmq_context: Any,
+    ctx: _PipelineContext,
+    timeout_ms: int,
+) -> None:
+    """Invoke a node over the standard protocol (multipart + validation)."""
+    proto = _require_protocol()
+    adapter = ADAPTER_REGISTRY.get(node.kind, ADAPTER_REGISTRY["generic"])
+    zmq_module = _require_zmq()
+
+    request_payload = adapter["build_request"](node, ctx)
+    request_msg = _payload_to_message(node.data_type, ctx.request_id, request_payload)
+
+    # Request validation is strict: a misconfigured node should surface as an
+    # error rather than silently sending a bad request.
+    proto["validate_message"](request_msg, direction="request", strict=True)
+
+    socket = make_req_socket(zmq_context, node.endpoint, timeout_ms)
+    try:
+        socket.send_multipart(proto["pack_message"](request_msg))
+        frames = socket.recv_multipart()
+    except zmq_module.error.Again as exc:
+        raise TimeoutError(f"{node.name} request timeout after {timeout_ms} ms") from exc
+    finally:
+        safe_close_socket(socket)
+
+    response_msg = proto["unpack_message"](frames)
+    if not response_msg.ok:
+        raise RuntimeError(
+            f"{node.name} returned error: {response_msg.error or 'unknown error'}"
+        )
+
+    # Response validation is lenient during migration: log, don't fail.
+    response_errors = proto["validate_message"](
+        response_msg, direction="response", strict=False
+    )
+    if response_errors:
+        print_warning(
+            f"{node.name} ({node.data_type}) response schema warnings: "
+            + "; ".join(response_errors)
+        )
+
+    adapter["on_result"](_message_to_response_dict(response_msg), node, ctx)
+
+
 # --------------- DAG executor ---------------
 
 def _topological_layers(
@@ -790,13 +919,22 @@ def _run_single_model(
     ctx: _PipelineContext,
     default_timeout_ms: int,
 ) -> None:
-    """Invoke one model node via ZMQ REQ and dispatch to its handler."""
+    """Invoke one model node via ZMQ REQ and dispatch to its handler.
+
+    Nodes declaring a ``data_type`` use the standard TJFusion protocol
+    (multipart + envelope + validation); nodes without one keep the legacy
+    JSON path for backward compatibility.
+    """
     adapter = ADAPTER_REGISTRY.get(node.kind, ADAPTER_REGISTRY["generic"])
 
     zmq_module = _require_zmq()
     timeout_ms = node.timeout_ms or default_timeout_ms
 
     try:
+        if node.data_type:
+            _run_single_model_protocol(node, zmq_context, ctx, timeout_ms)
+            return
+
         request_payload = adapter["build_request"](node, ctx)
         socket = make_req_socket(zmq_context, node.endpoint, timeout_ms)
         try:
@@ -1125,6 +1263,245 @@ def run_zmq_source_bridge_service(
         context.term()
 
 
+# --------------- Standard-protocol source (Phase 3) ---------------
+#
+# When ``source_mode: protocol`` the bridge subscribes to a standard-protocol
+# PUB stream (e.g. RealSenseDocker) and seeds the pipeline store directly from
+# the message's arrays + fields -- ``color``/``ir_left``/``ir_right``/
+# ``hw_depth`` and ``intrinsics``/``baseline_m``/``ir_to_color_*`` -- so that
+# ``$color``/``$ir_left``/``$intrinsics`` references in the YAML resolve.
+# The legacy ``zmq_source`` (base64 RGB-D) path above is left untouched.
+
+
+class LatestProtocolFrame:
+    """Holds the most recent standard-protocol :class:`Message`."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.message: Any | None = None
+        self.frame_id = 0
+        self.timestamp = 0.0
+
+    def update(self, message: Any) -> None:
+        with self._lock:
+            self.message = message
+            self.frame_id += 1
+            self.timestamp = time.time()
+
+    def get(self) -> tuple[Any | None, int, float]:
+        with self._lock:
+            if self.message is None:
+                return None, -1, 0.0
+            return self.message, self.frame_id, self.timestamp
+
+
+def recv_latest_protocol_message(sub_socket: Any, timeout_sec: float = 3.0) -> Any:
+    """Receive the latest standard-protocol message, draining any backlog."""
+    proto = _require_protocol()
+    zmq_module = _require_zmq()
+    poller = zmq_module.Poller()
+    poller.register(sub_socket, zmq_module.POLLIN)
+
+    events = dict(poller.poll(int(timeout_sec * 1000)))
+    if sub_socket not in events:
+        raise RuntimeError(f"Timeout waiting for protocol source ({timeout_sec}s).")
+
+    latest = sub_socket.recv_multipart()
+    while True:
+        try:
+            latest = sub_socket.recv_multipart(flags=zmq_module.NOBLOCK)
+        except zmq_module.Again:
+            break
+    return proto["unpack_message"](latest)
+
+
+def protocol_capture_loop(
+    sub_socket: Any,
+    frame_buffer: LatestProtocolFrame,
+    timeout_sec: float,
+    stop_flag: MutableMapping[str, bool],
+) -> None:
+    last_error_log_ts = 0.0
+    while not stop_flag.get("stop", False):
+        try:
+            message = recv_latest_protocol_message(sub_socket, timeout_sec=timeout_sec)
+            frame_buffer.update(message)
+        except Exception as exc:  # noqa: BLE001
+            now = time.time()
+            if now - last_error_log_ts >= 2.0:
+                print_error(f"{exc}")
+                last_error_log_ts = now
+            time.sleep(0.01)
+
+
+def _process_once_protocol(
+    *,
+    pipeline: list[ModelNode],
+    zmq_context: Any,
+    arrays: dict[str, Any],
+    fields: dict[str, Any],
+    prompts: list[str],
+    source_meta: dict[str, Any] | None,
+    req_timeout_ms: int,
+    obj_ids: list[Any] | None,
+    obj_id_map: dict[str, int | str] | None,
+    output_json: str | None,
+    verbose: bool,
+    return_masks: bool,
+    clear_previous: bool,
+    output_keys: list[str],
+) -> dict[str, Any]:
+    """Run the DAG with a store seeded from a standard-protocol message.
+
+    No base64/PNG encoding: NumPy arrays from the source go straight into the
+    store and the Phase-2 protocol transport sends them as binary frames.
+    """
+    request_id = str(uuid.uuid4())
+    start_time = time.time()
+
+    store: dict[str, Any] = {
+        "request_id": request_id,
+        "prompts": prompts,
+        "source_meta": source_meta or {},
+        "obj_ids": obj_ids or [],
+        "obj_id_map": obj_id_map or {},
+    }
+    # Source arrays (color/ir_left/ir_right/hw_depth/...) and camera fields
+    # (intrinsics/baseline_m/...) become first-class store keys.
+    store.update(arrays)
+    for key, value in fields.items():
+        store.setdefault(key, value)
+
+    resolved_output_keys = _resolve_output_keys(pipeline, output_keys)
+    node_index = {node.name: node for node in pipeline}
+
+    ctx = _PipelineContext(
+        rgb=arrays.get("color"),
+        depth=arrays.get("hw_depth"),
+        rgb_jpg_bytes=b"",
+        rgb_b64="",
+        depth_b64="",
+        prompts=prompts,
+        source_meta=source_meta or {},
+        request_id=request_id,
+        start_time=start_time,
+        obj_ids=obj_ids or [],
+        obj_id_map=obj_id_map or {},
+        return_masks=return_masks,
+        clear_previous=clear_previous,
+        store=store,
+        output_keys=resolved_output_keys,
+        node_index=node_index,
+    )
+
+    _execute_pipeline(pipeline, zmq_context, ctx, req_timeout_ms)
+    response = _assemble_pipeline_response(ctx)
+
+    # Drop any ndarray that leaked into the JSON response (e.g. via output_keys);
+    # arrays are pipeline-internal and not JSON-serialisable.
+    response = {
+        key: value for key, value in response.items() if not _is_ndarray(value)
+    }
+
+    if verbose:
+        print_response(response, verbose=True, title="PIPELINE")
+    if output_json:
+        output_path = Path(output_json).expanduser()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w", encoding="utf-8") as handle:
+            json.dump(response, handle, indent=2, ensure_ascii=False)
+    for model_key, result in ctx.model_results.items():
+        _print_model_result_line(request_id, model_key, result)
+
+    return response
+
+
+def run_protocol_source_bridge_service(
+    config: BridgeServiceConfig,
+    *,
+    verbose: bool = False,
+    save_json: bool = False,
+    result_callback: Callable[[dict[str, Any]], None] | None = None,
+) -> None:
+    zmq_module = _require_zmq()
+    _require_protocol()
+
+    if not config.zmq_source_addr:
+        raise ValueError("protocol source bridge requires bridge.zmq_source_addr.")
+
+    effective_pipeline = [n for n in config.pipeline if n.enabled]
+    if not effective_pipeline:
+        raise ValueError("custom_pipeline requires a non-empty bridge.pipeline list.")
+
+    output_json = config.output_json if save_json else None
+    context = zmq_module.Context()
+
+    source_socket = context.socket(zmq_module.SUB)
+    source_socket.setsockopt(zmq_module.RCVHWM, 1)
+    source_socket.setsockopt(zmq_module.LINGER, 0)
+    source_socket.connect(config.zmq_source_addr)
+    source_socket.setsockopt(zmq_module.SUBSCRIBE, b"")
+
+    frame_buffer = LatestProtocolFrame()
+    stop_flag: dict[str, bool] = {"stop": False}
+    capture_thread = threading.Thread(
+        target=protocol_capture_loop,
+        args=(source_socket, frame_buffer, config.zmq_timeout_sec, stop_flag),
+        daemon=True,
+    )
+    capture_thread.start()
+
+    print_status("BRIDGE", f"Pipeline nodes   : {len(effective_pipeline)}", color="cyan")
+    print_status("BRIDGE", f"Protocol source  : {config.zmq_source_addr}", color="cyan")
+    print_status("WAIT", "Waiting standard-protocol frames...", color="yellow")
+
+    last_processed_frame_id = -1
+    try:
+        while True:
+            message, frame_id, frame_ts = frame_buffer.get()
+            if message is None or frame_id < 0:
+                time.sleep(0.01)
+                continue
+            if frame_id == last_processed_frame_id:
+                time.sleep(0.002)
+                continue
+            last_processed_frame_id = frame_id
+
+            frame_age_ms = max((time.time() - frame_ts) * 1000.0, 0.0)
+            print_status("PROCESS", f"frame_id={frame_id}, age={frame_age_ms:.1f} ms", color="blue")
+
+            prompts = list(message.fields.get("prompts") or config.prompts)
+            try:
+                result = _process_once_protocol(
+                    pipeline=effective_pipeline,
+                    zmq_context=context,
+                    arrays=dict(message.arrays),
+                    fields=dict(message.fields),
+                    prompts=prompts,
+                    source_meta=message.fields,
+                    req_timeout_ms=config.req_timeout_ms,
+                    obj_ids=config.obj_ids,
+                    obj_id_map=config.obj_id_map,
+                    output_json=output_json,
+                    verbose=verbose,
+                    return_masks=config.return_masks,
+                    clear_previous=config.clear_previous,
+                    output_keys=config.pipeline_outputs,
+                )
+                if result_callback is not None:
+                    result_callback(result)
+            except Exception as exc:  # noqa: BLE001
+                print_error(f"{exc}")
+                print_warning("Skipping current frame and continuing.")
+    except KeyboardInterrupt:
+        print_warning("Protocol source bridge service stopped.")
+    finally:
+        stop_flag["stop"] = True
+        capture_thread.join(timeout=1.0)
+        safe_close_socket(source_socket)
+        context.term()
+
+
 def run_bridge_service(
     config: BridgeServiceConfig,
     *,
@@ -1136,6 +1513,15 @@ def run_bridge_service(
     if not effective_pipeline:
         raise ValueError("custom_pipeline requires a non-empty bridge.pipeline list.")
     requires_prompts = _pipeline_requires_key(effective_pipeline, "prompts")
+
+    if config.source_mode == "protocol":
+        run_protocol_source_bridge_service(
+            config,
+            verbose=verbose,
+            save_json=save_json,
+            result_callback=result_callback,
+        )
+        return
 
     if config.source_mode == "zmq_source":
         run_zmq_source_bridge_service(

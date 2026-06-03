@@ -5,12 +5,15 @@
 
 > ⚠️ **重要边界（请先读）**
 > Phase 1 已交付：标准协议 `protocol/`、RealSense 源服务、纯深度 Fast-Foundation 服务。
-> 这三者之间用**新协议（NumPy multipart + 标准信封）**通信，已用 `ModelClient` 验证通过。
+> **Phase 2 已交付**：bridge 现在**解析 `data_type`**，并对**声明了 `data_type` 的节点**
+> 自动改用新协议（NumPy multipart + 标准信封 + schema 校验）调用 server——已用真实
+> `BaseModelServer` 端到端验证（multipart 收发 + float32 无损回写 store）。未声明
+> `data_type` 的节点仍走旧的 `send_json` 路径，**完全向后兼容**。
 >
-> 但**当前 bridge 仍说旧协议**（base64 JSON，store 里 seed 的是 `rgb/depth/rgb_image`，
-> 且**还不解析 `data_type`**）。所以下面的 `bridge.realsense_split.yaml` 是 **Phase 2/3
-> 迁移完成后**的目标配置；在 bridge 改造前，它还不能与新服务端直接互通。
-> 本文末尾「现在能跑什么」一节给出当前可立即验证的路径。
+> 仍待 **Phase 3**：bridge 的**源接收**与 **store seed 键**还是旧的（base64、
+> `rgb/depth/rgb_image`）。要让下面 `bridge.realsense_split.yaml` 真正端到端跑起来，
+> 需要把源接收切到 RealSense 标准消息、把 store seed 成 `color/ir_left/intrinsics/...`。
+> 在那之前，可按文末「现在能跑什么」用单节点方式验证 bridge↔新 server 的协议互通。
 
 ---
 
@@ -126,21 +129,31 @@ PYTHONPATH=src python3 -m fusion_docker serve-bridge \
 
 ---
 
-## 5. 现在（Phase 1）能立即验证什么
+## 5. `data_type` 与新旧协议如何切换
 
-新协议三件套可**脱离 bridge** 直接联调：
+- 节点**写了** `data_type`（六类型之一）→ bridge 用**新协议**调用该 server：
+  `request_map` 里 NumPy 数组 → 二进制帧，其余 → 信封 `fields`；请求严格校验；响应
+  非 `ok` 直接判失败，schema 不符仅告警（迁移期宽松）。响应的 envelope/fields/arrays
+  会被拍平，`response_map` 可按名取字段或数组（如 `depth`）。
+- 节点**没写** `data_type` → 走旧的 `send_json` JSON 路径，行为与改造前一致。
+
+这让你可以**逐个模型**迁移：先把已上新协议的 server（如 RealSense、ffs-depth）的节点
+加上 `data_type`，其余保持旧路径，互不影响。
+
+## 6. 现在能立即验证什么
 
 ```bash
 # 协议自测（无需相机/GPU）
 cd protocol && python -m tests.test_protocol
 
-# 直接用 ModelClient 调新服务端（伪数据示例见各 server 顶部 docstring）
+# Phase 2 集成测试：bridge 协议路径 ↔ 真实 BaseModelServer（multipart 端到端）
+PYTHONPATH="protocol;FusionDocker/src" python FusionDocker/tests/test_phase2_protocol_node.py
+
+# 直接用 ModelClient 调新服务端
 #   from tjfusion_protocol.client import ModelClient
 #   from tjfusion_protocol.envelope import make_request
 #   resp = ModelClient("tcp://127.0.0.1:4444", data_type="depth").call(req)
 ```
 
-bridge 端到端要等 **Phase 2**（给 `ModelNode` 加 `data_type` 解析 + 让 generic 适配器
-改用 `ModelClient`/multipart + schema 校验）和 **Phase 3**（源接收改成标准消息、store seed
-键切到 `color/ir_left/...`）完成后才能跑通。
-```
+bridge **完整**端到端（从相机源经整条流水线到结果发布）要等 **Phase 3**：把源接收
+改成 RealSense 标准消息、store seed 键切到 `color/ir_left/...`。
