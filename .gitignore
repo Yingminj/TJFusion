@@ -1,24 +1,53 @@
-FlowPoseDocker/model/
-FlowPoseDocker/FlowPose_
-FlowPoseDocker/Server/ZeroMQ/latest_response.json
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
 
-SiglipDocker/model
-
-
-Sam3Docker/model
-Sam3Docker/test
-
-
-Fast-FoundationSteroDocker/model
-Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets
-
-.venv-tjfusion
+# ---------- Virtual envs / local launchers ----------
+.venv*/
+venv/
 tjfusion-local
 
-FusionDocker/logs
-FusionDocker/src/fusion_docker.egg-info
+# ---------- IDE / tooling ----------
+.vscode/
+.idea/
+.claude/
+.codebuddy/
 
-.vscode
-*.pyc
-__pycache__/
-.codebuddy
+# ---------- Logs & runtime artifacts ----------
+*.log
+logs/
+log/
+FlowPoseDocker/Server/ZeroMQ/latest_response.json
+
+# ---------- Model weights (download via model/download.sh or mount at runtime) ----------
+*.pth
+*.pt
+*.onnx
+*.engine
+*.safetensors
+*.ckpt
+Fast-FoundationSteroDocker/model/
+FlowPoseDocker/model/
+Sam3Docker/model/
+SiglipDocker/model/
+YOLODocker/model/
+!*/model/download.sh
+!*/model/README.md
+
+# ---------- Local test / scratch outputs ----------
+Sam3Docker/test/
+FlowPoseDocker/FlowPose_
+Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets/
+
+# ---------- ROS2 / colcon build artifacts ----------
+MarvinDocker/ros2_ws/build/
+MarvinDocker/ros2_ws/install/
+MarvinDocker/ros2_ws/log/
+
+# ---------- OS noise ----------
+.DS_Store
+Thumbs.db
+*.swp
+*~
+*.bak
