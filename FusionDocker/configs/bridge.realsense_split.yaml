@@ -3,8 +3,9 @@ bridge:
 
   # ── 数据源 ────────────────────────────────────────────────────────────────
   # 新拆分后，RealSenseDocker 用 PUB 持续推标准协议消息（color/ir_left/ir_right
-  # [+hw_depth]）。bridge 作为 SUB 连上它。
-  source_mode: zmq_source
+  # [+hw_depth] + 相机参数）。bridge 作为 SUB 连上它，并把 arrays/fields 直接
+  # seed 进共享 store（无 base64）。
+  source_mode: protocol
   zmq_source_addr: tcp://127.0.0.1:5551     # RealSenseDocker 的 --pub-bind
 
   # 结果发布给 MarvinDocker（动作模块）

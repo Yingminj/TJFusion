@@ -185,8 +185,10 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
     ) > 0
 
     source_mode = str(bridge_raw.get("source_mode", "")).strip().lower() or "external_json"
-    if source_mode not in {"external_json", "zmq_source"}:
-        raise ValueError("bridge.source_mode must be 'external_json' or 'zmq_source'")
+    if source_mode not in {"external_json", "zmq_source", "protocol"}:
+        raise ValueError(
+            "bridge.source_mode must be 'external_json', 'zmq_source' or 'protocol'"
+        )
     zmq_source_addr = str(
         bridge_raw.get("zmq_source_addr", bridge_raw.get("rgbd_endpoint", ""))
     ).strip()
@@ -204,8 +206,10 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
             "or configure siglip2_server_addr/flowpose_sidecar_server_addr "
             "or define a pipeline list."
             )
-    if source_mode == "zmq_source" and not zmq_source_addr:
-        raise ValueError("bridge.zmq_source_addr is required when source_mode=zmq_source")
+    if source_mode in {"zmq_source", "protocol"} and not zmq_source_addr:
+        raise ValueError(
+            f"bridge.zmq_source_addr is required when source_mode={source_mode}"
+        )
 
     return BridgeServiceConfig(
         sam3_server_addr=sam3_server_addr,
@@ -275,6 +279,7 @@ def _parse_pipeline(raw: Any) -> list[ModelNode]:
         if not name:
             raise ValueError(f"bridge.pipeline[{idx}].name is required")
         kind = str(item.get("kind", item.get("type", "generic"))).strip().lower()
+        data_type = str(item.get("data_type", "")).strip().lower()
         depends_on_raw = item.get("depends_on", [])
         if depends_on_raw is None:
             depends_on_raw = []
@@ -310,6 +315,7 @@ def _parse_pipeline(raw: Any) -> list[ModelNode]:
             ModelNode(
                 name=name,
                 kind=kind or "generic",
+                data_type=data_type,
                 endpoint=str(item.get("endpoint", "")).strip(),
                 enabled=bool(item.get("enabled", True)),
                 timeout_ms=(

@@ -83,6 +83,7 @@ class ModelNode:
     """
     name: str
     kind: str = "generic"
+    data_type: str = ""
     endpoint: str = ""
     enabled: bool = True
     timeout_ms: int | None = None
