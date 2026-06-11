@@ -13,6 +13,7 @@ tjfusion-local
 .idea/
 .claude/
 .codebuddy/
+CLAUDE.md
 
 # ---------- Logs & runtime artifacts ----------
 *.log
