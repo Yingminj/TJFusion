@@ -15,7 +15,7 @@ Two interfaces (per design decision):
         fields = {"streams": ["color", "ir_left", "ir_right", "hw_depth"]}
 
   Response carries the requested arrays (``color``/``ir_left``/``ir_right``/
-  ``hw_depth``) plus camera params in ``fields`` (``intrinsics``,
+  ``hw_depth``) plus camera params in ``fields`` (``ir_left_intrinsics``,
   ``color_intrinsics``, ``baseline_m``, ``ir_to_color_rotation``,
   ``ir_to_color_translation``).
 
@@ -164,7 +164,7 @@ class RealSenseCamera:
 
     def camera_fields(self) -> dict[str, Any]:
         return {
-            "intrinsics": self.left_K.tolist() if self.left_K is not None else None,
+            "ir_left_intrinsics": self.left_K.tolist() if self.left_K is not None else None,
             "color_intrinsics": self.color_K.tolist() if self.color_K is not None else None,
             "baseline_m": float(self.baseline_m) if self.baseline_m is not None else None,
             "ir_to_color_rotation": (

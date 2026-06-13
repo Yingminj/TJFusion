@@ -1322,8 +1322,9 @@ def run_zmq_source_bridge_service(
 # When ``source_mode: protocol`` the bridge subscribes to a standard-protocol
 # PUB stream (e.g. RealSenseDocker) and seeds the pipeline store directly from
 # the message's arrays + fields -- ``color``/``ir_left``/``ir_right``/
-# ``hw_depth`` and ``intrinsics``/``baseline_m``/``ir_to_color_*`` -- so that
-# ``$color``/``$ir_left``/``$intrinsics`` references in the YAML resolve.
+# ``hw_depth`` and ``ir_left_intrinsics``/``color_intrinsics``/``baseline_m``/
+# ``ir_to_color_*`` -- so that ``$color``/``$ir_left``/``$ir_left_intrinsics``
+# references in the YAML resolve.
 # The legacy ``zmq_source`` (base64 RGB-D) path above is left untouched.
 
 

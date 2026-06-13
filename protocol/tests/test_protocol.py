@@ -66,7 +66,7 @@ def test_all_six_schemas_load():
 def test_validate_depth_request_ok():
     req = make_request(
         "depth",
-        fields={"intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
+        fields={"ir_left_intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
         arrays={
             "left": np.zeros((4, 4, 3), np.uint8),
             "right": np.zeros((4, 4, 3), np.uint8),
@@ -78,7 +78,7 @@ def test_validate_depth_request_ok():
 def test_validate_missing_required_array():
     req = make_request(
         "depth",
-        fields={"intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
+        fields={"ir_left_intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
         arrays={"left": np.zeros((4, 4, 3), np.uint8)},  # missing 'right'
     )
     try:
@@ -92,7 +92,7 @@ def test_validate_missing_required_array():
 def test_validate_wrong_dtype():
     req = make_request(
         "depth",
-        fields={"intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
+        fields={"ir_left_intrinsics": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "baseline_m": 0.05},
         arrays={
             "left": np.zeros((4, 4, 3), np.float32),  # should be uint8
             "right": np.zeros((4, 4, 3), np.uint8),

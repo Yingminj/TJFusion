@@ -6,8 +6,12 @@ Estimates 6-DoF object poses from color + metric depth + a combined mask.
 Contract: protocol/schemas/pose.json.
 
   request.arrays  : color [H,W,3] uint8, depth [H,W] float32, combined_mask [H,W] uint8
-  request.fields  : intrinsics?, obj_ids?, class_names?, instance_names?
+  request.fields  : color_intrinsics?, obj_ids?, class_names?, instance_names?
   response.fields : objects (list of {name, pose, length, obj_id, box_id})
+
+The depth is aligned to the color camera upstream, so pose estimation uses the
+**color** intrinsics (request field ``color_intrinsics``).  Poses and lengths
+are returned in **meters**.
 
 The pose inference and object-building math are lifted verbatim from the old
 base64-JSON ``Server/ZeroMQ/ZeroMQServer.py``; only the I/O layer changed (no
@@ -169,7 +173,20 @@ class FlowPosePoseServer(BaseModelServer):
         class_names = request.fields.get("class_names", []) or []
         instance_names = request.fields.get("instance_names", []) or []
 
-        pose_out, length_out = self.inferencer.infer(rgb, depth, combined_mask, obj_ids)
+        # Back-project the (color-aligned) depth with the COLOR intrinsics so the
+        # poses live in the color camera frame.  ``color_intrinsics`` is the 3x3
+        # K at the color resolution, which equals the resolution of ``rgb``, so
+        # the reference width/height are just the image dimensions.
+        intrinsics = self._color_intrinsics(request.fields.get("color_intrinsics"), rgb)
+
+        # ``depth`` arrives in meters (depth schema unit "m").  The dataloader
+        # expects uint16 millimeters, so depth_scale=1.0 means depth(m) * 1000 =
+        # mm.  (The api_runner default of 0.001 would quantize to integer
+        # meters -- a long-standing bug in the server path.)
+        pose_out, length_out = self.inferencer.infer(
+            rgb, depth, combined_mask, obj_ids,
+            intrinsics=intrinsics, depth_scale=1.0,
+        )
         pose_all, length_all = _unpack_infer_output(pose_out, length_out)
 
         objects = _build_objects(
@@ -180,6 +197,26 @@ class FlowPosePoseServer(BaseModelServer):
             instance_names=instance_names,
         )
         return self.ok(request, fields={"objects": objects})
+
+    @staticmethod
+    def _color_intrinsics(color_K, rgb):
+        """Build the dataloader intrinsics dict from the request color K.
+
+        Returns ``None`` (so the inferencer falls back to its built-in defaults)
+        when no usable 3x3 matrix was supplied.
+        """
+        if color_K is None:
+            return None
+        try:
+            K = np.asarray(color_K, dtype=np.float64).reshape(3, 3)
+        except (ValueError, TypeError):
+            return None
+        h, w = rgb.shape[:2]
+        return {
+            "fx": float(K[0, 0]), "fy": float(K[1, 1]),
+            "cx": float(K[0, 2]), "cy": float(K[1, 2]),
+            "width": int(w), "height": int(h),
+        }
 
 
 def main() -> None:

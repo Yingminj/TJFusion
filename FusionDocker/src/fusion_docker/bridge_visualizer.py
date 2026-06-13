@@ -74,6 +74,26 @@ def _palette(idx: int) -> tuple[int, int, int]:
     return _PALETTE[idx % len(_PALETTE)]
 
 
+# Oriented 3D bounding box geometry (object frame), mirroring
+# FlowPose/utils/yomni_vis.get_3d_bbox.  ``_BBOX_SIGNS`` are the corner sign
+# patterns for a unit box; multiply by (size / 2) to get the corners.
+#   x = width, y = height, z = depth
+_BBOX_SIGNS = (
+    (+1, +1, +1), (+1, +1, -1), (-1, +1, +1), (-1, +1, -1),
+    (+1, -1, +1), (+1, -1, -1), (-1, -1, +1), (-1, -1, -1),
+)
+# The 6 faces (corner indices), used for the translucent fill.
+_BBOX_FACES = (
+    (0, 1, 3, 2), (4, 5, 7, 6), (0, 1, 5, 4),
+    (2, 3, 7, 6), (0, 2, 6, 4), (1, 3, 7, 5),
+)
+# Edges split into three layers so the box reads as 3D: bottom face, the four
+# vertical pillars, and the top face.  Each entry is (i, j) corner indices.
+_BBOX_EDGES_GROUND = ((4, 5), (5, 7), (7, 6), (6, 4))
+_BBOX_EDGES_PILLAR = ((0, 4), (1, 5), (2, 6), (3, 7))
+_BBOX_EDGES_TOP = ((0, 1), (1, 3), (3, 2), (2, 0))
+
+
 class PipelineVisualizer:
     """Render pipeline outputs into one unified OpenCV window."""
 
@@ -317,72 +337,153 @@ class PipelineVisualizer:
         if not isinstance(objects, list):
             return (self._to_bgr(color) if color is not None else None), "no poses"
         base = self._to_bgr(color) if color is not None else self._blank()
-        K = self._get_matrix(store, "color_intrinsics") or self._get_matrix(store, "intrinsics")
-        drawn = 0
-        for idx, obj in enumerate(objects):
-            if not isinstance(obj, dict):
-                continue
-            if self._draw_object_pose(base, obj, K, _palette(idx)):
-                drawn += 1
+        K = self._pose_intrinsics(store, base.shape[1], base.shape[0])
+        if K is None:
+            return base, f"objects={len(objects)}  no intrinsics"
+        drawn = self._draw_object_poses(base, objects, K)
         return base, f"objects={len(objects)}  drawn={drawn}"
 
     # ------------------------------------------------------------------
-    # Drawing helpers
+    # Pose drawing
     # ------------------------------------------------------------------
 
-    def _draw_object_pose(self, img, obj, K, color) -> bool:
-        name = str(obj.get("name", obj.get("obj_id", "?")))
-        pose = self._to_pose_matrix(obj.get("pose"))
-        if pose is None or K is None:
-            return False
-        origin = pose[:3, 3]
-        if not np.isfinite(origin).all() or origin[2] <= 1e-6:
-            return False
-        axis_len = self._pose_axis_length(obj)
-        axes_cam = [
-            origin,
-            origin + pose[:3, 0] * axis_len,
-            origin + pose[:3, 1] * axis_len,
-            origin + pose[:3, 2] * axis_len,
-        ]
-        pts = [self._project(p, K) for p in axes_cam]
-        if any(p is None for p in pts):
-            return False
-        o, x, y, z = pts
-        cv2.line(img, o, x, (0, 0, 255), 2)   # X red
-        cv2.line(img, o, y, (0, 255, 0), 2)   # Y green
-        cv2.line(img, o, z, (255, 0, 0), 2)   # Z blue
-        cv2.circle(img, o, 4, color, -1)
-        label = f"{name} ({origin[0]:.2f},{origin[1]:.2f},{origin[2]:.2f})"
-        cv2.putText(
-            img, label, (o[0] + 6, o[1] - 6),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 1, cv2.LINE_AA,
-        )
-        return True
+    def _draw_object_poses(self, img, objects, K) -> int:
+        """Draw oriented 3D boxes + axes for every object in one pass.
 
-    def _project(self, point, K):
-        z = float(point[2])
-        if z <= 1e-6:
-            return None
-        u = K[0][0] * point[0] / z + K[0][2]
-        v = K[1][1] * point[1] / z + K[1][2]
-        if not (np.isfinite(u) and np.isfinite(v)):
-            return None
-        return (int(round(u)), int(round(v)))
+        All face fills share a single overlay copy and one ``addWeighted`` so
+        the cost is O(1) image blends regardless of object count (the reference
+        ``visualize_detections`` blended once *per face per object*).
+        """
+        h, w = img.shape[:2]
+        signs = np.asarray(_BBOX_SIGNS, dtype=np.float64)  # (8, 3)
+        overlay = img.copy()
+        any_fill = False
+        deferred = []  # (corners_px, ok8, axes_px, axes_ok, color, label, origin)
 
-    def _pose_axis_length(self, obj) -> float:
+        for idx, obj in enumerate(objects):
+            if not isinstance(obj, dict):
+                continue
+            pose = self._to_pose_matrix(obj.get("pose"))
+            if pose is None:
+                continue
+            R, t = pose[:3, :3], pose[:3, 3]
+            if not np.isfinite(R).all() or not np.isfinite(t).all():
+                continue
+
+            size = self._pose_size(obj)
+            corners_cam = (signs * (size / 2.0)) @ R.T + t          # (8, 3)
+            axis_len = self._pose_axis_length(obj)
+            axes_cam = np.vstack([t, t + R.T * axis_len])           # (4, 3): O,X,Y,Z
+
+            pts_px, ok = self._project_points(
+                np.vstack([corners_cam, axes_cam]), K, w, h)
+            corners_px, ok8 = pts_px[:8], ok[:8]
+            axes_px, axes_ok = pts_px[8:], ok[8:]
+            if not axes_ok[0]:        # origin behind camera -> nothing sensible
+                continue
+
+            color = _palette(idx)
+            if ok8.all():
+                for face in _BBOX_FACES:
+                    cv2.fillPoly(overlay, [corners_px[list(face)]], color)
+                any_fill = True
+
+            origin = t
+            name = str(obj.get("name", obj.get("obj_id", "?")))
+            label = f"{name} ({origin[0]:.2f},{origin[1]:.2f},{origin[2]:.2f})"
+            deferred.append((corners_px, ok8, axes_px, axes_ok, color, label, origin))
+
+        if any_fill:
+            cv2.addWeighted(overlay, 0.25, img, 0.75, 0.0, dst=img)
+
+        for corners_px, ok8, axes_px, axes_ok, color, label, origin in deferred:
+            if ok8.all():
+                self._draw_box_edges(img, corners_px, color)
+            o = tuple(axes_px[0])
+            if axes_ok[1]:
+                cv2.line(img, o, tuple(axes_px[1]), (0, 0, 255), 2)   # X red
+            if axes_ok[2]:
+                cv2.line(img, o, tuple(axes_px[2]), (0, 255, 0), 2)   # Y green
+            if axes_ok[3]:
+                cv2.line(img, o, tuple(axes_px[3]), (255, 0, 0), 2)   # Z blue
+            cv2.circle(img, o, 4, color, -1)
+            cv2.putText(
+                img, label, (o[0] + 6, o[1] - 6),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 1, cv2.LINE_AA,
+            )
+        return len(deferred)
+
+    @staticmethod
+    def _draw_box_edges(img, corners_px, color) -> None:
+        """Draw the 12 box edges with depth-cued shading (ground darkest)."""
+        ground = tuple(int(c * 0.35) for c in color)
+        pillar = tuple(int(c * 0.65) for c in color)
+        for edges, col in (
+            (_BBOX_EDGES_GROUND, ground),
+            (_BBOX_EDGES_PILLAR, pillar),
+            (_BBOX_EDGES_TOP, color),
+        ):
+            for i, j in edges:
+                cv2.line(img, tuple(corners_px[i]), tuple(corners_px[j]), col, 2)
+
+    @staticmethod
+    def _project_points(pts_cam, K, w, h):
+        """Vectorized pinhole projection of (N,3) camera points -> (N,2) int px.
+
+        Returns ``(pixels, valid)`` where ``valid`` is False for points behind
+        the camera or projecting to non-finite / wildly out-of-frame pixels.
+        """
+        pts = np.asarray(pts_cam, dtype=np.float64)
+        z = pts[:, 2]
+        valid = np.isfinite(z) & (z > 1e-6)
+        z_safe = np.where(valid, z, 1.0)
+        u = K[0, 0] * pts[:, 0] / z_safe + K[0, 2]
+        v = K[1, 1] * pts[:, 1] / z_safe + K[1, 2]
+        valid &= np.isfinite(u) & np.isfinite(v)
+        # Clamp so a single far-projected corner can't overflow int32 / cv2.
+        u = np.clip(u, -2 * w, 2 * w)
+        v = np.clip(v, -2 * h, 2 * h)
+        pixels = np.stack([u, v], axis=1).round().astype(np.int32)
+        return pixels, valid
+
+    def _pose_intrinsics(self, store, img_w, img_h):
+        """Resolve the 3x3 K to project poses with.
+
+        FlowPose estimates poses in the **color** camera frame (the depth is
+        aligned to color upstream), using the same ``color_intrinsics`` the
+        RealSense source publishes -- so projecting the poses back with that
+        matrix is exact.  If the displayed color image was resized relative to
+        the intrinsics' resolution, scale K to match.
+        """
+        m = self._get_matrix(store, "color_intrinsics")
+        if m is None:
+            return None
+        K = np.asarray(m, dtype=np.float64)
+        src = self._get_image(store, "color")
+        if src is not None and img_w and img_h:
+            src_h, src_w = src.shape[:2]
+            if src_w and src_h and (src_w != img_w or src_h != img_h):
+                K = K.copy()
+                K[0] *= img_w / src_w
+                K[1] *= img_h / src_h
+        return K
+
+    def _pose_size(self, obj):
+        """Object box extents [w, h, d] in meters as a (3,) array."""
         length = obj.get("length")
         try:
-            if isinstance(length, (list, tuple)) and length:
-                vals = [float(v) for v in np.asarray(length).ravel()[:3]]
-                m = max(vals) if vals else 0.0
-                if m > 0:
-                    return float(min(max(m, 0.03), 0.3))
-            elif isinstance(length, (int, float)) and length > 0:
-                return float(min(max(length, 0.03), 0.3))
-        except Exception:
+            vals = np.asarray(length, dtype=np.float64).ravel()
+            if vals.size >= 3 and np.isfinite(vals[:3]).all():
+                size = np.abs(vals[:3])
+                if (size > 0).all():
+                    return np.clip(size, 0.01, 2.0)
+        except (TypeError, ValueError):
             pass
-        return 0.1
+        return np.array([0.1, 0.1, 0.1], dtype=np.float64)
+
+    def _pose_axis_length(self, obj) -> float:
+        size = self._pose_size(obj)
+        return float(np.clip(size.max(), 0.03, 0.3))
 
     def _blend_mask(self, img, mask, color, label) -> None:
         binary = mask > 0

@@ -9,7 +9,7 @@ metric float32 depth map.  Any stereo source can feed it.
 Contract (see protocol/schemas/depth.json):
 
   request.arrays  : left [H,W,3] uint8, right [H,W,3] uint8
-  request.fields  : intrinsics (3x3), baseline_m, z_far?,
+  request.fields  : ir_left_intrinsics (3x3), baseline_m, z_far?,
                     color_intrinsics?, ir_to_color_rotation?,
                     ir_to_color_translation?   (the last three trigger
                     depth->color alignment, exactly like the old server)
@@ -184,7 +184,7 @@ class FastFoundationDepthServer(BaseModelServer):
         left = request.arrays["left"]
         right = request.arrays["right"]
         f = request.fields
-        K = np.asarray(f["intrinsics"], dtype=np.float32)
+        K = np.asarray(f["ir_left_intrinsics"], dtype=np.float32)
         baseline_m = float(f["baseline_m"])
         z_far = float(f.get("z_far", 10.0))
 

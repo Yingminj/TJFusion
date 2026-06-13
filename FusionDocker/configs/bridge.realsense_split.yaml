@@ -38,7 +38,7 @@ bridge:
     - best_similarity
     - state_id
     - state_name
-    - objects               # 来自 flowpose
+    - objects               # 来自 flowpose（位姿/尺寸单位为米）
 
   # ── 流水线（顺序 = depends_on 拓扑；同层并行）────────────────────────────────
   pipeline:
@@ -52,14 +52,14 @@ bridge:
       inputs:
         - ir_left
         - ir_right
-        - intrinsics
+        - ir_left_intrinsics
         - baseline_m
       request_map:
         left: $ir_left
         right: $ir_right
-        intrinsics: $intrinsics
+        ir_left_intrinsics: $ir_left_intrinsics   # 左红外相机内参：视差→深度
         baseline_m: $baseline_m
-        color_intrinsics: $color_intrinsics
+        color_intrinsics: $color_intrinsics        # 彩色相机内参：深度对齐到彩色帧
         ir_to_color_rotation: $ir_to_color_rotation
         ir_to_color_translation: $ir_to_color_translation
       response_map:
@@ -118,12 +118,13 @@ bridge:
         - depth
         - combined_mask
         - obj_ids
+        - color_intrinsics
       request_map:
         color: $color
         depth: $depth
         combined_mask: $combined_mask
         obj_ids: $obj_ids
         class_names: $class_names
-        intrinsics: $intrinsics
+        color_intrinsics: $color_intrinsics   # 深度已对齐到彩色帧，位姿用彩色相机内参估计/可视化
       response_map:
         objects: objects

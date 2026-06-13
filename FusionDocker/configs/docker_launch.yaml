@@ -66,4 +66,4 @@ docker_launcher:
   - Fast-FoundationSteroDocker
   - FlowPoseDocker
   - Sam3Docker
-  - VlmDockers
+  - VlmDocker

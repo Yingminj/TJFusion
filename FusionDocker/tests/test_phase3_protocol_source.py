@@ -61,7 +61,8 @@ def _fake_realsense_pub(bind: str, stop: dict) -> None:
     ir_left = (np.random.rand(8, 8, 3) * 255).astype(np.uint8)
     ir_right = (np.random.rand(8, 8, 3) * 255).astype(np.uint8)
     fields = {
-        "intrinsics": [[50, 0, 4], [0, 50, 4], [0, 0, 1]],
+        "ir_left_intrinsics": [[50, 0, 4], [0, 50, 4], [0, 0, 1]],
+        "color_intrinsics": [[50, 0, 4], [0, 50, 4], [0, 0, 1]],
         "baseline_m": 0.05,
         "prompts": ["cup"],
     }
@@ -96,7 +97,7 @@ def main() -> None:
             name="fast_foundation", kind="generic", data_type="depth",
             endpoint=depth_bind, timeout_ms=3000,
             request_map={"left": "$ir_left", "right": "$ir_right",
-                         "intrinsics": "$intrinsics", "baseline_m": "$baseline_m"},
+                         "ir_left_intrinsics": "$ir_left_intrinsics", "baseline_m": "$baseline_m"},
             response_map={"depth": "depth"},
         ),
         ModelNode(

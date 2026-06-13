@@ -4,10 +4,10 @@
   "description": "Estimates a depth map from a rectified stereo pair. Input is the left/right images plus stereo geometry; output is a metric float32 depth map. Fast-Foundation implements this; it no longer owns any camera.",
   "request": {
     "fields": {
-      "intrinsics": {
+      "ir_left_intrinsics": {
         "type": "matrix3x3",
         "required": true,
-        "description": "Left-camera intrinsic matrix K (3x3, row-major)."
+        "description": "Left infrared camera intrinsic matrix K (3x3, row-major). Used for disparity->depth."
       },
       "baseline_m": {
         "type": "number",

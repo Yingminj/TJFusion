@@ -58,7 +58,7 @@ def main() -> None:
         "request_id": "req-phase2",
         "ir_left": left,
         "ir_right": right,
-        "intrinsics": [[50, 0, 4], [0, 50, 4], [0, 0, 1]],
+        "ir_left_intrinsics": [[50, 0, 4], [0, 50, 4], [0, 0, 1]],
         "baseline_m": 0.05,
     }
     ctx = _make_ctx(store)
@@ -69,11 +69,11 @@ def main() -> None:
         data_type="depth",
         endpoint=bind,
         timeout_ms=3000,
-        inputs=["ir_left", "ir_right", "intrinsics", "baseline_m"],
+        inputs=["ir_left", "ir_right", "ir_left_intrinsics", "baseline_m"],
         request_map={
             "left": "$ir_left",
             "right": "$ir_right",
-            "intrinsics": "$intrinsics",
+            "ir_left_intrinsics": "$ir_left_intrinsics",
             "baseline_m": "$baseline_m",
         },
         response_map={"depth": "depth"},

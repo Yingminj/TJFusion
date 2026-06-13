@@ -45,18 +45,22 @@ class PoseInferenceSession:
         obj_ids: Optional[list] = None,
         frame_idx: Optional[int] = None,
         depth_scale: float = 0.001,
+        intrinsics: Optional[dict] = None,
     ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
-        
+
         if len(obj_ids) == 0:
             obj_ids = _build_obj_ids(mask)
-        
+
         frame_data = {
             "color": rgb,
             "depth": (depth.astype(np.float32) * depth_scale * 1000.0).astype(np.uint16), # legacy depth scaling (Mr.Kang)
             "mask": mask,
         }
 
-        data = get_infer_dataloader(frame_data, self.args)
+        # When intrinsics are provided (e.g. the real color-camera K from the
+        # server) they override the built-in defaults so back-projection matches
+        # the camera the depth is aligned to.
+        data = get_infer_dataloader(frame_data, self.args, intrinsics=intrinsics or self.intrinsics)
 
         idx = self.frame_idx
         print("Frame: ", idx)
