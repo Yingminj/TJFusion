@@ -17,8 +17,88 @@ import torch
 import yaml
 import zmq
 from PIL import Image
+from torchvision.transforms import functional as F, InterpolationMode
 
-from transformers import AutoModel, AutoProcessor
+
+# =============================================================================
+# 模型定义（与训练脚本保持一致）
+# =============================================================================
+
+class QuickGELU(torch.nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(1.702 * x)
+
+
+class ResidualAttentionBlock(torch.nn.Module):
+    def __init__(self, d_model, n_head, mlp_ratio=4.0):
+        super().__init__()
+        self.attn = torch.nn.MultiheadAttention(d_model, n_head, batch_first=True)
+        self.ln_1 = torch.nn.LayerNorm(d_model)
+        self.mlp = torch.nn.Sequential(
+            torch.nn.Linear(d_model, int(d_model * mlp_ratio)),
+            QuickGELU(),
+            torch.nn.Linear(int(d_model * mlp_ratio), d_model),
+        )
+        self.ln_2 = torch.nn.LayerNorm(d_model)
+
+    def forward(self, x, attn_mask=None):
+        attn_out, _ = self.attn(
+            self.ln_1(x), self.ln_1(x), self.ln_1(x),
+            attn_mask=attn_mask, need_weights=False
+        )
+        x = x + attn_out
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
+
+class LASTViTVisionEncoder(torch.nn.Module):
+    """ViT-B/16 + LAST-ViT 频域 token 选择"""
+    def __init__(self, embed_dim=512, image_size=224, patch_size=16,
+                 width=768, layers=12, heads=12, mlp_ratio=4.0):
+        super().__init__()
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.grid_size = image_size // patch_size
+        self.width = width
+        scale = width ** -0.5
+
+        self.conv1 = torch.nn.Conv2d(3, width, kernel_size=patch_size, stride=patch_size, bias=False)
+        num_patches = self.grid_size * self.grid_size
+        self.class_embedding = torch.nn.Parameter(scale * torch.randn(width))
+        self.positional_embedding = torch.nn.Parameter(scale * torch.randn(num_patches + 1, width))
+        self.ln_pre = torch.nn.LayerNorm(width)
+        self.transformer = torch.nn.Sequential(*[
+            ResidualAttentionBlock(width, heads, mlp_ratio) for _ in range(layers)
+        ])
+        self.ln_post = torch.nn.LayerNorm(width)
+        self.proj = torch.nn.Parameter(scale * torch.randn(width, embed_dim))
+        self.register_buffer('_cached_gaussian', None, persistent=False)
+
+    def _build_gaussian_kernel(self, device):
+        w = self.width
+        kernel = torch.exp(-0.5 * (torch.arange(-w//2+1, w//2+1, device=device).float() / (w**0.5)) ** 2)
+        return (kernel / kernel.max()).unsqueeze(0).unsqueeze(0)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        B, C, H, W = x.shape
+        x = x.reshape(B, C, H*W).permute(0, 2, 1).contiguous()
+        cls_token = self.class_embedding.view(1, 1, -1).expand(B, -1, -1)
+        x = torch.cat([cls_token, x], dim=1) + self.positional_embedding.unsqueeze(0)
+        x = self.ln_pre(x)
+        x = self.transformer(x)
+
+        # LAST-ViT: frequency-domain token selection
+        if self._cached_gaussian is None or self._cached_gaussian.device != x.device:
+            self._cached_gaussian = self._build_gaussian_kernel(x.device)
+        x_detach = x[:, 1:]
+        x_f = torch.fft.fftshift(torch.fft.fft(x_detach, dim=-1), dim=-1)
+        x_smooth = torch.fft.ifft(torch.fft.ifftshift(x_f * self._cached_gaussian, dim=-1), dim=-1).real
+        diff = x_detach / torch.abs(x_smooth - x_detach).clamp(min=1e-8)
+        _, idx = torch.topk(diff, k=1, dim=1, largest=True)
+        x = torch.mean(torch.gather(x_detach, 1, idx), dim=1)
+        x = self.ln_post(x)
+        return x @ self.proj if self.proj is not None else x
 
 
 def load_config(path="/workspace/config.yaml"):
@@ -64,23 +144,28 @@ def parse_args():
 
 
 def load_single_model():
-    print(f"[INIT] 加载基础模型: {BASE_MODEL_PATH}")
-    model = AutoModel.from_pretrained(BASE_MODEL_PATH)
-    processor = AutoProcessor.from_pretrained(BASE_MODEL_PATH)
+    print(f"[INIT] 构建 LAST-ViT vision encoder...")
+    model = LASTViTVisionEncoder(embed_dim=512)
 
     print(f"[INIT] 加载训练权重: {CHECKPOINT_PATH}")
     checkpoint = torch.load(CHECKPOINT_PATH, map_location="cpu", weights_only=False)
-    model_state = checkpoint.get("model_state_dict", checkpoint)
+    state_dict = checkpoint.get("model_state_dict", checkpoint)
 
-    incompatible = model.load_state_dict(model_state, strict=False)
-    if getattr(incompatible, "missing_keys", None):
-        print(f"[WARN] 缺失键: {incompatible.missing_keys}")
-    if getattr(incompatible, "unexpected_keys", None):
-        print(f"[WARN] 多余键: {incompatible.unexpected_keys}")
+    # 提取 vision_encoder 的权重
+    vis_state_dict = {}
+    for k, v in state_dict.items():
+        if k.startswith("vision_encoder."):
+            vis_state_dict[k[len("vision_encoder."):]] = v
+
+    missing, unexpected = model.load_state_dict(vis_state_dict, strict=False)
+    if missing:
+        print(f"[WARN] 缺失键: {[k for k in missing if 'cached' not in k][:5]}")
+    if unexpected:
+        print(f"[WARN] 多余键: {unexpected[:5]}")
 
     model = model.to(DEVICE)
     model.eval()
-    return model, processor
+    return model
 
 
 def _parse_center_feature(value) -> np.ndarray:
@@ -121,7 +206,7 @@ def load_centers(path: str):
     idx = 0
     for n in nodes:
         desc = str(n.get("state_description", "")).strip()
-        center_raw = n.get("center_feature_siglip2", None)
+        center_raw = n.get("center_feature_lastvit", None)
         node_id = str(n.get("node_id", "")).strip()
 
         if not desc or center_raw is None:
@@ -172,14 +257,32 @@ def decode_image_b64_to_bgr(image_b64: str) -> np.ndarray:
     return image_bgr
 
 
-@torch.inference_mode()
-def encode_image(model, processor, image: Image.Image) -> np.ndarray:
-    inputs = processor(images=[image], return_tensors="pt")
-    pixel_values = inputs["pixel_values"].to(DEVICE)
+def apply_padding_head(image: Image.Image) -> Image.Image:
+    w, h = image.size
+    cutoff = int(h * 0.25)
+    if cutoff <= 0:
+        return image
+    pixels = image.load()
+    for y in range(cutoff):
+        for x in range(w):
+            pixels[x, y] = (0, 0, 0)
+    return image
 
-    outputs = model.get_image_features(pixel_values=pixel_values)
-    feature = outputs.pooler_output
-    feature = feature / (feature.norm(dim=-1, keepdim=True) + 1e-12)
+
+def preprocess_image(image: Image.Image, image_size=224):
+    """CLIP 标准预处理：Resize → CenterCrop → ToTensor → Normalize"""
+    img = F.resize(image, [image_size, image_size], interpolation=InterpolationMode.BICUBIC)
+    img = F.to_tensor(img)
+    img = F.normalize(img, mean=[0.48145466, 0.4578275, 0.40821073],
+                      std=[0.26862954, 0.26130258, 0.27577711])
+    return img.unsqueeze(0)  # [1, 3, 224, 224]
+
+
+@torch.inference_mode()
+def encode_image(model, image: Image.Image) -> np.ndarray:
+    pixel_values = preprocess_image(image).to(DEVICE)
+    feature = model(pixel_values)
+    feature = feature / feature.norm(dim=-1, keepdim=True).clamp(min=1e-12)
 
     feat_np = feature[0].detach().cpu().numpy().astype(np.float32)
     return feat_np
@@ -642,6 +745,14 @@ def get_single_image_from_request(req: dict[str, Any]) -> Image.Image:
     return decode_image_b64_to_pil(image_b64)
 
 
+def summarize_request(req: dict[str, Any]) -> str:
+    request_id = str(req.get("request_id", "")).strip() or "-"
+    keys = sorted(list(req.keys()))
+    image_b64 = req.get("image_b64")
+    image_b64_len = len(image_b64) if isinstance(image_b64, str) else 0
+    return f"request_id={request_id}, keys={keys}, image_b64_len={image_b64_len}"
+
+
 def main():
     args = parse_args()
     enable_upload = bool(args.dashboard.strip())
@@ -657,7 +768,7 @@ def main():
             f"max_size={args.upload_max_width}x{args.upload_max_height}"
         )
 
-    model, processor = load_single_model()
+    model = load_single_model()
     print("[INIT] 模型加载完成")
 
     centers, state_list = load_centers(GRAPH_INFO_PATH)
@@ -686,23 +797,28 @@ def main():
         output_thread.start()
 
     try:
+        request_count = 0
         while not output_worker.stop_event.is_set():
             try:
                 req = sock.recv_json()
             except zmq.Again:
                 continue
 
+            request_count += 1
             res = {"ok": False}
             image_bgr = None
-            start_time = cv2.getTickCount()
+            start_time = time.perf_counter()
+            req_summary = summarize_request(req)
+            print(f"[REQ {request_count}] 收到请求: {req_summary}")
 
             try:
                 request_id = str(req.get("request_id", "")).strip()
 
                 image = get_single_image_from_request(req)
+                image = apply_padding_head(image)
                 if args.show:
                     image_bgr = decode_image_b64_to_bgr(req["image_b64"])
-                feat_np = encode_image(model, processor, image)
+                feat_np = encode_image(model, image)
                 res = calculate_similarity(feat_np, centers, state_list)
 
                 if request_id:
@@ -713,12 +829,23 @@ def main():
                 res = {"ok": False, "error": str(e)}
 
             sock.send_json(res)
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            if res.get("ok"):
+                best_category = str(res.get("best_category", "")).strip() or "unknown"
+                best_similarity = float(res.get("best_similarity", 0.0))
+                print(
+                    f"[REQ {request_count}] 响应完成: ok=True, category={best_category}, "
+                    f"similarity={best_similarity:.4f}, elapsed_ms={elapsed_ms:.2f}"
+                )
+            else:
+                err = str(res.get("error", "unknown"))
+                print(f"[REQ {request_count}] 响应完成: ok=False, error={err}, elapsed_ms={elapsed_ms:.2f}")
 
             if (args.show or enable_upload) and req.get("image_b64"):
                 try:
                     if image_bgr is None:
                         image_bgr = decode_image_b64_to_bgr(req["image_b64"])
-                    infer_elapsed = (cv2.getTickCount() - start_time) / cv2.getTickFrequency()
+                    infer_elapsed = max(elapsed_ms / 1000.0, 1e-6)
                     infer_fps = 1.0 / max(infer_elapsed, 1e-6)
                     combined_vis = build_visualization_frame(image_bgr, res, state_list, fps=infer_fps)
                     output_worker.submit(combined_vis)

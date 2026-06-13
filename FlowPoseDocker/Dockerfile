@@ -50,25 +50,29 @@ RUN python3 -m pip install --no-cache-dir \
     torchaudio==2.9.0 \
     --index-url https://download.pytorch.org/whl/cu128 \
     -i https://pypi.tuna.tsinghua.edu.cn/simple
-# 3. 安装基础的 pip 依赖
-COPY requirements.txt .
+# 3. 安装基础的 pip 依赖 (build context = repo root)
+COPY FlowPoseDocker/requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # 4. 【修改点】不再通过 pip 安装 cutoop，而是从宿主机物理复制
 # 将宿主机准备好的 cutoop_pkg 复制到容器的 python 库路径
 # COPY cutoop/ /usr/local/lib/python3.10/dist-packages/
 
-# 5. 复制项目的所有代码
-COPY FlowPose/ ./FlowPose/
+# 5. 复制项目的所有代码 (build context = repo root)
+COPY FlowPoseDocker/FlowPose/ ./FlowPose/
 
 # 6. 编译 pointnet2
 WORKDIR /workspace/FlowPose/networks/pts_encoder/pointnet2_utils/pointnet2
 ENV TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9+PTX"
 RUN python3 setup.py install
 
-# 7. 切回工作目录
-WORKDIR /workspace/FlowPose
+# 7. Shared standard-protocol package
+COPY protocol /opt/tjfusion_protocol
+RUN python3 -m pip install --no-cache-dir "/opt/tjfusion_protocol[zmq]"
 
-# 8. 暴露端口并启动
-EXPOSE 6666
-CMD ["uvicorn", "server:workspace", "--host", "0.0.0.0", "--port", "6666"]
+# 8. 切回工作目录
+WORKDIR /workspace
+
+# 9. 暴露端口并启动标准协议 pose server
+EXPOSE 6667
+CMD ["python3", "Server/StandardProtocol/flowpose_server.py"]

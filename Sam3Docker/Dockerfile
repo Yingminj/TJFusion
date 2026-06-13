@@ -58,12 +58,16 @@ RUN python3 -m pip install --no-cache-dir \
     psutil \
     flask
 
-COPY ./sam3-main /workspace/sam3-main
+COPY Sam3Docker/sam3-main /workspace/sam3-main
 
 WORKDIR /workspace/sam3-main
 RUN python3 -m pip install --no-cache-dir -e .
 RUN python3 -m pip install --no-cache-dir -e ".[notebooks]"
 RUN python3 -m pip install --no-cache-dir -e ".[train,dev]"
+
+# Shared standard-protocol package (build context = repo root).
+COPY protocol /opt/tjfusion_protocol
+RUN python3 -m pip install --no-cache-dir "/opt/tjfusion_protocol[zmq]"
 
 WORKDIR /workspace
 CMD ["/bin/bash"]

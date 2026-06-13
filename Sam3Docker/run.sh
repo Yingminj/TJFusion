@@ -2,6 +2,11 @@
 
 set -e
 
+# Repo root holds the shared protocol/ package; mount it so the live-mounted
+# server (in /workspace) can import tjfusion_protocol without an image rebuild.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
 CONFIG_FILE="config.yaml"
 
 # 1. Check if the configuration file exists
@@ -65,6 +70,7 @@ docker run -it --rm \
     -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     -v /dev:/dev \
     -v "$(pwd)":/workspace \
+    -v "${REPO_ROOT}/protocol":/opt/tjfusion_protocol_src:ro \
     -w /workspace \
     "${IMAGE}" \
-    bash -lc "cd /workspace/Server/Sam3/ && python3 ZeroMQServer.py"
+    bash -lc "cd /workspace && PYTHONPATH=/opt/tjfusion_protocol_src:\${PYTHONPATH} python3 Server/StandardProtocol/sam3_server.py"

@@ -125,6 +125,11 @@ if [[ "${SYNC_DEPS}" == "1" ]]; then
   if [[ -f "${FUSION_DIR}/requirements.txt" ]]; then
     "${VENV_PATH}/bin/pip" install -r "${FUSION_DIR}/requirements.txt"
   fi
+  # Shared protocol package: the bridge imports tjfusion_protocol for any
+  # pipeline node that declares a data_type.
+  if [[ -d "${REPO_ROOT}/protocol" ]]; then
+    "${VENV_PATH}/bin/pip" install -e "${REPO_ROOT}/protocol"
+  fi
   "${VENV_PATH}/bin/pip" install -e "${FUSION_DIR}"
 else
   log_info "[setup] Skip dependency sync (use --sync to force update)"

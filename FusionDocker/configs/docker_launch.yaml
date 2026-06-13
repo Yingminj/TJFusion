@@ -10,8 +10,11 @@ docker_launcher:
     port: 8765
     log_lines: 300
   bridges:
-  - name: Custom Bridge
+  - name: RealSense Split Pipeline
     enabled: true
+    config: configs/bridge.realsense_split.yaml
+  - name: Custom Bridge
+    enabled: false
     config: configs/bridge.custom.yaml
   - name: Sam3 To FlowPose
     enabled: false
@@ -26,9 +29,14 @@ docker_launcher:
     timeout_ms: 4000
     history_limit: 40
     endpoints:
-      Sam3Docker: tcp://127.0.0.1:5555
-      FlowPoseDocker: tcp://127.0.0.1:6666
+      Sam3Docker: tcp://127.0.0.1:5562
+      SiglipDocker: tcp://127.0.0.1:7777
+      FlowPoseDocker: tcp://127.0.0.1:6667
   docker_targets:
+  - name: RealSenseDocker
+    group: camera
+    location: local
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: Fast-FoundationSteroDocker
     group: vision
     location: local
@@ -50,6 +58,7 @@ docker_launcher:
     location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
   selected_dockers:
+  - RealSenseDocker
   - Fast-FoundationSteroDocker
   - FlowPoseDocker
   - Sam3Docker

@@ -60,4 +60,8 @@ RUN pip install --no-cache-dir \
     pyrealsense2 \
     pyyaml
 
+# Shared standard-protocol package (build context = repo root).
+COPY protocol /opt/tjfusion_protocol
+RUN python3 -m pip install --no-cache-dir "/opt/tjfusion_protocol[zmq]"
+
 CMD ["/bin/bash"]

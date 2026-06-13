@@ -1,18 +1,15 @@
-# Keep the build context small. The RealSense and FFS-depth images build from
-# the repo root only to reach the shared protocol/ package; they do not need any
-# sibling Docker project. Add back anything a future root-context build requires.
+# Keep the build context small. Several images build from the repo root to reach
+# the shared protocol/ package (RealSense, FFS-depth, Sam3, Siglip, FlowPose).
+# Only exclude sibling Docker projects that are NOT built from the repo root.
 .git
 **/__pycache__
 **/*.pyc
 
-# Unrelated Docker projects (exclude from root-context builds)
-Sam3Docker
+# Unrelated Docker projects (not built from the repo root)
 MarvinDocker
 FusionDocker
 YOLODocker
 SenyunDocker
-SiglipDocker
-FlowPoseDocker
 
 # Heavy / non-build artifacts
 **/logs

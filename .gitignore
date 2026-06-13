@@ -19,7 +19,6 @@ CLAUDE.md
 *.log
 logs/
 log/
-FlowPoseDocker/Server/ZeroMQ/latest_response.json
 
 # ---------- Model weights (download via model/download.sh or mount at runtime) ----------
 *.pth

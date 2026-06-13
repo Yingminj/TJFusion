@@ -177,6 +177,11 @@ else
   print_warn "Launch config not found: ${LAUNCH_CONFIG}. Skip port cleanup."
 fi
 
-export PYTHONPATH="src${PYTHONPATH:+:${PYTHONPATH}}"
-print_info "Starting launcher: PYTHONPATH=src python -m fusion_docker launch-dockers $*"
+# The bridge needs the shared protocol package (tjfusion_protocol) for any
+# pipeline node that declares a data_type. Add repo-root protocol/ to PYTHONPATH
+# so the launcher and any bridge subprocess it spawns can import it without an
+# install. (setup_fusion_env.sh also pip-installs it into the venv.)
+REPO_ROOT="$(cd "${PROJECT_ROOT}/.." && pwd)"
+export PYTHONPATH="src:${REPO_ROOT}/protocol${PYTHONPATH:+:${PYTHONPATH}}"
+print_info "Starting launcher: PYTHONPATH=src:${REPO_ROOT}/protocol python -m fusion_docker launch-dockers $*"
 exec python -m fusion_docker launch-dockers "$@"
