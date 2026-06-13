@@ -101,34 +101,84 @@ class FastFoundationDepthServer(BaseModelServer):
 
     def __init__(self, *, bind_addr: str = "tcp://0.0.0.0:4444",
                  ckpt_dir: str = "/workspace/model/model_best_bp2_serialize.pth",
-                 valid_iters: int = 8) -> None:
+                 valid_iters: int = 8,
+                 remove_invisible: bool = True) -> None:
         super().__init__(bind_addr=bind_addr)
         self.ckpt_dir = ckpt_dir
         self.valid_iters = valid_iters
+        self.remove_invisible = remove_invisible
         self.model = None
+        self._input_padder_cls = None
 
     def load_model(self) -> None:
         if torch is None:
             print("[depth] torch unavailable; running in stub mode (returns zeros).")
             return
-        # TODO(real image): restore the exact load from the original server:
-        #   from core.utils.utils import InputPadder
-        #   model = torch.load(self.ckpt_dir, map_location="cpu", weights_only=False)
-        #   model.args.valid_iters = self.valid_iters; model.cuda().eval()
         torch.autograd.set_grad_enabled(False)
-        self.model = None
+
+        # InputPadder ships with the Foundation-Stereo tree appended to sys.path
+        # at import time (/workspace/Fast-FoundationStereo-master).
+        from core.utils.utils import InputPadder  # noqa: E402
+        self._input_padder_cls = InputPadder
+
+        # The checkpoint is a serialized nn.Module that carries its own ``args``.
+        model = torch.load(self.ckpt_dir, map_location="cpu", weights_only=False)
+        model.args.valid_iters = self.valid_iters
+
+        # ``max_disp`` is not stored on the pickled module; the original server
+        # read it from the cfg.yaml shipped beside the checkpoint.
+        try:
+            from omegaconf import OmegaConf
+
+            cfg_path = os.path.join(os.path.dirname(self.ckpt_dir), "cfg.yaml")
+            if os.path.exists(cfg_path):
+                model_cfg = OmegaConf.load(cfg_path)
+                if "max_disp" in model_cfg:
+                    model.args.max_disp = int(model_cfg["max_disp"])
+        except Exception as exc:  # noqa: BLE001 - fall back to the model's own args
+            print(f"[depth] could not read max_disp from cfg.yaml: {exc}")
+
+        model.cuda()
+        model.eval()
+        self.model = model
+        print(
+            f"[depth] model loaded from {self.ckpt_dir} "
+            f"(valid_iters={self.valid_iters}, "
+            f"max_disp={getattr(model.args, 'max_disp', '?')})."
+        )
 
     def _run_stereo(self, left: np.ndarray, right: np.ndarray) -> np.ndarray:
         """Return disparity [H,W] for the stereo pair.
 
-        Stub returns zeros so the pipeline is exercisable without weights; the
-        real body mirrors the original (InputPadder -> autocast forward ->
-        unpad -> reshape -> remove_invisible)."""
+        Ported verbatim from the original rawbytes server: InputPadder ->
+        autocast forward -> unpad -> reshape -> remove_invisible.  Falls back to
+        zeros only when no model/torch is available (stub mode)."""
         H, W = left.shape[:2]
         if self.model is None or torch is None:
             return np.zeros((H, W), dtype=np.float32)
-        # TODO(real image): InputPadder + model.forward(...) as in the original.
-        raise NotImplementedError("Wire up model.forward in the CUDA image.")
+
+        img0_t = torch.as_tensor(left).cuda().float()[None].permute(0, 3, 1, 2)
+        img1_t = torch.as_tensor(right).cuda().float()[None].permute(0, 3, 1, 2)
+
+        padder = self._input_padder_cls(img0_t.shape, divis_by=32, force_square=False)
+        img0_t, img1_t = padder.pad(img0_t, img1_t)
+
+        with torch.cuda.amp.autocast(True):
+            disp = self.model.forward(
+                img0_t, img1_t, iters=self.valid_iters, test_mode=True
+            )
+
+        disp = padder.unpad(disp.float())
+        disp = disp.data.cpu().numpy().reshape(H, W)
+
+        # Mark pixels with no valid right-image correspondence as invalid; the
+        # disparity->depth step then zeroes them out (inf -> 0).
+        if self.remove_invisible:
+            _, xx = np.meshgrid(np.arange(H), np.arange(W), indexing="ij")
+            us_right = xx - disp
+            disp[us_right < 0] = np.inf
+
+        return disp
 
     def infer(self, request: Message) -> Message:
         left = request.arrays["left"]

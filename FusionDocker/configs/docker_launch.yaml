@@ -57,9 +57,13 @@ docker_launcher:
     group: action
     location: local
     docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: VlmDocker
+    group: inference
+    location: local
+    docker_model_root: ${DOCKER_MODEL_ROOT}
   selected_dockers:
   - RealSenseDocker
   - Fast-FoundationSteroDocker
   - FlowPoseDocker
   - Sam3Docker
-  - SiglipDocker
+  - VlmDockers

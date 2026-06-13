@@ -1,4 +1,8 @@
 PyYAML>=6.0
 numpy>=1.26
-opencv-python-headless>=4.10
+# GUI build (not -headless) so the bridge's unified cv2.imshow visualization
+# can open a window. On a headless server with no display, swap this line for
+# `opencv-python-headless>=4.10` (the visualizer then writes composite frames
+# to visualize_save_path instead of showing a window).
+opencv-python>=4.10
 pyzmq>=25.1

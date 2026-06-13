@@ -256,6 +256,10 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
         ),
         pipeline=_parse_pipeline(bridge_raw.get("pipeline")),
         pipeline_outputs=_coerce_pipeline_outputs(bridge_raw.get("pipeline_outputs")),
+        visualize=bool(bridge_raw.get("visualize", True)),
+        visualize_window=str(bridge_raw.get("visualize_window", "TJFusion Pipeline")),
+        visualize_scale=float(bridge_raw.get("visualize_scale", 1.0)),
+        visualize_save_path=str(bridge_raw.get("visualize_save_path", "")),
     )
 
 

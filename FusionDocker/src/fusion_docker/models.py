@@ -124,6 +124,10 @@ class BridgeServiceConfig:
     result_tf_topic: str = "/tf"
     pipeline: list[ModelNode] = field(default_factory=list)
     pipeline_outputs: list[str] = field(default_factory=list)
+    visualize: bool = True
+    visualize_window: str = "TJFusion Pipeline"
+    visualize_scale: float = 1.0
+    visualize_save_path: str = ""
 
     @property
     def downstream_server_addr(self) -> str:

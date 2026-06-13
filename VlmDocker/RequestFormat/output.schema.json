@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "output.schema.json",
+  "title": "VLM (gift_v1) status response",
+  "description": "Standard-protocol 'status' response (see protocol/schemas/status.json). best_category/best_similarity/topk mirror the SigLIP status node so this is drop-in; state_id/name/raw/num_frames are added for convenience.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "data_type": { "const": "status" },
+    "request_id": { "type": "string" },
+    "status": { "enum": ["ok", "error"] },
+    "error": { "type": "string" },
+    "elapsed_ms": { "type": "number" },
+    "fields": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "best_category": {
+          "type": "string",
+          "description": "Top-1 state as 'C<id>: <name>', or '(warming up)' / '(parse-fail)'."
+        },
+        "best_similarity": {
+          "type": "number",
+          "description": "Confidence stand-in: 1.0 for a parsed non-reject state, else 0.0."
+        },
+        "topk": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": { "type": "string" },
+              "similarity": { "type": "number" }
+            },
+            "required": ["category", "similarity"]
+          }
+        },
+        "state_id": {
+          "type": ["integer", "null"],
+          "description": "Closed-set class id 1..12 (12 = rubbish/reject); null on warmup/parse-fail."
+        },
+        "name": { "type": "string", "description": "Canonical state name for state_id." },
+        "raw": { "type": "string", "description": "Raw model generation (for debugging)." },
+        "num_frames": { "type": "integer", "description": "Frames sent to the model this check." }
+      }
+    }
+  },
+  "required": ["data_type", "status"]
+}

@@ -591,6 +591,43 @@ def zmq_capture_loop(
             time.sleep(0.01)
 
 
+def _maybe_build_visualizer(
+    config: BridgeServiceConfig, pipeline: list[ModelNode]
+) -> Any | None:
+    """Create a :class:`PipelineVisualizer` when ``bridge.visualize`` is on.
+
+    Panels are derived from *pipeline* (the enabled nodes), so the window only
+    shows tiles for the dockers the bridge actually talks to.  Returns ``None``
+    (and logs a warning) if visualization is disabled or the visualizer cannot
+    be constructed, so the bridge still runs headless.
+    """
+    if not getattr(config, "visualize", False):
+        return None
+    try:
+        from fusion_docker.bridge_visualizer import PipelineVisualizer
+    except Exception as exc:  # noqa: BLE001
+        print_warning(f"Visualization unavailable: {exc}")
+        return None
+    nodes = [{"name": n.name, "data_type": n.data_type} for n in pipeline]
+    try:
+        visualizer = PipelineVisualizer(
+            window_name=getattr(config, "visualize_window", "TJFusion Pipeline"),
+            scale=float(getattr(config, "visualize_scale", 1.0) or 1.0),
+            save_path=getattr(config, "visualize_save_path", "") or "",
+            nodes=nodes,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print_warning(f"Visualization disabled: {exc}")
+        return None
+    panel_names = ", ".join(n["name"] for n in nodes) or "(source only)"
+    print_status(
+        "VIS",
+        f"OpenCV visualization enabled. Panels: source + [{panel_names}]",
+        color="cyan",
+    )
+    return visualizer
+
+
 def build_empty_response(
     request_id: str,
     start_time: float,
@@ -1036,6 +1073,8 @@ def _process_once_pipeline(
     return_masks: bool,
     clear_previous: bool,
     output_keys: list[str],
+    visualizer: Any | None = None,
+    frame_id: int = -1,
 ) -> dict[str, Any]:
     """Pipeline-based variant of :func:`process_once`.
 
@@ -1093,6 +1132,11 @@ def _process_once_pipeline(
 
     _execute_pipeline(pipeline, zmq_context, ctx, req_timeout_ms)
 
+    if visualizer is not None:
+        visualizer.update(
+            ctx.store, ctx.model_results, frame_id=frame_id, request_id=request_id
+        )
+
     response = _assemble_pipeline_response(ctx)
 
     if verbose:
@@ -1127,6 +1171,8 @@ def process_once(
     rgb_jpg_quality: int,
     source_meta: dict[str, Any] | None,
     output_keys: list[str],
+    visualizer: Any | None = None,
+    frame_id: int = -1,
 ) -> dict[str, Any]:
     if not pipeline:
         raise RuntimeError("Custom pipeline bridge requires a non-empty pipeline list.")
@@ -1146,6 +1192,8 @@ def process_once(
         return_masks=return_masks,
         clear_previous=clear_previous,
         output_keys=output_keys,
+        visualizer=visualizer,
+        frame_id=frame_id,
     )
 
 
@@ -1200,6 +1248,8 @@ def run_zmq_source_bridge_service(
     print_status("BRIDGE", f"ZMQ timeout      : {config.zmq_timeout_sec:.2f} s", color="cyan")
     print_status("WAIT", "Waiting latest ZMQ RGB-D frames...", color="yellow")
 
+    visualizer = _maybe_build_visualizer(config, effective_pipeline)
+
     last_processed_frame_id = -1
 
     try:
@@ -1243,6 +1293,8 @@ def run_zmq_source_bridge_service(
                     pipeline=effective_pipeline,
                     zmq_context=context,
                     output_keys=config.pipeline_outputs,
+                    visualizer=visualizer,
+                    frame_id=frame_id,
                 )
                 if result_callback is not None:
                     result_callback(result)
@@ -1261,6 +1313,8 @@ def run_zmq_source_bridge_service(
         capture_thread.join(timeout=1.0)
         safe_close_socket(source_socket)
         context.term()
+        if visualizer is not None:
+            visualizer.close()
 
 
 # --------------- Standard-protocol source (Phase 3) ---------------
@@ -1350,6 +1404,8 @@ def _process_once_protocol(
     return_masks: bool,
     clear_previous: bool,
     output_keys: list[str],
+    visualizer: Any | None = None,
+    frame_id: int = -1,
 ) -> dict[str, Any]:
     """Run the DAG with a store seeded from a standard-protocol message.
 
@@ -1395,6 +1451,12 @@ def _process_once_protocol(
     )
 
     _execute_pipeline(pipeline, zmq_context, ctx, req_timeout_ms)
+
+    if visualizer is not None:
+        visualizer.update(
+            ctx.store, ctx.model_results, frame_id=frame_id, request_id=request_id
+        )
+
     response = _assemble_pipeline_response(ctx)
 
     # Drop any ndarray that leaked into the JSON response (e.g. via output_keys);
@@ -1451,6 +1513,8 @@ def run_protocol_source_bridge_service(
     )
     capture_thread.start()
 
+    visualizer = _maybe_build_visualizer(config, effective_pipeline)
+
     print_status("BRIDGE", f"Pipeline nodes   : {len(effective_pipeline)}", color="cyan")
     print_status("BRIDGE", f"Protocol source  : {config.zmq_source_addr}", color="cyan")
     print_status("WAIT", "Waiting standard-protocol frames...", color="yellow")
@@ -1487,6 +1551,8 @@ def run_protocol_source_bridge_service(
                     return_masks=config.return_masks,
                     clear_previous=config.clear_previous,
                     output_keys=config.pipeline_outputs,
+                    visualizer=visualizer,
+                    frame_id=frame_id,
                 )
                 if result_callback is not None:
                     result_callback(result)
@@ -1500,6 +1566,8 @@ def run_protocol_source_bridge_service(
         capture_thread.join(timeout=1.0)
         safe_close_socket(source_socket)
         context.term()
+        if visualizer is not None:
+            visualizer.close()
 
 
 def run_bridge_service(

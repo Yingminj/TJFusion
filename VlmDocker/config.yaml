@@ -1,0 +1,26 @@
+docker:
+  image: vlm
+  container_name: VlmDocker
+server:
+  host: 0.0.0.0
+  port: 7788
+  mode: single
+model:
+  # Qwen3.5-VL-9B base weights + the gift_v1 LoRA adapter. Mounted at runtime
+  # (see run.sh) -- weights are NOT baked into the image (base is ~19 GB).
+  base: /workspace/model/qwen3_5_9B
+  adapter: /workspace/model/gift_v1
+  # Task description injected into the closed-set prompt.
+  task: "pack the toy into the gift box"
+inference:
+  # Window the model sees per check. The server keeps a rolling buffer of the
+  # most recent frames (one per request) and samples n_frames evenly over it
+  # (newest last) -- the same shape gift_ft trained on. n_frames must be even
+  # (Qwen temporal_patch_size=2) and >= 2.
+  n_frames: 6
+  buffer_maxlen: 16
+  max_new_tokens: 48
+  # processor max_pixels per frame (256*28*28); trades latency/VRAM for detail.
+  max_pixels: 200704
+  # pre-downscale incoming frames so the longest side <= this.
+  max_side: 448

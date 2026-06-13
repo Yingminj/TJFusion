@@ -13,6 +13,17 @@ bridge:
   result_tf_topic: /fusion/pose
   result_siglip_topic: /fusion/status
 
+  # ── 可视化 ────────────────────────────────────────────────────────────────
+  # 用 OpenCV 把各节点结果统一显示在一个窗口里（每个 docker 一个面板）：
+  #   RealSense(color+IR) · Fast-Foundation(depth) · SAM3(mask) ·
+  #   VLM(status) · SigLIP(status) · FlowPose(pose)。
+  # 需要带 GUI 的 OpenCV（pip install opencv-python，而非 headless），并设置好
+  # DISPLAY；无显示环境会自动退化为把合成帧写到 visualize_save_path。
+  visualize: true
+  visualize_window: TJFusion Pipeline
+  visualize_scale: 1.0
+  visualize_save_path: ""        # 无显示时合成帧落盘路径（留空则 /tmp/tjfusion_pipeline.jpg）
+
   prompts:
     - cup
     - red box
@@ -23,8 +34,10 @@ bridge:
     - combined_mask         # 来自 sam3
     - obj_ids
     - class_names
-    - best_category
+    - best_category         # 来自 vlm
     - best_similarity
+    - state_id
+    - state_name
     - objects               # 来自 flowpose
 
   # ── 流水线（顺序 = depends_on 拓扑；同层并行）────────────────────────────────
@@ -72,22 +85,23 @@ bridge:
         obj_ids: obj_ids
         class_names: class_names
 
-    # [3] 状态分类：SigLIP，只要 color（也与上面并行）
-    - name: siglip2
+    # [3] 状态分类：VLM（Qwen3.5-VL + gift_v1），只要 color（也与上面并行）
+    #     服务器内部维护滚动帧缓冲，每次请求送当前 color 帧；生成较慢，timeout 调大。
+    - name: vlm
       kind: generic
       data_type: status
-      endpoint: tcp://127.0.0.1:7777
-      timeout_ms: 5000
+      endpoint: tcp://127.0.0.1:7788
+      timeout_ms: 30000
       role: required
       inputs:
         - color
-        - prompts
       request_map:
         color: $color
-        prompts: $prompts
       response_map:
         best_category: best_category
         best_similarity: best_similarity
+        state_id: state_id
+        name: state_name
 
     # [4] 位姿：FlowPose，依赖 depth(来自[1]) + mask(来自[2])
     - name: flowpose

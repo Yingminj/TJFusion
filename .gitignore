@@ -32,6 +32,7 @@ FlowPoseDocker/model/
 Sam3Docker/model/
 SiglipDocker/model/
 YOLODocker/model/
+VlmDocker/model/
 !*/model/download.sh
 !*/model/README.md
 

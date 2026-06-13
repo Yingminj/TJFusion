@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "input.schema.json",
+  "title": "VLM (gift_v1) status request",
+  "description": "Standard-protocol 'status' request. Wire format is ZMQ multipart of raw NumPy bytes (frame 0 = JSON header, frames 1..N = arr.tobytes()); see protocol/schemas/status.json. One CURRENT frame per call -- the server keeps a rolling buffer and samples a window for the VLM.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "data_type": { "const": "status" },
+    "request_id": { "type": "string" },
+    "fields": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "reset": {
+          "type": "boolean",
+          "description": "Clear the rolling frame buffer before appending this frame (e.g. at the start of a new clip/task)."
+        }
+      }
+    },
+    "arrays": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "type": "object",
+          "description": "Current color frame, uint8 [H,W,3] RGB.",
+          "properties": {
+            "dtype": { "const": "uint8" },
+            "ndim": { "const": 3 }
+          }
+        }
+      },
+      "required": ["color"]
+    }
+  },
+  "required": ["arrays"]
+}
