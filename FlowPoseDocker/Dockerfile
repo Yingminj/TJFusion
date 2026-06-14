@@ -1,6 +1,9 @@
 # 直接使用包含完整编译环境的 devel 镜像
 FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
 
+# CUDA 包系列 (apt 包名后缀)，需与上面基础镜像的 CUDA 版本一致，例如 12.8 -> 12-8
+ARG CUDA_PKG_SERIES=12-8
+
 ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive
 
@@ -23,6 +26,9 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
+# 安装 CUDA 编译工具链 (nvcc 等，用于编译 pointnet2)。
+# 不锁定具体补丁版本：让 apt 在 ${CUDA_PKG_SERIES} 系列内自动解析一组互相兼容的包，
+# 避免 NVIDIA 仓库推进版本后因硬编码补丁号 (如 12.8.4.1-1) 导致依赖冲突而构建失败。
 RUN apt-get update \
     && apt-get install -y wget gnupg2 ca-certificates \
     && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
@@ -31,9 +37,7 @@ RUN apt-get update \
     && apt-get update \
     && apt-mark showhold | grep -E 'cuda|cublas|cufft|curand|cusolver|cusparse|npp|nvjpeg|nvjitlink|nvfatbin' | xargs -r apt-mark unhold \
     && apt-get install -y --allow-change-held-packages \
-        libcublas-12-8=12.8.5.5-1 \
-        libcublas-dev-12-8=12.8.5.5-1 \
-        cuda-toolkit-12-8=12.8.2-1 \
+        cuda-toolkit-${CUDA_PKG_SERIES} \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
