@@ -478,6 +478,13 @@ def _build_parser() -> argparse.ArgumentParser:
         type=int,
         help="How many recent log lines to show per docker request. Defaults to YAML or 300.",
     )
+    ui_parser.add_argument(
+        "--auth-token",
+        help=(
+            "Auth token required for API requests. Only used when binding to a "
+            "non-loopback host; auto-generated and printed at startup if omitted."
+        ),
+    )
 
     list_parser = subparsers.add_parser(
         "list-dockers",
@@ -969,6 +976,7 @@ def _run_docker_launch_flow(
                 docker_names_override=requested_names if requested_names else None,
                 bridge_entries=launch_config.bridge_entries if launch_config else None,
                 cleanup_on_exit=True,
+                auth_token=getattr(args, "auth_token", None),
             )
         else:
             monitor_tmux_sessions(results, poll_interval_s=poll_interval)
@@ -1871,6 +1879,7 @@ def _handle_serve_ui(args: argparse.Namespace) -> None:
         ),
         docker_names_override=list(args.docker_names) if args.docker_names else None,
         bridge_entries=launch_config.bridge_entries if launch_config else None,
+        auth_token=getattr(args, "auth_token", None),
     )
 
 

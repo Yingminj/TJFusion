@@ -24,6 +24,9 @@ COMPOSE_FILENAMES = (
 NEW_CONTAINER_DISCOVERY_TIMEOUT_S = 4.0
 NEW_CONTAINER_DISCOVERY_POLL_S = 0.4
 DEFAULT_MONITOR_POLL_INTERVAL_S = 0.5
+# Upper bound for the read-only status probes (docker ps / tmux list-panes) so a
+# hung daemon can never block the dashboard's background status refresher.
+RUNTIME_STATUS_PROBE_TIMEOUT_S = 8.0
 STATUS_COLOR = {
     "running": "green",
     "error": "red",
@@ -1702,19 +1705,23 @@ def _list_docker_containers() -> dict[str, DockerContainerInfo]:
     if not docker_path:
         return {}
 
-    listed = subprocess.run(
-        [
-            docker_path,
-            "ps",
-            "-a",
-            "--no-trunc",
-            "--format",
-            "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        listed = subprocess.run(
+            [
+                docker_path,
+                "ps",
+                "-a",
+                "--no-trunc",
+                "--format",
+                "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=RUNTIME_STATUS_PROBE_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        return {}
     if listed.returncode != 0:
         return {}
 
@@ -1813,19 +1820,23 @@ def _get_tmux_session_state(
     if not session_name:
         return "missing", None
 
-    listed = subprocess.run(
-        [
-            tmux_path,
-            "list-panes",
-            "-t",
-            session_name,
-            "-F",
-            "#{pane_dead}\t#{pane_dead_status}",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        listed = subprocess.run(
+            [
+                tmux_path,
+                "list-panes",
+                "-t",
+                session_name,
+                "-F",
+                "#{pane_dead}\t#{pane_dead_status}",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=RUNTIME_STATUS_PROBE_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        return "missing", None
     if listed.returncode != 0:
         message = (listed.stderr.strip() or listed.stdout.strip()).lower()
         if (

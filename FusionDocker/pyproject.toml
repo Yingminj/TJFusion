@@ -21,3 +21,8 @@ bridge-test = "fusion_docker.bridge_test_client:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+# Ship the dashboard frontend assets (HTML/CSS/JS) with the package so the UI
+# works when installed as a wheel, not only from the source tree.
+"fusion_docker.ui" = ["static/*"]
