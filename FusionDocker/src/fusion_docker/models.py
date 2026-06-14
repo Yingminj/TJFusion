@@ -119,9 +119,8 @@ class BridgeServiceConfig:
     listen_host: str = "0.0.0.0"
     listen_port: int = 5556
     result_pub_addr: str = ""
-    result_pub_frame_id: str = "camera_rgb_link"
-    result_siglip_topic: str = "/siglip2/result"
-    result_tf_topic: str = "/tf"
+    result_pose_topic: str = "/fusion/pose"
+    result_status_topic: str = "/fusion/status"
     pipeline: list[ModelNode] = field(default_factory=list)
     pipeline_outputs: list[str] = field(default_factory=list)
     visualize: bool = True

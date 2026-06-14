@@ -236,22 +236,16 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
         result_pub_addr=str(
             publisher_raw.get("result_pub_addr", bridge_raw.get("result_pub_addr", ""))
         ).strip(),
-        result_pub_frame_id=str(
+        result_pose_topic=str(
             publisher_raw.get(
-                "result_pub_frame_id",
-                bridge_raw.get("result_pub_frame_id", "camera_rgb_link"),
+                "result_pose_topic",
+                bridge_raw.get("result_pose_topic", "/fusion/pose"),
             )
         ),
-        result_siglip_topic=str(
+        result_status_topic=str(
             publisher_raw.get(
-                "result_siglip_topic",
-                bridge_raw.get("result_siglip_topic", "/siglip2/result"),
-            )
-        ),
-        result_tf_topic=str(
-            publisher_raw.get(
-                "result_tf_topic",
-                bridge_raw.get("result_tf_topic", "/tf"),
+                "result_status_topic",
+                bridge_raw.get("result_status_topic", "/fusion/status"),
             )
         ),
         pipeline=_parse_pipeline(bridge_raw.get("pipeline")),

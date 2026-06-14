@@ -21,8 +21,8 @@ def _run_custom_pipeline(config, *, verbose: bool = False, save_json: bool = Fal
     result_callback = None
 
     if getattr(config, "result_pub_addr", ""):
-        pose_topic = getattr(config, "result_tf_topic", "/fusion/pose") or "/fusion/pose"
-        status_topic = getattr(config, "result_siglip_topic", "/fusion/status") or "/fusion/status"
+        pose_topic = getattr(config, "result_pose_topic", "/fusion/pose") or "/fusion/pose"
+        status_topic = getattr(config, "result_status_topic", "/fusion/status") or "/fusion/status"
         publisher = BridgeResultPublisher(
             config.result_pub_addr,
             pose_topic=pose_topic,

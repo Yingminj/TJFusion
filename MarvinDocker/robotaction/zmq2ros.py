@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Subscribe to the fusion result PUB socket and republish it into ROS2.
+
+Wire format (produced by ``FusionDocker/.../bridge_pub.py``)
+-----------------------------------------------------------
+Each message is a ZMQ multipart ``[topic, json]`` where *json* is a single
+JSON object.  Two topics are emitted by the publisher:
+
+``/fusion/pose``
+    ``{"request_id": str, "objects": [ {name, pose, length, obj_id, box_id}, ... ]}``
+    Each object's ``pose`` is a raw 4x4 matrix (or a 7-vector ``xyz+quat``).
+    These are converted to a ``tf2_msgs/TFMessage`` and published on the ROS
+    TF topic (``--ros_topic /tf``).
+
+``/fusion/status``
+    ``{"request_id": str, "best_category": ..., "best_similarity": ..., ...}``
+    Classification / scene-state data, republished verbatim as a
+    ``std_msgs/String`` JSON payload (``--ros_topic /siglip2/result``).
+
+All pose post-processing (TF construction, quaternion conversion) lives here;
+the publisher itself performs no processing.
+"""
 
 import argparse
 import json
@@ -102,55 +123,6 @@ def decode_text(raw_msg):
     return str(raw_msg)
 
 
-def extract_json_text(raw_text: str):
-    raw_text = raw_text.strip()
-    if not raw_text:
-        raise ValueError("empty payload")
-
-    payload_pos = raw_text.find("payload=")
-    if payload_pos >= 0:
-        raw_text = raw_text[payload_pos + len("payload=") :].strip()
-
-    if raw_text.startswith("{") or raw_text.startswith("["):
-        return raw_text
-
-    json_start_candidates = [pos for pos in (raw_text.find("{"), raw_text.find("[")) if pos >= 0]
-    if json_start_candidates:
-        return raw_text[min(json_start_candidates) :].strip()
-
-    raise ValueError("no json object found in payload")
-
-
-def split_text_topic_and_payload(raw_text: str):
-    raw_text = raw_text.strip()
-    if not raw_text:
-        raise ValueError("empty payload")
-
-    payload_pos = raw_text.find("payload=")
-    if payload_pos >= 0:
-        raw_text = raw_text[payload_pos + len("payload=") :].strip()
-
-    if raw_text.startswith("{") or raw_text.startswith("["):
-        return None, raw_text
-
-    json_start_candidates = [pos for pos in (raw_text.find("{"), raw_text.find("[")) if pos >= 0]
-    if not json_start_candidates:
-        raise ValueError("no json object found in payload")
-
-    json_start = min(json_start_candidates)
-    topic_text = raw_text[:json_start].strip() or None
-    json_text = raw_text[json_start:].strip()
-    return topic_text, json_text
-
-
-def parse_payload(raw_msg):
-    raw_text = extract_json_text(decode_text(raw_msg))
-    data = json.loads(raw_text)
-    if not isinstance(data, dict):
-        raise ValueError(f"expected dict payload, got {type(data).__name__}")
-    return data
-
-
 def recv_pending_messages(socket):
     messages = [socket.recv_multipart()]
     while True:
@@ -183,30 +155,21 @@ def keep_latest_message_per_topic(messages):
 
 
 def parse_zmq_message(parts):
-    if len(parts) == 1:
-        raw_text = decode_text(parts[0])
-        topic, json_text = split_text_topic_and_payload(raw_text)
-        payload = json.loads(json_text)
-        if not isinstance(payload, dict):
-            raise ValueError(f"expected dict payload, got {type(payload).__name__}")
-    else:
+    """Parse a message in the new wire format ``[topic, json]``.
+
+    A single-frame message is treated as a topic-less JSON payload.
+    """
+    if len(parts) >= 2:
         topic = decode_text(parts[0]).strip() or None
-        payload = parse_payload(parts[-1])
+        json_text = decode_text(parts[-1])
+    else:
+        topic = None
+        json_text = decode_text(parts[0])
+
+    payload = json.loads(json_text)
+    if not isinstance(payload, dict):
+        raise ValueError(f"expected dict payload, got {type(payload).__name__}")
     return topic, payload
-
-
-def extract_siglip_payload(payload: dict):
-    siglip = payload.get("siglip2")
-    if isinstance(siglip, dict):
-        return dict(siglip)
-
-    if any(key in payload for key in ("best_category", "best_similarity", "total_category", "state_list")):
-        return payload
-    return None
-
-
-def extract_frame_id(payload: dict, default_frame_id: str):
-    return default_frame_id
 
 
 def make_child_frame_id(item: dict, index: int, class_counts: dict):
@@ -283,96 +246,38 @@ class BridgeRosPublisher:
         msg.data = json.dumps(payload, ensure_ascii=False)
         self.get_string_publisher(topic_name).publish(msg)
 
-    def publish_tf_items(self, topic_name: str, tf_items, frame_id: str):
-        if not isinstance(tf_items, list) or not tf_items:
+    def publish_pose_tf(self, topic_name: str, objects, frame_id: str):
+        """Convert a ``/fusion/pose`` ``objects`` list into a TF message.
+
+        Each object carries a raw ``pose`` (4x4 matrix or 7-vector) plus
+        metadata (``name``, ``box_id``) used to build the TF child frame id.
+        """
+        if not isinstance(objects, list) or not objects:
             return
 
         tf_msg = self.TFMessage()
         stamp = self.node.get_clock().now().to_msg()
         class_counts = {}
 
-        for index, item in enumerate(tf_items):
-            if not isinstance(item, dict):
+        for index, obj in enumerate(objects):
+            if not isinstance(obj, dict):
                 continue
-
-            translation = item.get("translation", {})
-            rotation = item.get("rotation", {})
+            pose7 = pose_item_to_pose7(obj.get("pose"))
+            if pose7 is None:
+                continue
 
             transform = self.TransformStamped()
             transform.header.stamp = stamp
-            transform.header.frame_id = str(item.get("frame_id") or frame_id)
-            transform.child_frame_id = make_child_frame_id(item, index, class_counts)
-
-            transform.transform.translation.x = float(translation.get("x", 0.0))
-            transform.transform.translation.y = float(translation.get("y", 0.0))
-            transform.transform.translation.z = float(translation.get("z", 0.0))
-            transform.transform.rotation.x = float(rotation.get("x", 0.0))
-            transform.transform.rotation.y = float(rotation.get("y", 0.0))
-            transform.transform.rotation.z = float(rotation.get("z", 0.0))
-            transform.transform.rotation.w = float(rotation.get("w", 1.0))
+            transform.header.frame_id = str(obj.get("frame_id") or frame_id)
+            transform.child_frame_id = make_child_frame_id(obj, index, class_counts)
+            transform.transform.translation.x = float(pose7[0])
+            transform.transform.translation.y = float(pose7[1])
+            transform.transform.translation.z = float(pose7[2])
+            transform.transform.rotation.x = float(pose7[3])
+            transform.transform.rotation.y = float(pose7[4])
+            transform.transform.rotation.z = float(pose7[5])
+            transform.transform.rotation.w = float(pose7[6])
             tf_msg.transforms.append(transform)
-
-        if tf_msg.transforms:
-            self.get_tf_publisher(topic_name).publish(tf_msg)
-
-    def publish_yomni_tf(self, topic_name: str, payload: dict, frame_id: str):
-        if not payload or not payload.get("ok", False):
-            return
-
-        objects = payload.get("objects", [])
-        pose_list = payload.get("pose", [])
-        obj_ids = payload.get("obj_ids", [])
-        class_names = payload.get("class_names", [])
-        tf_msg = self.TFMessage()
-        stamp = self.node.get_clock().now().to_msg()
-        class_counts = {}
-
-        if isinstance(objects, list) and objects:
-            for i, obj in enumerate(objects):
-                if not isinstance(obj, dict):
-                    continue
-                pose7 = pose_item_to_pose7(obj.get("pose"))
-                if pose7 is None:
-                    continue
-
-                transform = self.TransformStamped()
-                transform.header.stamp = stamp
-                transform.header.frame_id = frame_id
-                transform.child_frame_id = make_child_frame_id(obj, i, class_counts)
-                transform.transform.translation.x = float(pose7[0])
-                transform.transform.translation.y = float(pose7[1])
-                transform.transform.translation.z = float(pose7[2])
-                transform.transform.rotation.x = float(pose7[3])
-                transform.transform.rotation.y = float(pose7[4])
-                transform.transform.rotation.z = float(pose7[5])
-                transform.transform.rotation.w = float(pose7[6])
-                tf_msg.transforms.append(transform)
-        else:
-            for i, pose_item in enumerate(pose_list):
-                pose7 = pose_item_to_pose7(pose_item)
-                if pose7 is None:
-                    continue
-
-                item = {}
-                if i < len(class_names) and class_names[i]:
-                    item["name"] = class_names[i]
-                if i < len(obj_ids):
-                    obj_id_item = obj_ids[i]
-                    if isinstance(obj_id_item, (list, tuple)) and len(obj_id_item) >= 2:
-                        item["box_id"] = obj_id_item[1]
-
-                transform = self.TransformStamped()
-                transform.header.stamp = stamp
-                transform.header.frame_id = frame_id
-                transform.child_frame_id = make_child_frame_id(item, i, class_counts)
-                transform.transform.translation.x = float(pose7[0])
-                transform.transform.translation.y = float(pose7[1])
-                transform.transform.translation.z = float(pose7[2])
-                transform.transform.rotation.x = float(pose7[3])
-                transform.transform.rotation.y = float(pose7[4])
-                transform.transform.rotation.z = float(pose7[5])
-                transform.transform.rotation.w = float(pose7[6])
-                tf_msg.transforms.append(transform)
 
         if tf_msg.transforms:
             self.get_tf_publisher(topic_name).publish(tf_msg)
@@ -456,21 +361,12 @@ def main():
                 # Resolve output ROS topic (CLI --ros_topic overrides ZMQ topic)
                 ros_topic = args.ros_topic or topic or "/zmq"
 
-                frame_id = extract_frame_id(payload, args.default_frame_id)
-                tf_items = None
-                if isinstance(payload.get("tf"), list):
-                    tf_items = payload["tf"]
-                elif isinstance(payload.get("transforms"), list):
-                    tf_items = payload["transforms"]
-
-                if tf_items is not None:
-                    ros_pub.publish_tf_items(ros_topic, tf_items, frame_id)
-                elif isinstance(payload.get("yomni"), dict):
-                    ros_pub.publish_yomni_tf(ros_topic, payload["yomni"], frame_id)
-                elif any(key in payload for key in ("objects", "pose", "obj_ids", "class_names")):
-                    ros_pub.publish_yomni_tf(ros_topic, payload, frame_id)
+                objects = payload.get("objects")
+                if isinstance(objects, list):
+                    # Pose data → tf2_msgs/TFMessage
+                    ros_pub.publish_pose_tf(ros_topic, objects, args.default_frame_id)
                 else:
-                    # Status / classification data — publish as JSON String
+                    # Status / classification data → std_msgs/String JSON
                     ros_pub.publish_json(ros_topic, payload)
             rclpy.spin_once(ros_pub.node, timeout_sec=0.0)
     except KeyboardInterrupt:

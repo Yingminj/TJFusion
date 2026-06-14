@@ -3,9 +3,8 @@ bridge:
   source_mode: zmq_source
   zmq_source_addr: tcp://127.0.0.1:4444
   result_pub_addr: tcp://0.0.0.0:8899
-  result_pub_frame_id: camera_rgb_link
-  result_siglip_topic: /siglip2/result
-  result_tf_topic: /tf
+  result_pose_topic: /fusion/pose
+  result_status_topic: /fusion/status
   prompts:
     - blue cap
     - yellow object

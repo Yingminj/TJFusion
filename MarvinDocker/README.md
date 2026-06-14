@@ -1,3 +1,49 @@
+# MarvinDocker — robot action consumer (ROS 2 Humble)
+
+The action end of the pipeline. It runs the **Marvin** robot's ROS 2 Humble
+workspace and consumes the fusion engine's `action` results, driving the arms
+and gripper.
+
+## How it connects to the pipeline
+
+`robotaction/zmq2ros.py` is the bridge from the fusion stack into ROS 2. It SUBs
+the fusion result PUB socket (default `tcp://127.0.0.1:8899`, override with
+`RESULT_PUB_ADDR`) and republishes:
+
+- `/fusion/pose` → converted to `tf2_msgs/TFMessage` on the ROS TF topic
+  (each object `pose` is a 4×4 matrix or `xyz+quat`).
+- `/fusion/status` → republished verbatim as a `std_msgs/String` JSON payload.
+
+All pose post-processing (TF construction, quaternion conversion) lives in
+`zmq2ros.py`; the FusionDocker publisher does no processing.
+
+## Layout
+
+```
+MarvinDocker/
+  Dockerfile  build.sh  run.sh
+  scripts/StartAll.sh        # brings up the full robot stack in a tmux session
+                             #   usage: StartAll.sh <ROBOT_IP>   (or set ROBOT_IP)
+  scripts/build_ros.sh       # colcon build helper
+  robotaction/               # task data + zmq2ros.py (fusion → ROS bridge)
+  ros2_ws/src/
+    marvin_description_new/   marvin_msgs/        marvin_ros2_control/
+    marvin_fabric/ (planner)  marvin_teleop/      dm_gripper_py/  fake_interface_pkg/
+```
+
+`StartAll.sh` patches `robot_ip` into the ROS control config, then launches the
+control / planner / teleop / gripper nodes across tmux panes (`ROS_DOMAIN_ID=13`).
+
+## Build & run
+
+```bash
+cd MarvinDocker
+./build.sh
+./run.sh                      # then inside: scripts/StartAll.sh <ROBOT_IP>
+```
+
+---
+
 # marvin_fabric
 
 This package provides ROS 2 control functionalities for Marvin robots.

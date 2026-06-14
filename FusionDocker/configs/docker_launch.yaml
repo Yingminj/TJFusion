@@ -16,15 +16,6 @@ docker_launcher:
   - name: Custom Bridge
     enabled: false
     config: configs/bridge.custom.yaml
-  - name: Sam3 To FlowPose
-    enabled: false
-    config: configs/bridge.sam3_flowpose.yaml
-  - name: Siglip2_Bridge
-    enabled: false
-    config: configs/bridge.siglip2.yaml
-  - name: Multi-ZMQ-PUB-Bridge
-    enabled: false
-    config: configs/bridge.multi_zmq_pub.yaml
   zmq_test:
     timeout_ms: 4000
     history_limit: 40
@@ -67,3 +58,4 @@ docker_launcher:
   - FlowPoseDocker
   - Sam3Docker
   - VlmDocker
+  - MarvinDocker

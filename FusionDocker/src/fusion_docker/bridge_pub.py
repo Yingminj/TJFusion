@@ -40,8 +40,8 @@ class BridgeResultPublisher:
     ------
     ``pose_topic``
         Receives raw ``objects`` list from pose-estimation models
-        (FlowPose, Yomni, etc.).  Each object may contain raw pose
-        matrices / arrays and metadata like ``name`` and ``id``.
+        (e.g. FlowPose).  Each object may contain raw pose matrices /
+        arrays and metadata like ``name``, ``box_id`` and ``obj_id``.
 
     ``status_topic``
         Receives classification / scene-state data from models such as

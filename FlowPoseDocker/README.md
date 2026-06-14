@@ -1,3 +1,40 @@
+# FlowPoseDocker — 6-DoF pose estimation (`pose`)
+
+FlowPose served as a standard-protocol **`pose`** model server. It estimates
+6-DoF object poses from color + metric depth + a combined mask, and is the
+second pipeline layer (`depends_on: [fast_foundation, sam3]`).
+
+> Vendored upstream: `FlowPose/`.
+
+## Protocol contract (`protocol/schemas/pose.json`)
+
+| | content |
+|---|---|
+| `request.arrays`  | `color` `[H,W,3]` uint8, `depth` `[H,W]` float32, `combined_mask` `[H,W]` uint8 |
+| `request.fields`  | `color_intrinsics?`, `obj_ids?`, `class_names?`, `instance_names?` |
+| `response.fields` | `objects` (list of `{name, pose, length, obj_id, box_id}`) |
+
+The depth is aligned to the color camera upstream, so pose uses the **color**
+intrinsics. Poses and lengths are returned in **meters**. The server
+(`Server/StandardProtocol/flowpose_server.py`) subclasses `BaseModelServer`; the
+pose inference is lifted verbatim from the old base64-JSON server, only the I/O
+layer changed (NumPy multipart, no cv2 visualization). Default port: **6667**
+(`config.yaml → server.port`).
+
+## Build & run
+
+```bash
+cd FlowPoseDocker
+python3 download_models.py     # fetch weights into model/ (see guide below)
+./build.sh                     # -> flowpose:latest  (repo root as build context)
+./run.sh                       # pose server on tcp://0.0.0.0:6667 (needs GPU)
+```
+
+`config.yaml → paths` points the server at the weights below; `visualization`
+holds the default camera intrinsics used for debug overlays.
+
+---
+
 # FlowPose 模型权重下载指南
 
 ## 📍 文件位置

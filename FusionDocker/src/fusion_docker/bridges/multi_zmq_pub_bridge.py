@@ -29,14 +29,12 @@ def _run_multi_zmq_pub_bridge(config, *, verbose: bool = False, save_json: bool 
 
     publisher = BridgeResultPublisher(
         config.result_pub_addr,
-        frame_id=config.result_pub_frame_id,
-        siglip_topic=config.result_siglip_topic,
-        tf_topic=config.result_tf_topic,
+        pose_topic=config.result_pose_topic,
+        status_topic=config.result_status_topic,
     )
     print_status("PUB", f"Result PUB       : {config.result_pub_addr}", color="cyan")
-    print_status("PUB", f"TF frame id      : {config.result_pub_frame_id}", color="cyan")
-    print_status("PUB", f"Siglip topic     : {config.result_siglip_topic}", color="cyan")
-    print_status("PUB", f"TF topic         : {config.result_tf_topic}", color="cyan")
+    print_status("PUB", f"Pose topic       : {config.result_pose_topic}", color="cyan")
+    print_status("PUB", f"Status topic     : {config.result_status_topic}", color="cyan")
 
     try:
         run_bridge_service(

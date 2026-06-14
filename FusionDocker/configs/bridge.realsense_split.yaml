@@ -10,8 +10,8 @@ bridge:
 
   # 结果发布给 MarvinDocker（动作模块）
   result_pub_addr: tcp://0.0.0.0:8899
-  result_tf_topic: /fusion/pose
-  result_siglip_topic: /fusion/status
+  result_pose_topic: /fusion/pose
+  result_status_topic: /fusion/status
 
   # ── 可视化 ────────────────────────────────────────────────────────────────
   # 用 OpenCV 把各节点结果统一显示在一个窗口里（每个 docker 一个面板）：
