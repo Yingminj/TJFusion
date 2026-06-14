@@ -31,9 +31,9 @@ RUN apt-get update \
     && apt-get update \
     && apt-mark showhold | grep -E 'cuda|cublas|cufft|curand|cusolver|cusparse|npp|nvjpeg|nvjitlink|nvfatbin' | xargs -r apt-mark unhold \
     && apt-get install -y --allow-change-held-packages \
-        libcublas-12-8=12.8.4.1-1 \
-        libcublas-dev-12-8=12.8.4.1-1 \
-        cuda-toolkit-12-8=12.8.1-1 \
+        libcublas-12-8=12.8.5.5-1 \
+        libcublas-dev-12-8=12.8.5.5-1 \
+        cuda-toolkit-12-8=12.8.2-1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
