@@ -1,14 +1,54 @@
-FlowPoseDocker/model/**
-!FlowPoseDocker/model/download.sh
-FlowPoseDocker/FlowPose_
+# ---------- Python ----------
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*.egg-info/
+
+# ---------- Virtual envs / local launchers ----------
+.venv*/
+venv/
+tjfusion-local
+
+# ---------- IDE / tooling ----------
+.vscode/
+.idea/
+.claude/
+.codebuddy/
+CLAUDE.md
+
+# ---------- Logs & runtime artifacts ----------
 *.log
-FusionDocker/logs/
-# Ignore top-level docker model artifacts, keep downloader scripts.
-*/model/**
+logs/
+log/
+
+# ---------- Model weights (download via model/download.sh or mount at runtime) ----------
+*.pth
+*.pt
+*.onnx
+*.engine
+*.safetensors
+*.ckpt
+Fast-FoundationSteroDocker/model/
+FlowPoseDocker/model/
+Sam3Docker/model/
+SiglipDocker/model/
+YOLODocker/model/
+VlmDocker/model/
 !*/model/download.sh
-./tjfusion
-.venv-tjfusion
-Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets
+!*/model/README.md
+
+# ---------- Local test / scratch outputs ----------
+Sam3Docker/test/
+FlowPoseDocker/FlowPose_
+Fast-FoundationSteroDocker/Fast-FoundationStereo-master/assets/
+
+# ---------- ROS2 / colcon build artifacts ----------
+MarvinDocker/ros2_ws/build/
+MarvinDocker/ros2_ws/install/
+MarvinDocker/ros2_ws/log/
+
+# ---------- OS noise ----------
+.DS_Store
+Thumbs.db
+*.swp
+*~
+*.bak

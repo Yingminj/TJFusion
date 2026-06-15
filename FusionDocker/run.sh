@@ -19,6 +19,7 @@ else
 fi
 
 LAUNCH_CONFIG="${FUSION_LAUNCH_CONFIG:-configs/docker_launch.yaml}"
+export DOCKER_MODEL_ROOT="${DOCKER_MODEL_ROOT:-/home/kewei/TJFusion}"
 
 print_info() {
   printf "%s\n" "${CYAN}[INFO]${RESET} $1"
