@@ -37,6 +37,7 @@ from fusion_docker.docker_launcher import (
     cleanup_launched_dockers,
     collect_runtime_statuses,
     describe_targets,
+    discover_docker_targets,
     launch_single_match,
     match_requested_dockers,
     normalize_docker_name,
@@ -858,10 +859,12 @@ class DashboardController:
         with self._lock:
             payload = self._launch_config_manager.payload()
             content = self._launch_config_manager.read_config_text()
+            structured = self._launch_config_manager.structured_payload()
 
         return {
             "config_path": payload.get("config_path", ""),
             "content": content,
+            "structured": structured,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "status": payload.get("status", "unknown"),
             "message": payload.get("message", ""),
@@ -1160,6 +1163,26 @@ class DashboardController:
         with self._lock:
             self._launch_config_manager.save_config_text(content)
             message = "Saved docker launcher config."
+            if restart:
+                reload_message = self._reload_launcher_state_locked()
+                message = f"{message} {reload_message}".strip()
+
+            return {
+                "ok": True,
+                "message": message,
+                "config": self.launcher_config_payload(),
+                "status": self.status_payload(),
+            }
+
+    def save_launcher_structured(
+        self,
+        structured: dict[str, object],
+        *,
+        restart: bool = False,
+    ) -> dict[str, object]:
+        with self._lock:
+            self._launch_config_manager.save_structured(structured)
+            message = "Saved launcher configuration."
             if restart:
                 reload_message = self._reload_launcher_state_locked()
                 message = f"{message} {reload_message}".strip()
@@ -2709,7 +2732,9 @@ class DashboardController:
         self,
         launch_config: DockerLaunchConfig,
     ) -> list[DockerMatch]:
-        selected_entries = list(launch_config.docker_targets)
+        # Disabled targets (enabled=false) stay in the catalog but are not launched
+        # or managed unless an explicit name override asks for them.
+        selected_entries = [entry for entry in launch_config.docker_targets if entry.enabled]
         if self._docker_names_override:
             requested = {normalize_docker_name(name) for name in self._docker_names_override}
             selected_entries = [
@@ -3852,6 +3877,227 @@ class LaunchConfigManager:
                     pass
             raise ValueError(f"Invalid docker launcher config: {exc}") from exc
 
+    def structured_payload(self) -> dict[str, object]:
+        """Structured view of docker_launch.yaml for the form-based UI editor.
+
+        Built from the raw YAML (not the expanded config) so values such as
+        ``${DOCKER_MODEL_ROOT}`` round-trip unchanged when saved back.
+        """
+        try:
+            raw = self._read_raw_config_data()
+        except Exception:
+            raw = {}
+        launcher = raw.get("docker_launcher")
+        if launcher is None:
+            launcher = raw.get("launcher")
+        if not isinstance(launcher, dict):
+            launcher = {}
+
+        selected_raw = launcher.get("selected_dockers")
+        has_selected = isinstance(selected_raw, list)
+        selected_set: set[str] = set()
+        if has_selected:
+            for item in selected_raw:
+                if isinstance(item, str) and item.strip():
+                    selected_set.add(normalize_docker_name(item))
+
+        targets: list[dict[str, object]] = []
+        targets_raw = launcher.get("docker_targets")
+        if isinstance(targets_raw, list):
+            for entry in targets_raw:
+                if not isinstance(entry, dict):
+                    continue
+                name = str(entry.get("name", "")).strip()
+                if not name:
+                    continue
+                if "enabled" in entry:
+                    enabled = bool(entry.get("enabled"))
+                elif has_selected:
+                    enabled = normalize_docker_name(name) in selected_set
+                else:
+                    enabled = True
+                location = str(entry.get("location", "local")).strip().lower() or "local"
+                if location == "localhost":
+                    location = "local"
+                targets.append(
+                    {
+                        "name": name,
+                        "group": str(entry.get("group", "ungrouped")).strip().lower()
+                        or "ungrouped",
+                        "location": location if location in {"local", "remote"} else "local",
+                        "enabled": enabled,
+                    }
+                )
+
+        bridges: list[dict[str, object]] = []
+        bridges_raw = launcher.get("bridges")
+        if isinstance(bridges_raw, list):
+            for entry in bridges_raw:
+                if not isinstance(entry, dict):
+                    continue
+                bridges.append(
+                    {
+                        "name": str(entry.get("name", "")).strip(),
+                        "enabled": bool(entry.get("enabled", True)),
+                        "config": str(entry.get("config", "")).strip(),
+                    }
+                )
+
+        def _as_bool(value: object, default: bool) -> bool:
+            if value is None:
+                return default
+            return bool(value)
+
+        try:
+            poll_interval = float(launcher.get("poll_interval", 0.5))
+        except (TypeError, ValueError):
+            poll_interval = 0.5
+
+        return {
+            "available": bool(launcher),
+            "docker_model_root": str(launcher.get("docker_model_root", "")).strip(),
+            "tmux": _as_bool(launcher.get("tmux"), True),
+            "monitor": _as_bool(launcher.get("monitor"), True),
+            "replace_session": _as_bool(launcher.get("replace_session"), False),
+            "poll_interval": poll_interval,
+            "docker_targets": targets,
+            "bridges": bridges,
+            "available_dockers": self._discover_available_docker_names(targets),
+            "migrated_from_selected": has_selected,
+        }
+
+    def _discover_available_docker_names(
+        self,
+        current_targets: list[dict[str, object]],
+    ) -> list[str]:
+        root = None
+        if self._config is not None and self._config.docker_model_root:
+            root = self._config.docker_model_root
+        if not root:
+            return []
+        try:
+            discovered = discover_docker_targets(root)
+        except Exception:
+            return []
+        existing = {
+            normalize_docker_name(str(entry.get("name", ""))) for entry in current_targets
+        }
+        names: list[str] = []
+        for target in discovered:
+            folder = target.folder_name
+            if normalize_docker_name(folder) in existing:
+                continue
+            names.append(folder)
+        return sorted(dict.fromkeys(names))
+
+    def save_structured(self, payload: dict[str, object]) -> None:
+        """Apply a structured edit from the form-based UI to docker_launch.yaml.
+
+        Only the keys the form owns are rewritten; unrelated keys (zmq_test,
+        dashboard, ...) are preserved. The deprecated ``selected_dockers`` list is
+        removed in favour of per-target ``enabled`` flags.
+        """
+        self._reload_config()
+        raw = self._read_raw_config_data()
+        launcher = raw.get("docker_launcher")
+        if launcher is None and isinstance(raw.get("launcher"), dict):
+            launcher = raw.get("launcher")
+        if launcher is None:
+            launcher = {}
+            raw["docker_launcher"] = launcher
+        if not isinstance(launcher, dict):
+            raise ValueError("docker_launcher must be a mapping.")
+
+        if "docker_model_root" in payload:
+            root_value = str(payload.get("docker_model_root") or "").strip()
+            if root_value:
+                launcher["docker_model_root"] = root_value
+            else:
+                launcher.pop("docker_model_root", None)
+
+        if "tmux" in payload:
+            launcher["tmux"] = bool(payload.get("tmux"))
+        if "monitor" in payload:
+            launcher["monitor"] = bool(payload.get("monitor"))
+        if "replace_session" in payload:
+            launcher["replace_session"] = bool(payload.get("replace_session"))
+        if "poll_interval" in payload:
+            try:
+                poll_value = float(payload.get("poll_interval"))
+            except (TypeError, ValueError) as exc:
+                raise ValueError("poll_interval must be a number.") from exc
+            if poll_value <= 0:
+                raise ValueError("poll_interval must be greater than 0.")
+            launcher["poll_interval"] = poll_value
+
+        targets_payload = payload.get("docker_targets")
+        if isinstance(targets_payload, list):
+            existing_by_name: dict[str, dict[str, Any]] = {}
+            existing_raw = launcher.get("docker_targets")
+            if isinstance(existing_raw, list):
+                for entry in existing_raw:
+                    if isinstance(entry, dict) and str(entry.get("name", "")).strip():
+                        existing_by_name[normalize_docker_name(str(entry["name"]))] = entry
+
+            new_targets: list[dict[str, Any]] = []
+            seen: set[str] = set()
+            for item in targets_payload:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("name", "")).strip()
+                if not name:
+                    raise ValueError("Each docker target requires a name.")
+                key = normalize_docker_name(name)
+                if key in seen:
+                    raise ValueError(f"Duplicate docker target: {name}")
+                seen.add(key)
+                # Reuse the existing raw entry so remote/docker_model_root details
+                # (managed via the Docker Connection panel) are preserved.
+                base = existing_by_name.get(key)
+                entry = dict(base) if isinstance(base, dict) else {}
+                entry["name"] = name
+                entry["group"] = str(item.get("group", "ungrouped")).strip().lower() or "ungrouped"
+                location = str(item.get("location", "local")).strip().lower() or "local"
+                if location == "localhost":
+                    location = "local"
+                if location not in {"local", "remote"}:
+                    raise ValueError(
+                        f"docker target '{name}' location must be 'local' or 'remote'."
+                    )
+                entry["location"] = location
+                entry["enabled"] = bool(item.get("enabled", True))
+                new_targets.append(entry)
+            launcher["docker_targets"] = new_targets
+
+        bridges_payload = payload.get("bridges")
+        if isinstance(bridges_payload, list):
+            new_bridges: list[dict[str, Any]] = []
+            for item in bridges_payload:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("name", "")).strip()
+                config = str(item.get("config", "")).strip()
+                if not name and not config:
+                    continue
+                if not name:
+                    raise ValueError("Each bridge requires a name.")
+                if not config:
+                    raise ValueError(f"Bridge '{name}' requires a config path.")
+                new_bridges.append(
+                    {
+                        "name": name,
+                        "enabled": bool(item.get("enabled", True)),
+                        "config": config,
+                    }
+                )
+            launcher["bridges"] = new_bridges
+
+        # selected_dockers is deprecated; enabled flags are the source of truth.
+        launcher.pop("selected_dockers", None)
+
+        dumped = yaml.safe_dump(raw, allow_unicode=True, sort_keys=False)
+        self.save_config_text(dumped)
+
     def update_docker_connection(
         self,
         *,
@@ -4406,6 +4652,9 @@ def _build_handler(
                 if parsed.path == "/api/launcher/config":
                     self._handle_launcher_config_update()
                     return
+                if parsed.path == "/api/launcher/structured":
+                    self._handle_launcher_structured_update()
+                    return
                 if parsed.path == "/api/launcher/reload":
                     self._handle_launcher_reload()
                     return
@@ -4952,6 +5201,36 @@ def _build_handler(
             restart = bool(payload.get("restart", False))
             try:
                 response = controller.save_launcher_config(content, restart=restart)
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            except RuntimeError as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+                return
+
+            self._send_json(response)
+
+        def _handle_launcher_structured_update(self) -> None:
+            try:
+                payload = self._read_json_body()
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+
+            structured = payload.get("structured")
+            if not isinstance(structured, dict):
+                self._send_json(
+                    {"error": "JSON field 'structured' is required and must be an object."},
+                    status=HTTPStatus.BAD_REQUEST,
+                )
+                return
+
+            restart = bool(payload.get("restart", False))
+            try:
+                response = controller.save_launcher_structured(structured, restart=restart)
             except ValueError as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
                 return

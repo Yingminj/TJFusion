@@ -708,7 +708,7 @@ def _handle_start(args: argparse.Namespace) -> None:
     docker_names = _resolve_start_docker_names(args)
     if not docker_names:
         raise ValueError(
-            "No docker selected. Run `tjfusion docker-config` first or set docker_launcher.selected_dockers."
+            "No docker enabled. Run `tjfusion docker-config` first or set enabled: true on a docker_launcher.docker_targets entry."
         )
     _run_docker_launch_flow(
         args,
@@ -1031,6 +1031,29 @@ def _read_selected_dockers(launch_config_path: Path) -> list[str]:
         launch_raw = raw.get("launcher", raw)
     if not isinstance(launch_raw, dict):
         return []
+
+    targets_raw = launch_raw.get("docker_targets")
+    if isinstance(targets_raw, list) and targets_raw:
+        legacy_selected = {
+            name.lower() for name in _coerce_docker_name_list(launch_raw.get("selected_dockers", []))
+        }
+        enabled_names: list[str] = []
+        for entry in targets_raw:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("name", "")).strip()
+            if not name:
+                continue
+            if "enabled" in entry:
+                if bool(entry.get("enabled")):
+                    enabled_names.append(name)
+            elif legacy_selected:
+                if name.lower() in legacy_selected:
+                    enabled_names.append(name)
+            else:
+                enabled_names.append(name)
+        return enabled_names
+
     return _coerce_docker_name_list(launch_raw.get("selected_dockers", []))
 
 
@@ -1061,7 +1084,28 @@ def _write_selected_dockers(
 
     if not launch_raw.get("docker_model_root"):
         launch_raw["docker_model_root"] = str(docker_model_root)
-    launch_raw["selected_dockers"] = selected_dockers
+
+    targets_raw = launch_raw.get("docker_targets")
+    if isinstance(targets_raw, list) and targets_raw:
+        # Modern layout: write per-target enabled flags and drop selected_dockers.
+        selected_set = {name.lower() for name in selected_dockers}
+        known: set[str] = set()
+        for entry in targets_raw:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("name", "")).strip()
+            if not name:
+                continue
+            known.add(name.lower())
+            entry["enabled"] = name.lower() in selected_set
+        # Append any selected docker that is not yet part of the catalog.
+        for name in selected_dockers:
+            if name.lower() not in known:
+                targets_raw.append({"name": name, "enabled": True})
+                known.add(name.lower())
+        launch_raw.pop("selected_dockers", None)
+    else:
+        launch_raw["selected_dockers"] = selected_dockers
 
     launch_config_path.parent.mkdir(parents=True, exist_ok=True)
     with launch_config_path.open("w", encoding="utf-8") as handle:

@@ -205,6 +205,7 @@ class DockerTargetEntry:
     name: str
     group: str = "ungrouped"
     location: str = "local"
+    enabled: bool = True
     docker_model_root: str | None = None
     remote_host: str | None = None
     remote_user: str | None = None

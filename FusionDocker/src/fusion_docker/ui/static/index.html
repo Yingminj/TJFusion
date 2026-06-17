@@ -47,24 +47,82 @@
 
             <section class="layout window-view" id="docker-window">
               <div class="panel">
-                <div class="panel-head">
-                  <h2>Fleet Overview</h2>
-                  <span class="pill" id="fleet-summary">Loading...</span>
-                </div>
-                <div class="config-editor launcher-config-editor">
-                  <div class="config-editor-head">
-                    <div class="config-editor-title">
-                      <strong>Launcher Config</strong>
-                      <span id="launcher-config-status">Edit docker_launch.yaml here. Save & Restart will reload the dashboard target list, groups, and bridge definitions from the new config.</span>
-                    </div>
+                <div class="launcher-config collapsed" id="launcher-config">
+                  <div class="config-editor-head launcher-config-head">
+                    <button class="launcher-config-toggle" id="launcher-config-toggle" type="button" aria-expanded="false" aria-controls="launcher-config-body">
+                      <span class="lc-caret">▾</span>
+                      <strong>Launcher Configuration</strong>
+                    </button>
+                    <span id="launcher-config-status" class="launcher-config-status">Toggle dockers on/off, edit groups, and manage bridges.</span>
                     <div class="config-editor-actions">
-                      <button class="control" id="launcher-config-reload" type="button">Reload Config</button>
-                      <button class="control control-restart" id="launcher-config-restart" type="button">Restart Launcher</button>
                       <button class="control" id="launcher-config-save" type="button">Save Config</button>
-                      <button class="control control-restart" id="launcher-config-save-restart" type="button">Save & Restart</button>
+                      <button class="control control-restart" id="launcher-config-save-restart" type="button">Save &amp; Restart</button>
+                      <button class="control" id="launcher-config-reload" type="button" title="Reload config from disk">↻</button>
+                      <button class="control control-restart" id="launcher-config-restart" type="button">Restart Launcher</button>
+                      <button class="control control-ghost" id="launcher-advanced-toggle" type="button" aria-expanded="false">Advanced YAML</button>
                     </div>
                   </div>
-                  <textarea class="config-textarea" id="launcher-config-editor" spellcheck="false" placeholder="docker_launch.yaml will load here."></textarea>
+
+                  <div class="launcher-config-body" id="launcher-config-body">
+                  <div class="launcher-cards" id="launcher-cards">
+                    <section class="lc-card" id="lc-global-card">
+                      <header class="lc-card-head"><strong>Global</strong></header>
+                      <div class="lc-card-body">
+                        <label class="field">
+                          <span>DockerModel Root</span>
+                          <input id="lc-docker-root" type="text" placeholder="${DOCKER_MODEL_ROOT}" />
+                        </label>
+                        <div class="lc-inline-row">
+                          <label class="lc-check"><input type="checkbox" id="lc-tmux" /><span>tmux</span></label>
+                          <label class="lc-check"><input type="checkbox" id="lc-monitor" /><span>monitor</span></label>
+                          <label class="lc-check"><input type="checkbox" id="lc-replace" /><span>replace session</span></label>
+                          <label class="field lc-poll">
+                            <span>Poll (s)</span>
+                            <input id="lc-poll" type="number" min="0.1" step="0.1" value="0.5" />
+                          </label>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="lc-card lc-collapsible" id="lc-targets-card">
+                      <header class="lc-card-head lc-card-toggle" id="lc-targets-toggle" role="button" tabindex="0" aria-expanded="true">
+                        <span class="lc-caret">▾</span>
+                        <strong>Docker Targets</strong>
+                        <span class="lc-count" id="lc-targets-count"></span>
+                      </header>
+                      <div class="lc-card-body" id="lc-targets-body">
+                        <div class="lc-target-list" id="lc-target-list"></div>
+                        <div class="lc-add-row">
+                          <select id="lc-add-target-select" title="Add a docker folder found on disk">
+                            <option value="">+ Add Docker Target…</option>
+                          </select>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="lc-card" id="lc-bridges-card">
+                      <header class="lc-card-head"><strong>Bridges</strong></header>
+                      <div class="lc-card-body">
+                        <div class="lc-bridge-list" id="lc-bridge-list"></div>
+                        <button class="control" id="lc-add-bridge" type="button">+ Add Bridge</button>
+                      </div>
+                    </section>
+                  </div>
+
+                  <div class="config-editor hidden" id="launcher-advanced">
+                    <div class="config-editor-head">
+                      <div class="config-editor-title">
+                        <strong>Advanced YAML</strong>
+                        <span class="lc-advanced-note">Raw docker_launch.yaml. Saving here writes the YAML verbatim and bypasses the form above.</span>
+                      </div>
+                      <div class="config-editor-actions">
+                        <button class="control" id="launcher-advanced-save" type="button">Save YAML</button>
+                        <button class="control control-restart" id="launcher-advanced-save-restart" type="button">Save YAML &amp; Restart</button>
+                      </div>
+                    </div>
+                    <textarea class="config-textarea" id="launcher-config-editor" spellcheck="false" placeholder="docker_launch.yaml will load here."></textarea>
+                  </div>
+                  </div>
                 </div>
                 <div class="groups" id="docker-groups"></div>
               </div>
@@ -101,6 +159,10 @@
                       <div class="detail-tile">
                         <strong>Runtime State</strong>
                         <span id="detail-runtime">-</span>
+                      </div>
+                      <div class="detail-tile">
+                        <strong>Image</strong>
+                        <span id="detail-image">-</span>
                       </div>
                       <div class="detail-tile">
                         <strong>Container Summary</strong>

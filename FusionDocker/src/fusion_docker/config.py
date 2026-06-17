@@ -520,13 +520,18 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
         docker_model_root = str(docker_model_root).strip() or None
         if docker_model_root is not None:
             docker_model_root = _expand_config_path_value(docker_model_root)
+    selected_dockers = _coerce_docker_names(launch_raw.get("selected_dockers", []))
+    # ``selected_dockers`` is deprecated: each docker_targets entry now carries its
+    # own ``enabled`` flag. When a legacy config still lists selected_dockers and an
+    # entry has no explicit ``enabled`` key, derive it from membership.
+    selected_set = {name.lower() for name in selected_dockers} if selected_dockers else None
     docker_targets = _parse_docker_target_entries(
         launch_raw,
         default_docker_model_root=docker_model_root,
+        selected_docker_names=selected_set,
     )
-    selected_dockers = _coerce_docker_names(launch_raw.get("selected_dockers", []))
     if docker_targets:
-        docker_names = [entry.name for entry in docker_targets]
+        docker_names = [entry.name for entry in docker_targets if entry.enabled]
         docker_groups = _build_groups_from_target_entries(docker_targets)
     else:
         docker_groups = _coerce_docker_groups(launch_raw)
@@ -535,8 +540,8 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
             docker_names = _coerce_docker_names(
                 launch_raw.get("dockers", launch_raw.get("docker_names", []))
             )
-    if selected_dockers:
-        docker_names = selected_dockers
+        if selected_dockers:
+            docker_names = selected_dockers
     remote_enabled, remote_host, remote_user, remote_docker_model_root, remote_ssh_port, remote_password = (
         _parse_remote_settings(launch_raw)
     )
@@ -683,6 +688,7 @@ def _parse_docker_target_entries(
     launch_raw: dict[str, Any],
     *,
     default_docker_model_root: str | None,
+    selected_docker_names: set[str] | None = None,
 ) -> list[DockerTargetEntry]:
     raw_targets = launch_raw.get("docker_targets")
     if raw_targets is None:
@@ -713,6 +719,13 @@ def _parse_docker_target_entries(
             raise ValueError(
                 f"docker_targets[{index}].location must be 'localhost', 'local', or 'remote'"
             )
+
+        if "enabled" in raw_target:
+            enabled = bool(raw_target.get("enabled"))
+        elif selected_docker_names is not None:
+            enabled = name.lower() in selected_docker_names
+        else:
+            enabled = True
 
         docker_model_root = raw_target.get("docker_model_root")
         if docker_model_root is None:
@@ -767,6 +780,7 @@ def _parse_docker_target_entries(
                 name=name,
                 group=group,
                 location=location,
+                enabled=enabled,
                 docker_model_root=docker_model_root,
                 remote_host=remote_host if location == "remote" else None,
                 remote_user=remote_user if location == "remote" else None,

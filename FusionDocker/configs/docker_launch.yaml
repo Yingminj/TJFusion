@@ -27,35 +27,35 @@ docker_launcher:
   - name: RealSenseDocker
     group: camera
     location: local
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: Fast-FoundationSteroDocker
     group: vision
     location: local
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: Sam3Docker
     group: vision
     location: local
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: FlowPoseDocker
     group: vision
     location: local
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: SiglipDocker
     group: inference
     location: local
+    enabled: false
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: MarvinDocker
     group: action
     location: local
+    enabled: false
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: VlmDocker
     group: inference
     location: local
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
-  selected_dockers:
-  - RealSenseDocker
-  - Fast-FoundationSteroDocker
-  - FlowPoseDocker
-  - Sam3Docker
-  - VlmDocker
-  - MarvinDocker

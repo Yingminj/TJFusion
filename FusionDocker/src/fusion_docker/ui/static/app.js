@@ -1061,6 +1061,16 @@ ${prettyJson(outputTemplate)}`;
             function setLauncherConfigDirty(isDirty) {
               launcherConfigDirty = Boolean(isDirty);
               document.getElementById("launcher-config-editor").classList.toggle("dirty", launcherConfigDirty);
+              const cards = document.getElementById("launcher-cards");
+              if (cards) {
+                cards.classList.toggle("dirty", launcherConfigDirty);
+              }
+            }
+
+            function markLauncherConfigDirty() {
+              setLauncherConfigDirty(true);
+              document.getElementById("launcher-config-status").textContent =
+                "Unsaved launcher changes. Save Config to write docker_launch.yaml, or Reload to discard.";
             }
 
             function updateLauncherConfigControls(enabled) {
@@ -1070,9 +1080,220 @@ ${prettyJson(outputTemplate)}`;
                 "launcher-config-restart",
                 "launcher-config-save",
                 "launcher-config-save-restart",
+                "launcher-advanced-save",
+                "launcher-advanced-save-restart",
+                "lc-docker-root",
+                "lc-tmux",
+                "lc-monitor",
+                "lc-replace",
+                "lc-poll",
+                "lc-add-target-select",
+                "lc-add-bridge",
               ]) {
-                document.getElementById(nodeId).disabled = !enabled;
+                const node = document.getElementById(nodeId);
+                if (node) {
+                  node.disabled = !enabled;
+                }
               }
+            }
+
+            function buildTargetRow(target) {
+              const row = document.createElement("div");
+              row.className = "lc-target-row";
+              row.dataset.name = target.name;
+              // Location defaults to local; remote details are managed in the
+              // Docker Connection panel, so we only round-trip the value here.
+              row.dataset.location = target.location === "remote" ? "remote" : "local";
+
+              const check = document.createElement("input");
+              check.type = "checkbox";
+              check.className = "lc-target-enabled";
+              check.checked = target.enabled !== false;
+              check.title = "Enable (launch) this docker";
+              check.addEventListener("change", markLauncherConfigDirty);
+
+              const nameLabel = document.createElement("label");
+              nameLabel.className = "lc-target-name";
+              nameLabel.appendChild(check);
+              const nameText = document.createElement("span");
+              nameText.textContent = target.name;
+              nameLabel.appendChild(nameText);
+              if (row.dataset.location === "remote") {
+                const badge = document.createElement("span");
+                badge.className = "lc-remote-badge";
+                badge.textContent = "remote";
+                badge.title = "Runs remotely — edit host details in the Docker Connection panel";
+                nameLabel.appendChild(badge);
+              }
+
+              const group = document.createElement("input");
+              group.type = "text";
+              group.className = "lc-target-group";
+              group.value = target.group || "ungrouped";
+              group.title = "Group";
+              group.addEventListener("input", markLauncherConfigDirty);
+
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "lc-row-remove";
+              remove.textContent = "✕";
+              remove.title = "Remove from catalog";
+              remove.addEventListener("click", () => {
+                row.remove();
+                addTargetSelectOption(target.name);
+                markLauncherConfigDirty();
+              });
+
+              row.appendChild(nameLabel);
+              row.appendChild(group);
+              row.appendChild(remove);
+              return row;
+            }
+
+            function addTargetSelectOption(name) {
+              const select = document.getElementById("lc-add-target-select");
+              if (!select || !name) {
+                return;
+              }
+              const exists = Array.from(select.options).some((opt) => opt.value === name);
+              if (!exists) {
+                const option = document.createElement("option");
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+              }
+            }
+
+            function buildBridgeRow(bridge) {
+              const row = document.createElement("div");
+              row.className = "lc-bridge-row";
+
+              const nameField = document.createElement("input");
+              nameField.type = "text";
+              nameField.className = "lc-bridge-name";
+              nameField.value = bridge.name || "";
+              nameField.placeholder = "Bridge name";
+              nameField.addEventListener("input", markLauncherConfigDirty);
+
+              const enabledLabel = document.createElement("label");
+              enabledLabel.className = "lc-check";
+              const enabled = document.createElement("input");
+              enabled.type = "checkbox";
+              enabled.className = "lc-bridge-enabled";
+              enabled.checked = bridge.enabled !== false;
+              enabled.addEventListener("change", markLauncherConfigDirty);
+              enabledLabel.appendChild(enabled);
+              const enabledText = document.createElement("span");
+              enabledText.textContent = "Enabled";
+              enabledLabel.appendChild(enabledText);
+
+              const configField = document.createElement("input");
+              configField.type = "text";
+              configField.className = "lc-bridge-config";
+              configField.value = bridge.config || "";
+              configField.placeholder = "configs/bridge.example.yaml";
+              configField.addEventListener("input", markLauncherConfigDirty);
+
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.className = "lc-row-remove";
+              remove.textContent = "✕";
+              remove.title = "Remove bridge";
+              remove.addEventListener("click", () => {
+                row.remove();
+                markLauncherConfigDirty();
+              });
+
+              row.appendChild(nameField);
+              row.appendChild(enabledLabel);
+              row.appendChild(configField);
+              row.appendChild(remove);
+              return row;
+            }
+
+            function renderLauncherStructured(structured) {
+              const rootInput = document.getElementById("lc-docker-root");
+              const targetList = document.getElementById("lc-target-list");
+              const bridgeList = document.getElementById("lc-bridge-list");
+              const addSelect = document.getElementById("lc-add-target-select");
+              const countNode = document.getElementById("lc-targets-count");
+
+              if (!structured || !structured.available) {
+                rootInput.value = "";
+                document.getElementById("lc-tmux").checked = true;
+                document.getElementById("lc-monitor").checked = true;
+                document.getElementById("lc-replace").checked = false;
+                document.getElementById("lc-poll").value = "0.5";
+                targetList.innerHTML = '<div class="lc-empty">No launcher config yet. Save to create one.</div>';
+                bridgeList.innerHTML = "";
+                addSelect.innerHTML = '<option value="">+ Add Docker Target…</option>';
+                countNode.textContent = "";
+                return;
+              }
+
+              rootInput.value = structured.docker_model_root || "";
+              document.getElementById("lc-tmux").checked = structured.tmux !== false;
+              document.getElementById("lc-monitor").checked = structured.monitor !== false;
+              document.getElementById("lc-replace").checked = Boolean(structured.replace_session);
+              document.getElementById("lc-poll").value =
+                structured.poll_interval != null ? structured.poll_interval : 0.5;
+
+              const targets = Array.isArray(structured.docker_targets) ? structured.docker_targets : [];
+              targetList.innerHTML = "";
+              if (targets.length === 0) {
+                targetList.innerHTML = '<div class="lc-empty">No docker targets defined yet.</div>';
+              } else {
+                for (const target of targets) {
+                  targetList.appendChild(buildTargetRow(target));
+                }
+              }
+              const enabledCount = targets.filter((t) => t.enabled !== false).length;
+              countNode.textContent = `${enabledCount}/${targets.length} active`;
+
+              const bridges = Array.isArray(structured.bridges) ? structured.bridges : [];
+              bridgeList.innerHTML = "";
+              for (const bridge of bridges) {
+                bridgeList.appendChild(buildBridgeRow(bridge));
+              }
+
+              addSelect.innerHTML = '<option value="">+ Add Docker Target…</option>';
+              const available = Array.isArray(structured.available_dockers)
+                ? structured.available_dockers
+                : [];
+              for (const name of available) {
+                addTargetSelectOption(name);
+              }
+            }
+
+            function collectLauncherStructured() {
+              const pollRaw = document.getElementById("lc-poll").value;
+              const pollValue = Number.parseFloat(pollRaw);
+              const targets = [];
+              for (const row of document.querySelectorAll("#lc-target-list .lc-target-row")) {
+                targets.push({
+                  name: row.dataset.name,
+                  group: (row.querySelector(".lc-target-group").value || "ungrouped").trim() || "ungrouped",
+                  location: row.dataset.location || "local",
+                  enabled: row.querySelector(".lc-target-enabled").checked,
+                });
+              }
+              const bridges = [];
+              for (const row of document.querySelectorAll("#lc-bridge-list .lc-bridge-row")) {
+                bridges.push({
+                  name: (row.querySelector(".lc-bridge-name").value || "").trim(),
+                  enabled: row.querySelector(".lc-bridge-enabled").checked,
+                  config: (row.querySelector(".lc-bridge-config").value || "").trim(),
+                });
+              }
+              return {
+                docker_model_root: document.getElementById("lc-docker-root").value.trim(),
+                tmux: document.getElementById("lc-tmux").checked,
+                monitor: document.getElementById("lc-monitor").checked,
+                replace_session: document.getElementById("lc-replace").checked,
+                poll_interval: Number.isFinite(pollValue) ? pollValue : 0.5,
+                docker_targets: targets,
+                bridges,
+              };
             }
 
             function setDockerConnectionDirty(isDirty) {
@@ -1304,20 +1525,25 @@ ${prettyJson(outputTemplate)}`;
 
               if (!payload) {
                 editor.value = "";
+                renderLauncherStructured(null);
                 setLauncherConfigDirty(false);
                 updateLauncherConfigControls(false);
                 statusNode.textContent = "Launcher config is unavailable.";
                 return;
               }
 
+              // A single dirty flag governs both editors (form + Advanced YAML);
+              // skip clobbering either when the user has unsaved edits.
               if (resetDraft || !launcherConfigDirty) {
                 editor.value = payload.content || "";
+                renderLauncherStructured(payload.structured || null);
                 setLauncherConfigDirty(false);
               }
 
               updateLauncherConfigControls(true);
               if (launcherConfigDirty && !resetDraft) {
-                statusNode.textContent = "Unsaved launcher config changes. Save to write the YAML or reload to discard your draft.";
+                statusNode.textContent =
+                  "Unsaved launcher changes. Save Config to write docker_launch.yaml, or Reload to discard.";
                 return;
               }
 
@@ -1560,6 +1786,7 @@ ${runtimeMessage}`;
               document.getElementById("viewer-status-chip").textContent = docker.status;
               document.getElementById("detail-group").textContent = docker.group;
               document.getElementById("detail-runtime").textContent = `${docker.status} / session ${docker.session_state}`;
+              document.getElementById("detail-image").textContent = docker.image || "untracked";
               document.getElementById("detail-container").textContent = docker.container_summary;
               document.getElementById("detail-ports").textContent = docker.ports || "untracked";
               document.getElementById("log-source").textContent = "source: status";
@@ -1578,9 +1805,7 @@ ${runtimeMessage}`;
               const bridges = payload.bridges || [];
               const summary = payload.summary || {};
               const root = document.getElementById("docker-groups");
-              const summaryNode = document.getElementById("fleet-summary");
               root.innerHTML = "";
-              summaryNode.textContent = `${summary.running || 0} running / ${summary.error || 0} error / ${summary.total || 0} total`;
               updateMetrics(summary);
               renderBridgeList(bridges);
               if (activeWindow === "bridge" && bridges.length) {
@@ -1612,11 +1837,6 @@ ${runtimeMessage}`;
                     <div class="card-top">
                       <strong>${escapeHtml(docker.name)}</strong>
                       <span class="status-chip ${statusClass(docker.status)}">${escapeHtml(docker.status)}</span>
-                    </div>
-                    <div class="card-meta">
-                      image: ${escapeHtml(docker.image || "untracked")}<br>
-                      container: ${escapeHtml(docker.container_summary)}<br>
-                      ports: ${escapeHtml(docker.ports || "untracked")}
                     </div>
                     <div class="card-bottom">
                       <div class="card-actions">
@@ -1760,6 +1980,50 @@ ${runtimeMessage}`;
               }
             }
 
+            async function saveLauncherStructured(restart = false) {
+              const structured = collectLauncherStructured();
+              try {
+                const response = await postJson("/api/launcher/structured", {
+                  structured,
+                  restart,
+                });
+                showActionBanner(response.message || "Launcher configuration saved.");
+                if (response.status) {
+                  renderStatus(response.status);
+                } else {
+                  await refreshStatus();
+                }
+                renderLauncherConfig(response.config || null, true);
+                await refreshZmqSchema(false);
+                if (selectedDocker) {
+                  await refreshLogs(false);
+                }
+              } catch (error) {
+                showActionBanner(error.message, true);
+              }
+            }
+
+            function setLauncherConfigCollapsed(collapsed) {
+              const root = document.getElementById("launcher-config");
+              const toggle = document.getElementById("launcher-config-toggle");
+              root.classList.toggle("collapsed", collapsed);
+              toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+            }
+
+            function toggleLauncherAdvanced(force) {
+              const advanced = document.getElementById("launcher-advanced");
+              const toggle = document.getElementById("launcher-advanced-toggle");
+              const show = typeof force === "boolean" ? force : advanced.classList.contains("hidden");
+              if (show) {
+                // The Advanced YAML editor lives inside the collapsible body, so
+                // make sure the config form is expanded when it is revealed.
+                setLauncherConfigCollapsed(false);
+              }
+              advanced.classList.toggle("hidden", !show);
+              toggle.setAttribute("aria-expanded", show ? "true" : "false");
+              toggle.classList.toggle("active", show);
+            }
+
             async function restartLauncherConfig() {
               try {
                 const response = await postJson("/api/launcher/reload", {});
@@ -1788,7 +2052,7 @@ ${runtimeMessage}`;
                 const payload = await fetchJson("/api/status");
                 renderStatus(payload);
               } catch (error) {
-                document.getElementById("fleet-summary").textContent = error.message;
+                showActionBanner(error.message, true);
               } finally {
                 statusRefreshInFlight = false;
               }
@@ -2093,6 +2357,9 @@ ${runtimeMessage}`;
                 document.getElementById("detail-runtime").textContent = selectedState
                   ? `${selectedState.status} / session ${selectedState.session_state}`
                   : "unknown";
+                document.getElementById("detail-image").textContent = selectedState
+                  ? (selectedState.image || "untracked")
+                  : "-";
                 document.getElementById("detail-container").textContent = selectedState
                   ? selectedState.container_summary
                   : "-";
@@ -2122,13 +2389,64 @@ ${runtimeMessage}`;
             document.getElementById("refresh-logs").addEventListener("click", () => refreshLogs(false));
             document.getElementById("launcher-config-reload").addEventListener("click", () => refreshLauncherConfig(true));
             document.getElementById("launcher-config-restart").addEventListener("click", () => restartLauncherConfig());
-            document.getElementById("launcher-config-save").addEventListener("click", () => saveLauncherConfig(false));
-            document.getElementById("launcher-config-save-restart").addEventListener("click", () => saveLauncherConfig(true));
+            document.getElementById("launcher-config-save").addEventListener("click", () => saveLauncherStructured(false));
+            document.getElementById("launcher-config-save-restart").addEventListener("click", () => saveLauncherStructured(true));
+            document.getElementById("launcher-advanced-save").addEventListener("click", () => saveLauncherConfig(false));
+            document.getElementById("launcher-advanced-save-restart").addEventListener("click", () => saveLauncherConfig(true));
+            document.getElementById("launcher-advanced-toggle").addEventListener("click", () => toggleLauncherAdvanced());
+            document.getElementById("launcher-config-toggle").addEventListener("click", () => {
+              const collapsed = document.getElementById("launcher-config").classList.contains("collapsed");
+              setLauncherConfigCollapsed(!collapsed);
+            });
             document.getElementById("launcher-config-editor").addEventListener("input", () => {
               setLauncherConfigDirty(true);
               document.getElementById("launcher-config-status").textContent =
-                "Unsaved launcher config changes. Save to write the YAML or reload to discard your draft.";
+                "Unsaved YAML changes. Save YAML to write docker_launch.yaml, or reload to discard your draft.";
             });
+            for (const nodeId of ["lc-docker-root", "lc-poll"]) {
+              document.getElementById(nodeId).addEventListener("input", markLauncherConfigDirty);
+            }
+            for (const nodeId of ["lc-tmux", "lc-monitor", "lc-replace"]) {
+              document.getElementById(nodeId).addEventListener("change", markLauncherConfigDirty);
+            }
+            document.getElementById("lc-add-bridge").addEventListener("click", () => {
+              const list = document.getElementById("lc-bridge-list");
+              list.appendChild(buildBridgeRow({ name: "", enabled: true, config: "" }));
+              markLauncherConfigDirty();
+            });
+            document.getElementById("lc-add-target-select").addEventListener("change", (event) => {
+              const name = event.target.value;
+              if (!name) {
+                return;
+              }
+              const list = document.getElementById("lc-target-list");
+              const empty = list.querySelector(".lc-empty");
+              if (empty) {
+                empty.remove();
+              }
+              list.appendChild(buildTargetRow({ name, group: "ungrouped", location: "local", enabled: true }));
+              const option = Array.from(event.target.options).find((opt) => opt.value === name);
+              if (option) {
+                option.remove();
+              }
+              event.target.value = "";
+              markLauncherConfigDirty();
+            });
+            (function wireTargetsCollapse() {
+              const toggle = document.getElementById("lc-targets-toggle");
+              const card = document.getElementById("lc-targets-card");
+              const apply = () => {
+                const collapsed = card.classList.toggle("collapsed");
+                toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+              };
+              toggle.addEventListener("click", apply);
+              toggle.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  apply();
+                }
+              });
+            })();
             document.getElementById("start-docker").addEventListener("click", () => triggerDockerAction("start"));
             document.getElementById("restart-docker").addEventListener("click", () => triggerDockerAction("restart"));
             document.getElementById("stop-docker").addEventListener("click", () => triggerDockerAction("stop"));
