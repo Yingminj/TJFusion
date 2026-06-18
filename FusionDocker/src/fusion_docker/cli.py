@@ -481,8 +481,9 @@ def _build_parser() -> argparse.ArgumentParser:
     ui_parser.add_argument(
         "--auth-token",
         help=(
-            "Auth token required for API requests. Only used when binding to a "
-            "non-loopback host; auto-generated and printed at startup if omitted."
+            "Optional auth token for API requests. Only enforced when binding to a "
+            "non-loopback host and a token is supplied; no token is generated "
+            "automatically (the dashboard is intended for local use for now)."
         ),
     )
 

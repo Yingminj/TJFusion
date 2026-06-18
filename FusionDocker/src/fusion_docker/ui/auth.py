@@ -7,9 +7,12 @@ policy here keeps it safe by default:
 - **Loopback bind (default):** no token required, but the ``Host`` header must be
   a loopback name. This blocks DNS-rebinding attacks where a malicious web page
   resolves a hostname to 127.0.0.1 and drives the local dashboard.
-- **Non-loopback bind (opt-in network exposure):** a token is required on every
-  ``/api/*`` request. The token is supplied via the ``X-Auth-Token`` header or a
-  ``?token=`` query parameter (the startup banner prints a ready-to-use URL).
+- **Non-loopback bind (opt-in network exposure):** a token is enforced only when
+  one is explicitly supplied (e.g. via ``--auth-token``). No token is generated
+  automatically — the dashboard is intended for local use for now. When a token
+  is supplied it must be sent on every ``/api/*`` request via the
+  ``X-Auth-Token`` header or a ``?token=`` query parameter (the startup banner
+  prints a ready-to-use URL).
 
 Cross-site state changes are blocked for both modes: any POST that carries an
 ``Origin`` header must be same-origin with the ``Host`` it is talking to.
@@ -22,7 +25,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hmac
-import secrets
 from urllib.parse import parse_qs, urlparse
 
 _LOOPBACK_HOSTNAMES = {"127.0.0.1", "::1", "localhost", "0:0:0:0:0:0:0:1"}
@@ -75,15 +77,13 @@ class AuthPolicy:
     def create(cls, *, host: str, token: str | None = None) -> "AuthPolicy":
         """Build a policy for the given bind host.
 
-        For non-loopback binds a token is mandatory; one is generated when the
-        caller does not supply it.
+        No token is generated automatically: the dashboard is intended for local
+        use for now. A token is only enforced when the caller explicitly supplies
+        one (and the bind host is non-loopback).
         """
 
-        loopback = _is_loopback_bind(host)
-        require_token = not loopback
+        require_token = not _is_loopback_bind(host)
         effective_token = (token or "").strip() or None
-        if require_token and effective_token is None:
-            effective_token = secrets.token_urlsafe(24)
         return cls(bind_host=host, token=effective_token, require_token=require_token)
 
     @property
