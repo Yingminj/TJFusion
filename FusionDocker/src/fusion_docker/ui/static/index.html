@@ -39,8 +39,6 @@
             <div class="view-switch" role="tablist" aria-label="Management windows">
               <button class="view-tab active" id="tab-docker" data-window="docker" type="button">Docker Window</button>
               <button class="view-tab" id="tab-bridge" data-window="bridge" type="button">Bridge Window</button>
-              <button class="view-tab" id="tab-zmq" data-window="zmq" type="button">ZMQ Window</button>
-              <button class="view-tab" id="tab-video" data-window="video" type="button">Video Window</button>
             </div>
 
             <div class="action-banner global-banner" id="action-banner"></div>
@@ -48,7 +46,7 @@
             <section class="layout window-view" id="docker-window">
               <div class="panel">
                 <div class="launcher-config collapsed" id="launcher-config">
-                  <div class="config-editor-head launcher-config-head">
+                  <div class="config-editor-head card-head launcher-config-head">
                     <button class="launcher-config-toggle" id="launcher-config-toggle" type="button" aria-expanded="false" aria-controls="launcher-config-body">
                       <span class="lc-caret">▾</span>
                       <strong>Launcher Configuration</strong>
@@ -110,8 +108,8 @@
                   </div>
 
                   <div class="config-editor hidden" id="launcher-advanced">
-                    <div class="config-editor-head">
-                      <div class="config-editor-title">
+                    <div class="config-editor-head card-head">
+                      <div class="config-editor-title card-title">
                         <strong>Advanced YAML</strong>
                         <span class="lc-advanced-note">Raw docker_launch.yaml. Saving here writes the YAML verbatim and bypasses the form above.</span>
                       </div>
@@ -128,7 +126,7 @@
               </div>
 
               <div class="panel viewer-panel">
-                <div class="panel-head viewer-head">
+                <div class="panel-head card-head viewer-head">
                   <div class="viewer-title">
                     <div class="viewer-title-line">
                       <h3 id="viewer-name">Select a docker</h3>
@@ -180,9 +178,9 @@
                     <pre class="log-output placeholder" id="log-output">No docker selected yet.</pre>
                   </div>
                   <div class="subview subview-config hidden" id="docker-subview-config">
-                    <div class="docker-connection-card">
-                      <div class="docker-connection-head">
-                        <div class="docker-connection-title">
+                    <div class="docker-connection-card card-surface">
+                      <div class="docker-connection-head card-head">
+                        <div class="docker-connection-title card-title">
                           <strong>Docker Connection</strong>
                           <span id="docker-connection-status">
                             Select a docker to edit localhost/remote launch mapping.
@@ -232,9 +230,9 @@
                         </label>
                       </div>
                     </div>
-                    <div class="docker-console-card">
-                      <div class="docker-console-head">
-                        <div class="docker-console-title">
+                    <div class="docker-console-card card-surface">
+                      <div class="docker-console-head card-head">
+                        <div class="docker-console-title card-title">
                           <strong>Docker Service Config</strong>
                           <span id="docker-service-config-status">Select docker to load docker/server yaml config.</span>
                         </div>
@@ -270,7 +268,7 @@
 
             <section class="window-view hidden" id="bridge-window">
               <div class="panel">
-                <div class="panel-head viewer-head">
+                <div class="panel-head card-head viewer-head">
                   <div class="viewer-title">
                     <div class="viewer-title-line">
                       <h3 id="bridge-view-name">Bridge Console</h3>
@@ -307,8 +305,8 @@
                     </div>
                   </div>
                   <div class="config-editor config-editor-split">
-                    <div class="config-editor-head">
-                      <div class="config-editor-title">
+                    <div class="config-editor-head card-head">
+                      <div class="config-editor-title card-title">
                         <strong>Config Editor</strong>
                         <span id="bridge-config-status">Edit the selected bridge YAML here, then save it back to disk or save and restart to reload the new config.</span>
                       </div>
@@ -343,149 +341,6 @@
               </div>
             </section>
 
-            <section class="window-view hidden" id="zmq-window">
-              <div class="panel">
-                <div class="panel-head viewer-head">
-                  <div class="viewer-title">
-                    <div class="viewer-title-line">
-                      <h3>ZMQ Test Console</h3>
-                      <span class="status-chip status-unknown">ready</span>
-                    </div>
-                    <p>Choose any docker endpoint and test ZMQ request/response mapping online.</p>
-                  </div>
-                </div>
-                <div class="zmq-window-body">
-                  <div class="zmq-test-card">
-                    <div class="zmq-test-head">
-                      <div class="zmq-test-title">
-                        <strong>ZMQ Online Test</strong>
-                        <span id="zmq-test-status">Select docker, set endpoint/request JSON, and send live ZMQ REQ test.</span>
-                      </div>
-                      <div class="config-editor-actions">
-                        <button class="control" id="zmq-test-template" type="button">Load Template</button>
-                        <button class="control" id="zmq-test-random" type="button">Random By Schema</button>
-                        <button class="control" id="zmq-test-send" type="button">Send Test</button>
-                        <button class="control" id="zmq-test-refresh" type="button">Refresh History</button>
-                      </div>
-                    </div>
-                    <div class="zmq-test-grid">
-                      <label class="field">
-                        <span>Docker</span>
-                        <select id="zmq-test-docker"></select>
-                      </label>
-                      <label class="field">
-                        <span>ZMQ Endpoint</span>
-                        <input id="zmq-test-endpoint" type="text" placeholder="tcp://127.0.0.1:5555" />
-                      </label>
-                      <label class="field">
-                        <span>Timeout (ms)</span>
-                        <input id="zmq-test-timeout" type="number" min="100" max="60000" step="100" value="4000" />
-                      </label>
-                    </div>
-                    <label class="field">
-                      <span>Request JSON</span>
-                      <textarea class="json-textarea" id="zmq-test-request" spellcheck="false" placeholder="{
-  &quot;request_id&quot;: &quot;...&quot;,
-  &quot;rgb_image&quot;: &quot;&lt;base64&gt;&quot;,
-  &quot;depth_image&quot;: &quot;&lt;base64&gt;&quot;
-}"></textarea>
-                    </label>
-                    <div class="zmq-schema-card">
-                      <div class="zmq-schema-head">
-                        <strong>Schema Visualizer</strong>
-                        <span id="zmq-schema-note">Select docker to inspect input/output schema.</span>
-                      </div>
-                      <div class="zmq-schema-panels">
-                        <div class="zmq-schema-panel">
-                          <div class="zmq-schema-panel-head">
-                            <strong>Input Schema</strong>
-                            <span id="zmq-input-schema-meta">-</span>
-                          </div>
-                          <div class="zmq-schema-fields" id="zmq-input-schema-fields">
-                            <span class="schema-chip-empty">No schema loaded.</span>
-                          </div>
-                          <pre class="json-output schema-output" id="zmq-input-schema-raw">No input schema loaded.</pre>
-                        </div>
-                        <div class="zmq-schema-panel">
-                          <div class="zmq-schema-panel-head">
-                            <strong>Output Schema</strong>
-                            <span id="zmq-output-schema-meta">-</span>
-                          </div>
-                          <div class="zmq-schema-fields" id="zmq-output-schema-fields">
-                            <span class="schema-chip-empty">No schema loaded.</span>
-                          </div>
-                          <pre class="json-output schema-output" id="zmq-output-schema-raw">No output schema loaded.</pre>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="detail-strip bridge-detail-strip">
-                      <div class="detail-tile">
-                        <strong>Latest Request</strong>
-                        <span id="zmq-latest-request-id">-</span>
-                      </div>
-                      <div class="detail-tile">
-                        <strong>Latest Status</strong>
-                        <span id="zmq-latest-status">idle</span>
-                      </div>
-                      <div class="detail-tile">
-                        <strong>Elapsed</strong>
-                        <span id="zmq-latest-elapsed">-</span>
-                      </div>
-                      <div class="detail-tile">
-                        <strong>Last Update</strong>
-                        <span id="zmq-latest-updated">-</span>
-                      </div>
-                    </div>
-                    <label class="field">
-                      <span>Response JSON / Error</span>
-                      <pre class="json-output" id="zmq-test-response">No test has been sent yet.</pre>
-                    </label>
-                    <label class="field">
-                      <span>Request-Response Mapping History</span>
-                      <div class="zmq-history-list" id="zmq-test-history">
-                        <div class="zmq-history-item">No history yet.</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="window-view hidden" id="video-window">
-              <div class="panel">
-                <div class="panel-head viewer-head">
-                  <div class="viewer-title">
-                    <div class="viewer-title-line">
-                      <h3>Live Video Wall</h3>
-                      <span class="status-chip status-running" id="video-stream-count">0 stream(s)</span>
-                    </div>
-                    <p>Each docker can publish a latest frame with `title + base64`, and the dashboard will render it here.</p>
-                  </div>
-                  <div class="viewer-actions">
-                    <button class="control" id="video-refresh" type="button">Refresh Video Wall</button>
-                  </div>
-                </div>
-                <div class="config-editor">
-                  <div class="config-editor-head">
-                    <div class="config-editor-title">
-                      <strong>Upload Interface</strong>
-                      <span id="video-stream-status">POST `/api/video-stream` with JSON `{title, frame_base64, mime_type?, source?}`.</span>
-                    </div>
-                  </div>
-                  <pre class="json-output" id="video-stream-api-example">curl -X POST http://127.0.0.1:8765/api/video-stream   -H 'Content-Type: application/json'   -d '{
-    "title": "Siglip Preview",
-    "frame_base64": "&lt;base64_jpg_or_png&gt;",
-    "mime_type": "image/jpeg",
-    "source": "SiglipDocker"
-  }'</pre>
-                </div>
-                <div class="groups video-stream-grid" id="video-stream-grid">
-                  <div class="group-block">
-                    <div class="group-title"><strong>No streams yet</strong><span>POST a frame to `/api/video-stream`.</span></div>
-                  </div>
-                </div>
-              </div>
-            </section>
           </div>
 
           <script src="/static/app.js" defer></script>

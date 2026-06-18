@@ -7,15 +7,9 @@
             let dockerServiceConfigDirty = false;
             let lastStatusPayload = null;
             let activeWindow = "docker";
-            let zmqSchema = null;
-            let lastZmqTemplateDocker = null;
-            let selectedZmqDocker = null;
-            let lastVideoPayload = null;
             let statusRefreshInFlight = false;
             let dockerLogsRefreshInFlight = false;
             let bridgeLogsRefreshInFlight = false;
-            let zmqHistoryRefreshInFlight = false;
-            let videoRefreshInFlight = false;
             let bridgeGraphState = null;
             let bridgeGraphRenderQueued = false;
             let bridgeGraphEventsReady = false;
@@ -550,463 +544,6 @@
               }
               window.addEventListener("resize", () => scheduleBridgeGraphRedraw());
               bridgeGraphEventsReady = true;
-            }
-
-            function renderZmqHistory(history) {
-              const root = document.getElementById("zmq-test-history");
-              root.innerHTML = "";
-              if (!history || !history.length) {
-                root.innerHTML = '<div class="zmq-history-item">No history yet.</div>';
-                return;
-              }
-
-              for (const item of history.slice(0, 12)) {
-                const requestId = item.request_id || "unknown";
-                const elapsed = Number(item.elapsed_ms || 0).toFixed(2);
-                const status = (item.status || "unknown").toUpperCase();
-                const startedAt = item.started_at ? formatTime(item.started_at) : "-";
-                const row = document.createElement("div");
-                row.className = "zmq-history-item";
-                row.innerHTML = `
-                  <strong>${escapeHtml(item.docker_name || "-")}</strong>
-                  | <span>${escapeHtml(status)}</span>
-                  | <span>${escapeHtml(requestId)}</span>
-                  | <span>${escapeHtml(elapsed)} ms</span>
-                  <br>
-                  <span>${escapeHtml(item.endpoint || "-")}</span>
-                  <br>
-                  <span>${escapeHtml(startedAt)}</span>
-                `;
-                root.appendChild(row);
-              }
-            }
-
-            function renderZmqRecord(record) {
-              const responseNode = document.getElementById("zmq-test-response");
-              if (!record) {
-                document.getElementById("zmq-latest-request-id").textContent = "-";
-                document.getElementById("zmq-latest-status").textContent = "idle";
-                document.getElementById("zmq-latest-elapsed").textContent = "-";
-                document.getElementById("zmq-latest-updated").textContent = "-";
-                responseNode.classList.remove("error-state");
-                responseNode.textContent = "No test has been sent yet.";
-                return;
-              }
-
-              document.getElementById("zmq-latest-request-id").textContent = record.request_id || "-";
-              document.getElementById("zmq-latest-status").textContent = record.status || "unknown";
-              document.getElementById("zmq-latest-elapsed").textContent = `${Number(record.elapsed_ms || 0).toFixed(2)} ms`;
-              document.getElementById("zmq-latest-updated").textContent = formatTime(record.started_at || "");
-              const isError = (record.status || "").toLowerCase() === "error";
-              responseNode.classList.toggle("error-state", isError);
-
-              const responseText = record.error
-                ? `[ERROR] ${record.error}
-
-Request:
-${record.request_text || prettyJson(record.request_json || {})}`
-                : (record.response_text || prettyJson(record.response_json || {}));
-              responseNode.textContent = responseText || "No response payload.";
-            }
-
-            function applyZmqDockerOptions(dockers, preferredDockerName = null) {
-              const selectNode = document.getElementById("zmq-test-docker");
-              const endpointNode = document.getElementById("zmq-test-endpoint");
-              const current = preferredDockerName || selectedZmqDocker || selectNode.value || selectedDocker || "";
-              const options = dockers || [];
-
-              selectNode.innerHTML = "";
-              for (const docker of options) {
-                const option = document.createElement("option");
-                option.value = docker.name;
-                option.textContent = `${docker.name} (${docker.group || "ungrouped"})`;
-                selectNode.appendChild(option);
-              }
-
-              if (!options.length) {
-                endpointNode.value = "";
-                selectedZmqDocker = null;
-                updateZmqSchemaVisualizer(null);
-                return;
-              }
-
-              const hasCurrent = options.some((item) => item.name === current);
-              selectNode.value = hasCurrent ? current : options[0].name;
-              selectedZmqDocker = selectNode.value;
-              const selectedItem = options.find((item) => item.name === selectNode.value) || options[0];
-              endpointNode.value = selectedItem.endpoint || "";
-            }
-
-            function findZmqDockerItem(dockerName) {
-              if (!zmqSchema || !Array.isArray(zmqSchema.dockers) || !dockerName) {
-                return null;
-              }
-              return zmqSchema.dockers.find((item) => item.name === dockerName) || null;
-            }
-
-            function normalizeSchemaType(schemaNode) {
-              if (!schemaNode || typeof schemaNode !== "object") {
-                return "unknown";
-              }
-              if (typeof schemaNode.type === "string" && schemaNode.type.trim()) {
-                return schemaNode.type.trim();
-              }
-              if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
-                return "enum";
-              }
-              if (schemaNode.properties && typeof schemaNode.properties === "object") {
-                return "object";
-              }
-              if (schemaNode.items) {
-                return "array";
-              }
-              return "unknown";
-            }
-
-            function collectSchemaSummary(schemaDoc) {
-              const empty = {
-                fieldCount: 0,
-                requiredCount: 0,
-                fields: [],
-              };
-              if (!schemaDoc || typeof schemaDoc !== "object") {
-                return empty;
-              }
-
-              const properties = schemaDoc.properties;
-              if (!properties || typeof properties !== "object") {
-                return empty;
-              }
-
-              const requiredList = Array.isArray(schemaDoc.required) ? schemaDoc.required : [];
-              const requiredSet = new Set(requiredList.map((item) => String(item)));
-              const fields = Object.entries(properties).map(([name, fieldSchema]) => {
-                const typeValue = normalizeSchemaType(fieldSchema);
-                return {
-                  name: String(name),
-                  type: typeValue,
-                  required: requiredSet.has(String(name)),
-                };
-              });
-
-              return {
-                fieldCount: fields.length,
-                requiredCount: fields.filter((item) => item.required).length,
-                fields,
-              };
-            }
-
-            function renderSchemaFieldChips(nodeId, fields) {
-              const node = document.getElementById(nodeId);
-              node.innerHTML = "";
-              if (!fields || !fields.length) {
-                node.innerHTML = '<span class="schema-chip-empty">No top-level fields.</span>';
-                return;
-              }
-
-              for (const field of fields) {
-                const chip = document.createElement("span");
-                chip.className = `schema-chip${field.required ? " schema-required" : ""}`;
-                chip.innerHTML = `
-                  <span>${escapeHtml(field.name)}</span>
-                  <span class="schema-type">${escapeHtml(field.type || "unknown")}</span>
-                `;
-                node.appendChild(chip);
-              }
-            }
-
-            function renderSchemaPane(options) {
-              const {
-                schema,
-                pathText,
-                metaNodeId,
-                fieldsNodeId,
-                rawNodeId,
-                emptyRawMessage,
-              } = options;
-
-              const summary = collectSchemaSummary(schema);
-              const metaNode = document.getElementById(metaNodeId);
-              const rawNode = document.getElementById(rawNodeId);
-
-              if (schema && typeof schema === "object") {
-                const topType = normalizeSchemaType(schema);
-                metaNode.textContent = `${summary.fieldCount} field(s) / ${summary.requiredCount} required / type=${topType}`;
-                renderSchemaFieldChips(fieldsNodeId, summary.fields);
-                rawNode.textContent = prettyJson(schema);
-              } else {
-                metaNode.textContent = "schema missing";
-                renderSchemaFieldChips(fieldsNodeId, []);
-                rawNode.textContent = emptyRawMessage;
-              }
-              if (pathText) {
-                rawNode.title = pathText;
-              } else {
-                rawNode.removeAttribute("title");
-              }
-            }
-
-            function updateZmqSchemaVisualizer(dockerItem) {
-              const noteNode = document.getElementById("zmq-schema-note");
-              if (!dockerItem) {
-                noteNode.textContent = "Select docker to inspect input/output schema.";
-                renderSchemaPane({
-                  schema: null,
-                  pathText: "",
-                  metaNodeId: "zmq-input-schema-meta",
-                  fieldsNodeId: "zmq-input-schema-fields",
-                  rawNodeId: "zmq-input-schema-raw",
-                  emptyRawMessage: "No input schema loaded.",
-                });
-                renderSchemaPane({
-                  schema: null,
-                  pathText: "",
-                  metaNodeId: "zmq-output-schema-meta",
-                  fieldsNodeId: "zmq-output-schema-fields",
-                  rawNodeId: "zmq-output-schema-raw",
-                  emptyRawMessage: "No output schema loaded.",
-                });
-                return;
-              }
-
-              const inputPath = dockerItem.request_input_path || "";
-              const outputPath = dockerItem.request_output_path || "";
-              const noteParts = [];
-              if (inputPath) {
-                noteParts.push(`input: ${inputPath}`);
-              }
-              if (outputPath) {
-                noteParts.push(`output: ${outputPath}`);
-              }
-              if (dockerItem.request_format_note) {
-                noteParts.push(dockerItem.request_format_note);
-              }
-              noteNode.textContent = noteParts.length
-                ? noteParts.join(" | ")
-                : "Schema loaded from RequestFormat.";
-
-              renderSchemaPane({
-                schema: dockerItem.input_schema || null,
-                pathText: inputPath,
-                metaNodeId: "zmq-input-schema-meta",
-                fieldsNodeId: "zmq-input-schema-fields",
-                rawNodeId: "zmq-input-schema-raw",
-                emptyRawMessage: "Input schema file is missing or not valid JSON schema.",
-              });
-              renderSchemaPane({
-                schema: dockerItem.output_schema || null,
-                pathText: outputPath,
-                metaNodeId: "zmq-output-schema-meta",
-                fieldsNodeId: "zmq-output-schema-fields",
-                rawNodeId: "zmq-output-schema-raw",
-                emptyRawMessage: "Output schema file is missing or not valid JSON schema.",
-              });
-            }
-
-            function applyZmqTemplatesForDocker(dockerName, forceRequest = true, forceResponse = true) {
-              const dockerItem = findZmqDockerItem(dockerName);
-              if (!dockerItem) {
-                updateZmqSchemaVisualizer(null);
-                return;
-              }
-
-              const requestNode = document.getElementById("zmq-test-request");
-              const responseNode = document.getElementById("zmq-test-response");
-              const statusNode = document.getElementById("zmq-test-status");
-
-              if (forceRequest) {
-                const requestTemplate = dockerItem.request_template || (zmqSchema && zmqSchema.request_template) || {};
-                requestNode.value = prettyJson(requestTemplate);
-              }
-
-              if (forceResponse) {
-                const outputTemplate = dockerItem.expected_output_template;
-                if (outputTemplate !== null && outputTemplate !== undefined) {
-                  responseNode.classList.remove("error-state");
-                  responseNode.textContent = `[EXPECTED OUTPUT TEMPLATE]
-${prettyJson(outputTemplate)}`;
-                } else {
-                  responseNode.classList.remove("error-state");
-                  responseNode.textContent = "No test has been sent yet.";
-                }
-                document.getElementById("zmq-latest-request-id").textContent = "-";
-                document.getElementById("zmq-latest-status").textContent = "idle";
-                document.getElementById("zmq-latest-elapsed").textContent = "-";
-                document.getElementById("zmq-latest-updated").textContent = "-";
-              }
-
-              const noteParts = [];
-              if (dockerItem.request_input_path) {
-                noteParts.push(`input: ${dockerItem.request_input_path}`);
-              }
-              if (dockerItem.request_output_path) {
-                noteParts.push(`output: ${dockerItem.request_output_path}`);
-              }
-              if (dockerItem.request_format_note) {
-                noteParts.push(dockerItem.request_format_note);
-              }
-              if (noteParts.length) {
-                statusNode.textContent = noteParts.join(" | ");
-              }
-              updateZmqSchemaVisualizer(dockerItem);
-            }
-
-            async function refreshZmqSchema(resetRequest = false) {
-              try {
-                const payload = await fetchJson("/api/zmq/schema");
-                zmqSchema = payload;
-                const timeoutNode = document.getElementById("zmq-test-timeout");
-                timeoutNode.value = String(payload.timeout_ms || 4000);
-                applyZmqDockerOptions(payload.dockers || [], selectedZmqDocker || selectedDocker);
-                renderZmqHistory(payload.history || []);
-                document.getElementById("zmq-test-status").textContent =
-                  payload.format_hint || "Request body should be a JSON object.";
-                if (resetRequest) {
-                  const currentDocker = document.getElementById("zmq-test-docker").value.trim();
-                  if (currentDocker) {
-                    applyZmqTemplatesForDocker(currentDocker, true, true);
-                    lastZmqTemplateDocker = currentDocker;
-                  } else {
-                    document.getElementById("zmq-test-request").value = prettyJson(payload.request_template || {});
-                    renderZmqRecord(null);
-                  }
-                }
-              } catch (error) {
-                document.getElementById("zmq-test-status").textContent = error.message;
-              }
-            }
-
-            async function refreshZmqHistory() {
-              const dockerName = document.getElementById("zmq-test-docker").value.trim();
-              const query = dockerName ? `?name=${encodeURIComponent(dockerName)}` : "";
-              if (zmqHistoryRefreshInFlight) {
-                return;
-              }
-              zmqHistoryRefreshInFlight = true;
-              try {
-                const payload = await fetchJson(`/api/zmq/history${query}`);
-                renderZmqHistory(payload.history || []);
-              } catch (error) {
-                document.getElementById("zmq-test-status").textContent = error.message;
-              } finally {
-                zmqHistoryRefreshInFlight = false;
-              }
-            }
-
-            function syncZmqSelectionWithViewer() {
-              const selectNode = document.getElementById("zmq-test-docker");
-              if (!selectNode.options.length) {
-                return;
-              }
-              const hasManualSelection = selectedZmqDocker
-                && Array.from(selectNode.options).some((option) => option.value === selectedZmqDocker);
-              if (hasManualSelection) {
-                selectNode.value = selectedZmqDocker;
-              } else if (selectedDocker) {
-                const hasViewerSelection = Array.from(selectNode.options).some((option) => option.value === selectedDocker);
-                if (hasViewerSelection) {
-                  selectNode.value = selectedDocker;
-                  selectedZmqDocker = selectedDocker;
-                }
-              }
-              const activeDocker = selectNode.value;
-              if (!activeDocker) {
-                return;
-              }
-              selectedZmqDocker = activeDocker;
-              const selectedItem = (zmqSchema && zmqSchema.dockers || []).find((item) => item.name === activeDocker);
-              if (selectedItem && selectedItem.endpoint) {
-                document.getElementById("zmq-test-endpoint").value = selectedItem.endpoint;
-              }
-              const dockerChanged = lastZmqTemplateDocker !== activeDocker;
-              if (dockerChanged) {
-                applyZmqTemplatesForDocker(activeDocker, true, true);
-                lastZmqTemplateDocker = activeDocker;
-              }
-            }
-
-            async function sendZmqTest() {
-              const dockerName = document.getElementById("zmq-test-docker").value.trim();
-              if (!dockerName) {
-                showActionBanner("Please select a docker for ZMQ test.", true);
-                return;
-              }
-
-              let requestObj = null;
-              const requestText = document.getElementById("zmq-test-request").value.trim();
-              if (requestText) {
-                try {
-                  requestObj = JSON.parse(requestText);
-                } catch (error) {
-                  showActionBanner("Request JSON is invalid. Please fix formatting first.", true);
-                  return;
-                }
-                if (!requestObj || typeof requestObj !== "object" || Array.isArray(requestObj)) {
-                  showActionBanner("Request JSON must be an object.", true);
-                  return;
-                }
-              }
-
-              const endpoint = document.getElementById("zmq-test-endpoint").value.trim();
-              const timeoutText = document.getElementById("zmq-test-timeout").value.trim();
-              const timeoutMs = timeoutText ? Number(timeoutText) : null;
-              if (timeoutMs !== null && (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 60000)) {
-                showActionBanner("Timeout must be an integer between 100 and 60000 ms.", true);
-                return;
-              }
-
-              try {
-                const response = await postJson("/api/zmq/test", {
-                  name: dockerName,
-                  endpoint: endpoint || null,
-                  timeout_ms: timeoutMs,
-                  request: requestObj,
-                });
-                renderZmqRecord(response.record || null);
-                renderZmqHistory(response.history || []);
-                showActionBanner(response.message || "ZMQ test finished.", response.ok === false);
-              } catch (error) {
-                showActionBanner(error.message, true);
-              }
-            }
-
-            function loadZmqTemplate() {
-              const selectedDocker = document.getElementById("zmq-test-docker").value.trim();
-              const dockerItem = findZmqDockerItem(selectedDocker);
-              const rawTemplate = (dockerItem && dockerItem.request_template)
-                || (zmqSchema && zmqSchema.request_template)
-                || {};
-              const template = JSON.parse(JSON.stringify(rawTemplate));
-              if (!template.request_id || typeof template.request_id !== "string") {
-                template.request_id = `web-${Date.now()}`;
-              } else {
-                template.request_id = `${template.request_id}-${Date.now()}`;
-              }
-              template.timestamp = new Date().toISOString();
-              document.getElementById("zmq-test-request").value = prettyJson(template);
-              if (dockerItem) {
-                applyZmqTemplatesForDocker(dockerItem.name, false, true);
-              }
-              document.getElementById("zmq-test-status").textContent =
-                "Template loaded. You can edit JSON before sending.";
-            }
-
-            async function loadZmqRandomTemplate() {
-              const selectedDocker = document.getElementById("zmq-test-docker").value.trim();
-              if (!selectedDocker) {
-                showActionBanner("Please select a docker first.", true);
-                return;
-              }
-              try {
-                const payload = await fetchJson(`/api/zmq/template?name=${encodeURIComponent(selectedDocker)}`);
-                const template = payload.request_template || {};
-                document.getElementById("zmq-test-request").value = prettyJson(template);
-                document.getElementById("zmq-test-status").textContent =
-                  payload.message || "Random request generated.";
-                showActionBanner(payload.message || "Random request generated.");
-              } catch (error) {
-                showActionBanner(error.message, true);
-              }
             }
 
             function groupDockers(dockers) {
@@ -1726,24 +1263,12 @@ ${runtimeMessage}`;
             }
 
             function switchWindow(windowName) {
-              if (windowName === "bridge") {
-                activeWindow = "bridge";
-              } else if (windowName === "zmq") {
-                activeWindow = "zmq";
-              } else if (windowName === "video") {
-                activeWindow = "video";
-              } else {
-                activeWindow = "docker";
-              }
+              activeWindow = windowName === "bridge" ? "bridge" : "docker";
               const isBridge = activeWindow === "bridge";
               const isDocker = activeWindow === "docker";
-              const isZmq = activeWindow === "zmq";
-              const isVideo = activeWindow === "video";
 
               document.getElementById("docker-window").classList.toggle("hidden", !isDocker);
               document.getElementById("bridge-window").classList.toggle("hidden", !isBridge);
-              document.getElementById("zmq-window").classList.toggle("hidden", !isZmq);
-              document.getElementById("video-window").classList.toggle("hidden", !isVideo);
 
               for (const tabButton of document.querySelectorAll(".view-tab")) {
                 const selected = tabButton.dataset.window === activeWindow;
@@ -1754,11 +1279,6 @@ ${runtimeMessage}`;
               if (isBridge) {
                 refreshBridgeConfig(false);
                 refreshBridgeLogs(false);
-              } else if (isZmq) {
-                refreshZmqSchema(false);
-                refreshZmqHistory();
-              } else if (isVideo) {
-                refreshVideoStreams();
               } else {
                 refreshLauncherConfig(false);
                 if (selectedDocker) {
@@ -1781,7 +1301,7 @@ ${runtimeMessage}`;
             function renderStatusOnly(docker, updatedAtText) {
               const output = document.getElementById("log-output");
               document.getElementById("viewer-name").textContent = docker.name;
-              document.getElementById("viewer-subtitle").textContent = `group: ${docker.group}`;
+              document.getElementById("viewer-subtitle").textContent = "";
               document.getElementById("viewer-status-chip").className = `status-chip ${statusClass(docker.status)}`;
               document.getElementById("viewer-status-chip").textContent = docker.status;
               document.getElementById("detail-group").textContent = docker.group;
@@ -1869,77 +1389,9 @@ ${runtimeMessage}`;
                 renderDockerServiceConfig(null, true);
               }
 
-              if (zmqSchema && Array.isArray(zmqSchema.dockers)) {
-                const currentNames = (zmqSchema.dockers || []).map((item) => item.name).join("|");
-                const statusNames = (dockers || []).map((item) => item.name).join("|");
-                if (currentNames !== statusNames) {
-                  applyZmqDockerOptions(dockers, selectedZmqDocker || selectedDocker);
-                }
-              } else {
-                applyZmqDockerOptions(dockers, selectedZmqDocker || selectedDocker);
-              }
-              syncZmqSelectionWithViewer();
-
               if (!selectedDocker && dockers.length) {
                 const preferred = dockers.find((item) => item.status === "running") || dockers[0];
                 selectDocker(preferred.name);
-              }
-            }
-
-            function renderVideoStreams(payload) {
-              lastVideoPayload = payload;
-              const root = document.getElementById("video-stream-grid");
-              const countNode = document.getElementById("video-stream-count");
-              const statusNode = document.getElementById("video-stream-status");
-              const streams = payload && Array.isArray(payload.streams) ? payload.streams : [];
-              countNode.textContent = `${streams.length} stream(s)`;
-              if (payload && payload.format_hint) {
-                statusNode.textContent = payload.format_hint;
-              }
-              root.innerHTML = "";
-              if (!streams.length) {
-                root.innerHTML = `
-                  <div class="group-block">
-                    <div class="group-title">
-                      <strong>No streams yet</strong>
-                      <span>POST a frame to /api/video-stream.</span>
-                    </div>
-                  </div>
-                `;
-                return;
-              }
-
-              for (const stream of streams) {
-                const card = document.createElement("section");
-                card.className = "group-block";
-                const mimeType = stream.mime_type || "image/jpeg";
-                const frameSrc = `data:${mimeType};base64,${stream.frame_base64 || ""}`;
-                card.innerHTML = `
-                  <div class="group-title">
-                    <strong>${escapeHtml(stream.title || "Untitled")}</strong>
-                    <span>${escapeHtml(stream.source || "unknown source")} | ${escapeHtml(String(stream.age_ms || 0))} ms</span>
-                  </div>
-                  <div class="card-meta">updated: ${escapeHtml(formatTime(stream.updated_at || ""))}</div>
-                  <div class="video-frame-wrap">
-                    <img class="video-frame" alt="${escapeHtml(stream.title || "stream")}" src="${frameSrc}">
-                  </div>
-                `;
-                root.appendChild(card);
-              }
-            }
-
-            async function refreshVideoStreams() {
-              if (videoRefreshInFlight) {
-                return;
-              }
-              videoRefreshInFlight = true;
-              try {
-                const payload = await fetchJson("/api/video-streams");
-                renderVideoStreams(payload);
-              } catch (error) {
-                document.getElementById("video-stream-status").textContent = error.message;
-              } finally {
-                videoRefreshInFlight = false;
               }
             }
 
@@ -1971,7 +1423,6 @@ ${runtimeMessage}`;
                   await refreshStatus();
                 }
                 renderLauncherConfig(response.config || null, true);
-                await refreshZmqSchema(false);
                 if (selectedDocker) {
                   await refreshLogs(false);
                 }
@@ -1994,7 +1445,6 @@ ${runtimeMessage}`;
                   await refreshStatus();
                 }
                 renderLauncherConfig(response.config || null, true);
-                await refreshZmqSchema(false);
                 if (selectedDocker) {
                   await refreshLogs(false);
                 }
@@ -2034,7 +1484,6 @@ ${runtimeMessage}`;
                   await refreshStatus();
                 }
                 renderLauncherConfig(response.config || null, true);
-                await refreshZmqSchema(false);
                 if (selectedDocker) {
                   await refreshLogs(false);
                 }
@@ -2064,7 +1513,6 @@ ${runtimeMessage}`;
               if (lastStatusPayload) {
                 renderStatus(lastStatusPayload);
               }
-              syncZmqSelectionWithViewer();
               await refreshDockerServiceConfig(true);
               await refreshLogs(true);
             }
@@ -2350,7 +1798,7 @@ ${runtimeMessage}`;
                   return;
                 }
                 document.getElementById("viewer-name").textContent = payload.name;
-                document.getElementById("viewer-subtitle").textContent = `group: ${payload.group}`;
+                document.getElementById("viewer-subtitle").textContent = "";
                 document.getElementById("viewer-status-chip").className = `status-chip ${statusClass(selectedState ? selectedState.status : "unknown")}`;
                 document.getElementById("viewer-status-chip").textContent = selectedState ? selectedState.status : "unknown";
                 document.getElementById("detail-group").textContent = selectedState ? selectedState.group : payload.group;
@@ -2467,25 +1915,6 @@ ${runtimeMessage}`;
                   `Unsaved service config changes for ${selectedDocker || "docker"}. Save to write YAML updates.`;
               });
             }
-            document.getElementById("zmq-test-template").addEventListener("click", () => loadZmqTemplate());
-            document.getElementById("zmq-test-random").addEventListener("click", () => loadZmqRandomTemplate());
-            document.getElementById("zmq-test-send").addEventListener("click", () => sendZmqTest());
-            document.getElementById("zmq-test-refresh").addEventListener("click", () => refreshZmqHistory());
-            document.getElementById("video-refresh").addEventListener("click", () => refreshVideoStreams());
-            document.getElementById("zmq-test-docker").addEventListener("change", () => {
-              const selectedName = document.getElementById("zmq-test-docker").value.trim();
-              if (!selectedName || !zmqSchema || !Array.isArray(zmqSchema.dockers)) {
-                return;
-              }
-              selectedZmqDocker = selectedName;
-              const selectedItem = zmqSchema.dockers.find((item) => item.name === selectedName);
-              if (selectedItem && selectedItem.endpoint) {
-                document.getElementById("zmq-test-endpoint").value = selectedItem.endpoint;
-              }
-              applyZmqTemplatesForDocker(selectedName, true, true);
-              lastZmqTemplateDocker = selectedName;
-              refreshZmqHistory();
-            });
             for (const nodeId of [
               "docker-conn-location",
               "docker-conn-root",
@@ -2537,8 +1966,6 @@ ${runtimeMessage}`;
               initBridgeGraphEvents();
               await refreshStatus();
               await refreshLauncherConfig(true);
-              await refreshZmqSchema(true);
-              await refreshVideoStreams();
               switchWindow(activeWindow);
               setInterval(refreshStatus, 4500);
               setInterval(() => {
@@ -2548,14 +1975,4 @@ ${runtimeMessage}`;
                   refreshLogs(false);
                 }
               }, 3000);
-              setInterval(() => {
-                if (activeWindow === "zmq") {
-                  refreshZmqHistory();
-                }
-              }, 7000);
-              setInterval(() => {
-                if (activeWindow === "video") {
-                  refreshVideoStreams();
-                }
-              }, 800);
             });
