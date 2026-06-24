@@ -1,314 +1,198 @@
-import argparse
-import base64
-import io
-import time
-import traceback
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""YOLO as a standard-protocol ``mask`` server.
 
-import cv2
+Migrated off the old base64-JSON protocol: this now subclasses
+``BaseModelServer`` and speaks the shared NumPy-multipart wire format, so it is a
+drop-in alternative to SAM3 as the mask/detection source (contract:
+protocol/schemas/mask.json).  The output layout matches ``Sam3Docker`` exactly
+(combined label mask + aligned obj_ids/class_names/instance_names) so downstream
+FlowPose can consume either interchangeably.
+
+  request.arrays  : color [H,W,3] uint8
+  request.fields  : prompts? (filter to these class names), return_masks?,
+                    conf?, tracker?, persist?
+  response.arrays : combined_mask [H,W] uint8 (label image), masks? [N,H,W]
+  response.fields : obj_ids, class_names, instance_names, scores, detections
+
+The tracking / classify / detect branches are lifted from the old server; only
+the I/O layer changed (no base64, no cv2 window / annotated-image upload).
+"""
+
+from __future__ import annotations
+
+import os
+
 import numpy as np
 import yaml
-import zmq
-from PIL import Image
 from ultralytics import YOLO
 
-SERVER_VERSION = "v2"
+from tjfusion_protocol.envelope import Message
+from tjfusion_protocol.server import BaseModelServer
+
+CONFIG_PATH = os.environ.get("YOLO_CONFIG", "/workspace/config.yaml")
 
 
-def load_config(config_path: str = "/workspace/config.yaml"):
-    with open(config_path, "r", encoding="utf-8") as f:
+def _load_config(path: str = CONFIG_PATH) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def _ts():
-    return time.strftime("%Y-%m-%d %H:%M:%S")
-
-
-def log_info(msg):
-    print(f"[{_ts()}] [INFO] {msg}", flush=True)
-
-
-def log_error(msg):
-    print(f"[{_ts()}] [ERROR] {msg}", flush=True)
-
-
-def log_success(msg):
-    print(f"[{_ts()}] [OK] {msg}", flush=True)
-
-
-def decode_rgb_from_base64(image_b64: str) -> np.ndarray:
-    image_data = base64.b64decode(image_b64)
-    image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    return np.array(image)
-
-
-def encode_mask_to_base64_png(mask: np.ndarray) -> str:
-    if mask.dtype != np.uint8:
-        mask = mask.astype(np.uint8)
-    success, buf = cv2.imencode(".png", mask, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-    if not success:
-        raise RuntimeError("Failed to encode mask to PNG.")
-    return base64.b64encode(buf.tobytes()).decode("utf-8")
-
-
-def encode_bgr_to_base64_jpg(image_bgr: np.ndarray, quality: int = 90) -> str:
-    success, buf = cv2.imencode(".jpg", image_bgr, [cv2.IMWRITE_JPEG_QUALITY, int(quality)])
-    if not success:
-        raise RuntimeError("Failed to encode image to JPG.")
-    return base64.b64encode(buf.tobytes()).decode("utf-8")
-
-
-def normalize_prompt_set(prompts):
+def _normalize_prompt_set(prompts) -> set[str]:
     if not prompts:
         return set()
     return {str(p).strip().lower() for p in prompts if str(p).strip()}
 
 
-class YOLOZMQServer:
-    def __init__(self, config_path: str = "/workspace/config.yaml"):
-        self.cfg = load_config(config_path)
+class YOLOStatusServer(BaseModelServer):
+    data_type = "mask"
 
-        server_cfg = self.cfg.get("server", {})
-        yolo_cfg = self.cfg.get("yolo", {})
-
-        self.host = server_cfg.get("host", "0.0.0.0")
-        self.port = int(server_cfg.get("port", 5555))
-
-        self.model_path = yolo_cfg.get("model_path", "results/drawer_cup.pt")
-        self.score_threshold = float(yolo_cfg.get("score_threshold", 0.4))
+    def __init__(self, *, bind_addr: str, config_path: str = CONFIG_PATH) -> None:
+        super().__init__(bind_addr=bind_addr)
+        self.config_path = config_path
+        self.yolo = None
+        self.model_task = "detect"
+        self.model_path = ""
+        self.score_threshold = 0.4
         self.tracker = "bytetrack.yaml"
         self.persist = True
         self.return_masks = True
-        self.return_annotated_image = True
-        self.show_window = False
-        self.window_name = "YOLO Detections"
-        self._window_available = True
 
-        print("=" * 70)
-        print("YOLO ZeroMQ Server")
-        print("=" * 70)
-        log_info(f"version      : {SERVER_VERSION}")
-        log_info(f"config_path  : {config_path}")
-        log_info(f"host         : {self.host}")
-        log_info(f"port         : {self.port}")
-        log_info(f"model_path   : {self.model_path}")
-        log_info(f"score_thresh : {self.score_threshold}")
-        print("=" * 70)
+    def load_model(self) -> None:
+        cfg = _load_config(self.config_path)
+        yolo_cfg = cfg.get("yolo", {})
+        self.model_path = yolo_cfg.get("model_path", "/workspace/model/best.pt")
+        self.score_threshold = float(yolo_cfg.get("score_threshold", 0.4))
+        self.tracker = yolo_cfg.get("tracker", "bytetrack.yaml")
+        self.persist = bool(yolo_cfg.get("persist", True))
+        self.return_masks = bool(yolo_cfg.get("return_masks", True))
 
-        log_info("Loading YOLO model, please wait...")
-        t0 = time.time()
+        print(f"[mask] loading YOLO from {self.model_path} ...")
         self.yolo = YOLO(self.model_path)
         self.model_task = getattr(self.yolo, "task", "detect")
-        log_success(f"Model loaded in {time.time() - t0:.2f} s")
-        log_info(f"model_task   : {self.model_task}")
+        print(f"[mask] YOLO ready (task={self.model_task}, score_threshold={self.score_threshold}).")
 
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REP)
-        bind_host = "*" if self.host in ("0.0.0.0", "*") else self.host
-        self.socket.bind(f"tcp://{bind_host}:{self.port}")
-        log_success(f"ZeroMQ REP socket bound at tcp://{bind_host}:{self.port}")
+    def _class_name(self, names, class_id: int) -> str:
+        if isinstance(names, dict) and class_id in names:
+            return str(names[class_id])
+        if isinstance(names, (list, tuple)) and 0 <= class_id < len(names):
+            return str(names[class_id])
+        return str(class_id)
 
-    def get_class_id(self, class_name):
-        """Get class id by class name from model names."""
-        if class_name is None:
-            return None
-        target = str(class_name).strip().lower()
-        if not target:
-            return None
+    def infer(self, request: Message) -> Message:
+        color = request.arrays["color"]                 # uint8 [H,W,3]
+        prompts = request.fields.get("prompts", []) or []
+        return_masks = bool(request.fields.get("return_masks", self.return_masks))
+        conf = float(request.fields.get("conf", self.score_threshold))
+        tracker = request.fields.get("tracker", self.tracker)
+        persist = bool(request.fields.get("persist", self.persist))
 
-        names = getattr(self.yolo, "names", None)
-        if isinstance(names, dict):
-            for class_id, name in names.items():
-                if str(name).strip().lower() == target:
-                    return int(class_id)
-        elif isinstance(names, (list, tuple)):
-            for class_id, name in enumerate(names):
-                if str(name).strip().lower() == target:
-                    return int(class_id)
-        return None
-
-    def process_request(self, req: dict) -> dict:
-        request_total_start = time.time()
-
-        request_id = req.get("request_id", "")
-        prompts = req.get("prompts", [])
-        _ = req.get("clear_previous", True)  # Keep same input interface as SAM3
-
-        if "rgb_image" not in req:
-            raise ValueError("Missing required field 'rgb_image' in request.")
-
-        rgb = decode_rgb_from_base64(req["rgb_image"])
-
-        conf = float(req.get("conf", self.score_threshold))
-        tracker = req.get("tracker", self.tracker)
-        persist = bool(req.get("persist", self.persist))
-        return_masks = bool(req.get("return_masks", self.return_masks))
-        return_annotated_image = bool(req.get("return_annotated_image", self.return_annotated_image))
-        show_window = bool(req.get("show_window", self.show_window))
+        rgb = np.ascontiguousarray(color)
+        h, w = rgb.shape[:2]
 
         if self.model_task == "classify":
-            results = self.yolo.predict(
-                rgb,
-                verbose=False,
-                conf=conf,
-            )
+            results = self.yolo.predict(rgb, verbose=False, conf=conf)
         else:
             results = self.yolo.track(
-                rgb,
-                persist=persist,
-                tracker=tracker,
-                verbose=False,
-                conf=conf,
+                rgb, persist=persist, tracker=tracker, verbose=False, conf=conf,
             )
-
-        prompt_set = normalize_prompt_set(prompts)
-
-        detections = []
-        global_det_id = 1
-        annotated_image_b64 = None
-
         result0 = results[0] if results else None
-        if result0 is not None:
-            annotated_bgr = result0.plot()
-        else:
-            annotated_bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
-        if return_annotated_image:
-            annotated_image_b64 = encode_bgr_to_base64_jpg(annotated_bgr)
+        prompt_set = _normalize_prompt_set(prompts)
 
-        if show_window and self._window_available:
-            try:
-                cv2.imshow(self.window_name, annotated_bgr)
-                cv2.waitKey(1)
-            except Exception as e:
-                self._window_available = False
-                log_error(f"OpenCV window display disabled: {e}")
+        combined_mask = np.zeros((h, w), dtype=np.uint8)
+        per_instance: list[np.ndarray] = []
+        obj_ids: list[list[int]] = []
+        class_names: list[str] = []
+        instance_names: list[str] = []
+        scores: list[float] = []
+        detections: list[dict] = []
+        global_det_id = 1
 
-        if self.model_task == "classify":
-            names = result0.names if (result0 is not None and hasattr(result0, "names")) else self.yolo.names
-            probs = result0.probs if result0 is not None else None
-            if probs is not None and hasattr(probs, "top5") and hasattr(probs, "top5conf"):
-                top5_ids = probs.top5
-                top5_confs = probs.top5conf.tolist()
-                for class_id, score in zip(top5_ids, top5_confs):
-                    class_id = int(class_id)
-                    label = (
-                        str(names[class_id])
-                        if isinstance(names, dict) and class_id in names
-                        else str(class_id)
-                    )
-                    label_norm = label.strip().lower()
-                    if prompt_set:
-                        prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                        if not prompt_hit:
-                            for prompt in prompt_set:
-                                prompt_id = self.get_class_id(prompt)
-                                if prompt_id is not None and int(prompt_id) == class_id:
-                                    prompt_hit = True
-                                    break
-                        if not prompt_hit:
-                            continue
-                    detections.append(
-                        {
-                            "id": int(global_det_id),
-                            "label": label,
-                            "class": label,
-                            "class_id": class_id,
-                            "score": float(score),
-                            "bbox": [],
-                        }
-                    )
-                    global_det_id += 1
-        elif result0 is not None and result0.boxes is not None and len(result0.boxes) > 0:
+        if result0 is not None and getattr(result0, "boxes", None) is not None and len(result0.boxes) > 0:
             boxes = result0.boxes
-            masks = result0.masks
+            masks = getattr(result0, "masks", None)
+            names = result0.names if hasattr(result0, "names") else self.yolo.names
 
             xyxy = boxes.xyxy.cpu().numpy() if boxes.xyxy is not None else None
             cls = boxes.cls.cpu().numpy() if boxes.cls is not None else None
-            scores = boxes.conf.cpu().numpy() if boxes.conf is not None else None
-            mask_data = masks.data.cpu().numpy() if (masks is not None and masks.data is not None) else None
-
-            names = result0.names if hasattr(result0, "names") else self.yolo.names
+            box_conf = boxes.conf.cpu().numpy() if boxes.conf is not None else None
+            track_ids = boxes.id.cpu().numpy() if getattr(boxes, "id", None) is not None else None
+            mask_data = (
+                masks.data.cpu().numpy()
+                if (masks is not None and masks.data is not None) else None
+            )
 
             for i in range(len(boxes)):
                 class_id = int(cls[i]) if cls is not None else -1
-                score = float(scores[i]) if scores is not None else 0.0
+                score = float(box_conf[i]) if box_conf is not None else 0.0
+                label = self._class_name(names, class_id)
 
-                label = str(names[class_id]) if isinstance(names, dict) and class_id in names else str(class_id)
-                label_norm = label.strip().lower()
+                if prompt_set and label.strip().lower() not in prompt_set and str(class_id) not in prompt_set:
+                    continue
 
-                if prompt_set:
-                    prompt_hit = label_norm in prompt_set or str(class_id) in prompt_set
-                    if not prompt_hit:
-                        for prompt in prompt_set:
-                            prompt_id = self.get_class_id(prompt)
-                            if prompt_id is not None and int(prompt_id) == class_id:
-                                prompt_hit = True
-                                break
-                    if not prompt_hit:
-                        continue
+                # Build the per-instance binary mask: real segmentation if the
+                # model produces it, otherwise fall back to the bbox rectangle.
+                if mask_data is not None and i < len(mask_data):
+                    binary_mask = (mask_data[i] > 0.5).astype(np.uint8) * 255
+                    if binary_mask.shape[:2] != (h, w):
+                        # ultralytics masks can be at model resolution; pad/crop-safe resize.
+                        import cv2
+                        binary_mask = cv2.resize(binary_mask, (w, h), interpolation=cv2.INTER_NEAREST)
+                else:
+                    binary_mask = np.zeros((h, w), dtype=np.uint8)
+                    if xyxy is not None:
+                        x1, y1, x2, y2 = (int(round(v)) for v in xyxy[i].tolist())
+                        x1, y1 = max(0, x1), max(0, y1)
+                        x2, y2 = min(w, x2), min(h, y2)
+                        binary_mask[y1:y2, x1:x2] = 255
 
-                det = {
+                combined_mask[binary_mask > 0] = global_det_id
+                if return_masks:
+                    per_instance.append(binary_mask)
+
+                track_id = int(track_ids[i]) if track_ids is not None else global_det_id
+                obj_ids.append([track_id, int(global_det_id)])
+                class_names.append(label)
+                instance_names.append(label)
+                scores.append(score)
+                detections.append({
                     "id": int(global_det_id),
-                    "label": label,
+                    "track_id": track_id,
                     "class": label,
                     "class_id": class_id,
                     "score": score,
                     "bbox": [float(v) for v in xyxy[i].tolist()] if xyxy is not None else [],
-                }
-
-                if return_masks and mask_data is not None and i < len(mask_data):
-                    binary_mask = (mask_data[i] > 0.5).astype(np.uint8) * 255
-                    det["mask_png_b64"] = encode_mask_to_base64_png(binary_mask)
-
-                detections.append(det)
+                })
                 global_det_id += 1
 
-        total_request_time = time.time() - request_total_start
-        return {
-            "status": "ok",
-            "request_id": request_id,
-            "detections": detections,
-            "annotated_image_b64": annotated_image_b64,
-            "elapsed_sec": round(total_request_time, 4),
-        }
+        arrays: dict[str, np.ndarray] = {"combined_mask": combined_mask}
+        if return_masks:
+            if per_instance:
+                arrays["masks"] = np.stack(per_instance, axis=0).astype(np.uint8)
+            else:
+                arrays["masks"] = np.zeros((0, h, w), dtype=np.uint8)
 
-    def serve_forever(self):
-        while True:
-            message = self.socket.recv_json()
-            request_id = message.get("request_id", "")
-            log_info(f"Received request_id={request_id}")
-
-            try:
-                resp = self.process_request(message)
-                self.socket.send_json(resp)
-                log_success(
-                    f"Response sent | request_id={request_id} | "
-                    f"num_detections={len(resp.get('detections', []))} | "
-                    f"elapsed={resp.get('elapsed_sec', 0):.4f}s"
-                )
-            except Exception as e:
-                elapsed = 0.0
-                log_error(f"Request failed: {e}")
-                print(traceback.format_exc())
-                err = {
-                    "status": "error",
-                    "request_id": request_id,
-                    "message": str(e),
-                    "elapsed_sec": round(elapsed, 4),
-                }
-                try:
-                    self.socket.send_json(err)
-                except Exception:
-                    pass
+        return self.ok(
+            request,
+            arrays=arrays,
+            fields={
+                "obj_ids": obj_ids,
+                "class_names": class_names,
+                "instance_names": instance_names,
+                "scores": scores,
+                "detections": detections,
+            },
+        )
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="/workspace/config.yaml", help="Path to config yaml")
-    args = parser.parse_args()
-
-    server = YOLOZMQServer(config_path=args.config)
-    server.serve_forever()
+def main() -> None:
+    cfg = _load_config()
+    server_cfg = cfg.get("server", {})
+    host = server_cfg.get("host", "0.0.0.0")
+    port = int(server_cfg.get("port", 5555))
+    bind_addr = f"tcp://{host}:{port}"
+    YOLOStatusServer(bind_addr=bind_addr).serve_forever()
 
 
 if __name__ == "__main__":

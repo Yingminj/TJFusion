@@ -40,10 +40,9 @@ COPY RealSenseDocker/requirements.txt /workspace/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /workspace/requirements.txt
 
 COPY RealSenseDocker/Server /workspace/Server
+COPY RealSenseDocker/config.yaml /workspace/config.yaml
 
 EXPOSE 5550 5551
 
-CMD ["python3", "Server/realsense_server.py", \
-     "--rep-bind", "tcp://0.0.0.0:5550", \
-     "--pub-bind", "tcp://0.0.0.0:5551", \
-     "--pub-streams", "color,ir_left,ir_right"]
+# Streams/binds/mode are read from /workspace/config.yaml (+ $TJFUSION_MODE).
+CMD ["python3", "Server/realsense_server.py", "--config", "/workspace/config.yaml"]

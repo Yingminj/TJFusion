@@ -1,0 +1,129 @@
+bridge:
+  type: custom_pipeline
+
+  # ── 数据源 (MULTI / 多视角) ─────────────────────────────────────────────────
+  # RealSenseDocker 以 multi 模式运行：head(color+ir+hw_depth+内参) + left/right
+  # 两路 color_left/color_right。bridge 作为 SUB 连上 PUB(5551)，把 arrays/fields
+  # 直接 seed 进共享 store（无 base64）。
+  #
+  # 与单视角版 (bridge.realsense_split.yaml) 的唯一区别：
+  #   * 状态分类节点用多视角 SigLIP (siglip)，吃 color/color_left/color_right；
+  #     单视角版用的是 vlm 节点。
+  # 通过 docker_launch.yaml 里手动切换两个 bridge 的 enabled 即可整体切换。
+  source_mode: protocol
+  zmq_source_addr: tcp://127.0.0.1:5551     # RealSenseDocker 的 --pub-bind
+
+  result_pub_addr: tcp://0.0.0.0:8899
+  result_pose_topic: /fusion/pose
+  result_status_topic: /fusion/status
+
+  visualize: true
+  visualize_window: TJFusion Pipeline (multi)
+  visualize_scale: 1.0
+  visualize_save_path: ""
+
+  prompts:
+    - cup
+    - red box
+
+  pipeline_outputs:
+    - depth                 # 来自 fast_foundation
+    - combined_mask         # 来自 sam3
+    - obj_ids
+    - class_names
+    - best_category         # 来自 siglip (多视角)
+    - best_similarity
+    - state_list
+    - objects               # 来自 flowpose（位姿/尺寸单位为米）
+
+  pipeline:
+    # [1] 立体深度：Fast-Foundation，吃 head 的 ir_left/ir_right
+    - name: fast_foundation
+      kind: generic
+      data_type: depth
+      endpoint: tcp://127.0.0.1:4444
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - ir_left
+        - ir_right
+        - ir_left_intrinsics
+        - baseline_m
+      request_map:
+        left: $ir_left
+        right: $ir_right
+        ir_left_intrinsics: $ir_left_intrinsics
+        baseline_m: $baseline_m
+        color_intrinsics: $color_intrinsics
+        ir_to_color_rotation: $ir_to_color_rotation
+        ir_to_color_translation: $ir_to_color_translation
+      response_map:
+        depth: depth
+
+    # [2] 分割：SAM3，只要 head 的 color（与 depth 并行）
+    #     如需换 YOLO，把 endpoint 改成 tcp://127.0.0.1:5555 即可（同一 mask 契约）。
+    - name: sam3
+      kind: generic
+      data_type: mask
+      endpoint: tcp://127.0.0.1:5562
+      timeout_ms: 5000
+      role: required
+      inputs:
+        - color
+        - prompts
+      request_map:
+        color: $color
+        prompts: $prompts
+        return_masks:
+          value: true
+      response_map:
+        combined_mask: combined_mask
+        obj_ids: obj_ids
+        class_names: class_names
+
+    # [3] 状态分类：多视角 SigLIP，吃三路真实相机 color（与上面并行）
+    #     服务端需以 multi 模式启动 (TJFUSION_MODE=multi 或 config server.mode=multi)。
+    - name: siglip
+      kind: generic
+      data_type: status
+      endpoint: tcp://127.0.0.1:7777
+      timeout_ms: 10000
+      role: required
+      inputs:
+        - color
+        - color_left
+        - color_right
+      request_map:
+        color: $color
+        color_left: $color_left
+        color_right: $color_right
+      response_map:
+        best_category: best_category
+        best_similarity: best_similarity
+        state_list: state_list
+
+    # [4] 位姿：FlowPose，依赖 depth([1]) + mask([2])
+    - name: flowpose
+      kind: generic
+      data_type: pose
+      endpoint: tcp://127.0.0.1:6667
+      timeout_ms: 5000
+      depends_on:
+        - fast_foundation
+        - sam3
+      role: required
+      inputs:
+        - color
+        - depth
+        - combined_mask
+        - obj_ids
+        - color_intrinsics
+      request_map:
+        color: $color
+        depth: $depth
+        combined_mask: $combined_mask
+        obj_ids: $obj_ids
+        class_names: $class_names
+        color_intrinsics: $color_intrinsics
+      response_map:
+        objects: objects

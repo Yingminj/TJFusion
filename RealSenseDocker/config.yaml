@@ -1,0 +1,34 @@
+# RealSenseDocker source server configuration.
+#
+# `mode` selects how many cameras are opened and what the PUB streamer emits:
+#   single -> one camera (head). Publishes color + ir_left/ir_right + hw_depth.
+#   multi  -> three cameras. Publishes the head streams above PLUS color_left /
+#             color_right from the two side cameras (soft-synchronised).
+#
+# The effective mode is resolved as:  CLI --mode  >  $TJFUSION_MODE  >  this file.
+mode: single            # single | multi
+
+width: 640
+height: 480
+fps: 30
+disable_emitter: 0
+enable_hw_depth: true   # only meaningful for the head camera
+
+# Per-role camera declarations. `serial` is filled in by hand; an empty serial
+# means "first available device" (only safe when a single camera is connected).
+# In multi mode all three roles are opened; in single mode only `head` is used.
+cameras:
+  - role: head
+    serial: ""          # head camera: color + IR stereo (+ hw depth)
+    enable_ir: true
+    enable_depth: true
+  - role: left
+    serial: ""
+    enable_color_only: true
+  - role: right
+    serial: ""
+    enable_color_only: true
+
+server:
+  rep_bind: tcp://0.0.0.0:5550
+  pub_bind: tcp://0.0.0.0:5551

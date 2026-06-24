@@ -158,13 +158,135 @@ class SiglipStatusServer(BaseModelServer):
         )
 
 
+class MultiViewSiglipStatusServer(BaseModelServer):
+    """Multi-view ``status`` server: classifies a 3-camera fused feature.
+
+    Identical wire contract to :class:`SiglipStatusServer` (protocol/schemas/
+    status.json) -- transparent to the bridge.  The difference is the model: a
+    ``MultiViewSigLIPModel`` (frozen SigLIP2 base + a ``CrossViewAttentionPooler``)
+    that fuses the three real camera views into a single feature, which is then
+    compared against the same per-category centers.
+
+    Request carries three color arrays (one per real camera); they are sent to
+    the processor as a natural 3-view batch -- we do NOT call
+    ``split_image_to_views`` (that is for splitting a single stitched image).
+    """
+
+    data_type = "status"
+
+    #: array keys for the three real camera views, in the order the pooler expects
+    VIEW_KEYS = ("color", "color_left", "color_right")
+
+    def __init__(self, *, bind_addr: str, config_path: str = CONFIG_PATH) -> None:
+        super().__init__(bind_addr=bind_addr)
+        self.config_path = config_path
+        self.model = None
+        self.processor = None
+        self.centers: dict[str, np.ndarray] = {}
+        self.state_list: list[dict] = []
+
+    def load_model(self) -> None:
+        cfg = _load_config(self.config_path)
+        model_cfg = cfg["model"]
+        multi_cfg = model_cfg.get("multi", {}) or {}
+
+        base_model_path = model_cfg["path"]
+        checkpoint_path = multi_cfg.get("checkpoint", model_cfg.get("checkpoint"))
+        graph_info_path = multi_cfg.get(
+            "graph_info_file",
+            model_cfg.get("graph_info_file", model_cfg.get("cache_file", "")),
+        )
+
+        # Pooler hyper-params MUST match training (see test_video_siglip2_multiview_*).
+        num_views = int(multi_cfg.get("num_views", 3))
+        num_query_tokens = int(multi_cfg.get("num_query_tokens", 8))
+        pooler_num_layers = int(multi_cfg.get("pooler_num_layers", 2))
+        pooler_num_heads = int(multi_cfg.get("pooler_num_heads", 8))
+
+        # Imported lazily so single-mode deployments don't need siglip2_trainer.
+        # NOTE: siglip2_trainer is added to the image / PYTHONPATH separately.
+        from siglip2_trainer.multiview_models import (  # type: ignore
+            CrossViewAttentionPooler,
+            MultiViewSigLIPModel,
+        )
+
+        print(f"[status-multi] loading base model: {base_model_path}")
+        base_model = AutoModel.from_pretrained(base_model_path)
+        self.processor = AutoProcessor.from_pretrained(base_model_path)
+        embed_dim = base_model.config.vision_config.hidden_size
+
+        pooler = CrossViewAttentionPooler(
+            embed_dim=embed_dim,
+            num_queries=num_query_tokens,
+            num_heads=pooler_num_heads,
+            num_layers=pooler_num_layers,
+            dropout=0.0,
+        )
+        model = MultiViewSigLIPModel(
+            base_model, pooler, num_views=num_views, embed_dim=embed_dim,
+        )
+
+        if checkpoint_path and os.path.exists(checkpoint_path):
+            print(f"[status-multi] loading checkpoint: {checkpoint_path}")
+            checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+            model.load_state_dict(checkpoint.get("model_state_dict", checkpoint))
+        else:
+            print(f"[status-multi] WARNING: checkpoint not found ({checkpoint_path}); using base pooler.")
+
+        self.model = model.to(DEVICE).eval()
+        self.centers, self.state_list = _load_centers(graph_info_path)
+        print(f"[status-multi] multi-view SigLIP ready on {DEVICE}.")
+
+    @torch.inference_mode()
+    def _encode_views(self, images: list[Image.Image]) -> np.ndarray:
+        inputs = self.processor(images=images, return_tensors="pt")
+        pixel_values = inputs["pixel_values"].to(DEVICE)   # [V, C, H, W]
+        fused = self.model.encode_views(pixel_values)       # [1, D]
+        fused = fused / (fused.norm(dim=-1, keepdim=True) + 1e-12)
+        return fused[0].detach().cpu().numpy().astype(np.float32)
+
+    def infer(self, request: Message) -> Message:
+        images: list[Image.Image] = []
+        for key in self.VIEW_KEYS:
+            arr = request.arrays.get(key)
+            if arr is None:
+                raise ValueError(f"multi-view status requires array '{key}'")
+            images.append(Image.fromarray(np.ascontiguousarray(arr)).convert("RGB"))
+
+        feat = self._encode_views(images)
+        sims = {k: float(np.dot(feat, v)) for k, v in self.centers.items()}
+        best = max(sims.items(), key=lambda x: x[1])
+        topk = sorted(sims.items(), key=lambda x: x[1], reverse=True)[:TOPK]
+
+        return self.ok(
+            request,
+            fields={
+                "best_category": best[0],
+                "best_similarity": best[1],
+                "topk": [{"category": k, "similarity": v} for k, v in topk],
+                "state_list": self.state_list,
+            },
+        )
+
+
+def _resolve_mode(server_cfg: dict) -> str:
+    """$TJFUSION_MODE overrides config `server.mode`; default 'single'."""
+    mode = (os.environ.get("TJFUSION_MODE") or server_cfg.get("mode") or "single")
+    mode = str(mode).strip().lower()
+    return mode if mode in ("single", "multi") else "single"
+
+
 def main() -> None:
     cfg = _load_config()
     server_cfg = cfg.get("server", {})
     host = server_cfg.get("host", "0.0.0.0")
     port = int(server_cfg.get("port", 7777))
     bind_addr = f"tcp://{host}:{port}"
-    SiglipStatusServer(bind_addr=bind_addr).serve_forever()
+
+    mode = _resolve_mode(server_cfg)
+    server_cls = MultiViewSiglipStatusServer if mode == "multi" else SiglipStatusServer
+    print(f"[status] mode={mode} -> {server_cls.__name__}")
+    server_cls(bind_addr=bind_addr).serve_forever()
 
 
 if __name__ == "__main__":

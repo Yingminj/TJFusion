@@ -1,7 +1,14 @@
+docker:
+  image: yolo:latest
+  container_name: YOLODocker
+
 server:
   host: 0.0.0.0
-  port: 5562
+  port: 5555            # 5555 to avoid colliding with Sam3 (5562); both may run.
 
 yolo:
   model_path: /workspace/model/best.pt
   score_threshold: 0.4
+  tracker: bytetrack.yaml
+  persist: true
+  return_masks: true

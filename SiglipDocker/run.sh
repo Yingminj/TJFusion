@@ -42,6 +42,7 @@ docker run -it --rm \
   --privileged \
   -e DISPLAY=$DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
+  -e TJFUSION_MODE="${TJFUSION_MODE:-}" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v "${DATA_PATH}:${DATA_PATH}" \
   -v "$(pwd):/workspace" \

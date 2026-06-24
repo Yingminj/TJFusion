@@ -10,9 +10,14 @@ docker_launcher:
     port: 8765
     log_lines: 300
   bridges:
+  # Overall single/multi switch: enable exactly ONE of the two RealSense bridges
+  # (mirror it with TJFUSION_MODE / config `mode` on RealSenseDocker + SiglipDocker).
   - name: RealSense Split Pipeline
     enabled: true
     config: configs/bridge.realsense_split.yaml
+  - name: RealSense Split Pipeline (Multi)
+    enabled: false
+    config: configs/bridge.realsense_split_multi.yaml
   - name: Custom Bridge
     enabled: false
     config: configs/bridge.custom.yaml
@@ -21,6 +26,7 @@ docker_launcher:
     history_limit: 40
     endpoints:
       Sam3Docker: tcp://127.0.0.1:5562
+      YOLODocker: tcp://127.0.0.1:5555
       SiglipDocker: tcp://127.0.0.1:7777
       FlowPoseDocker: tcp://127.0.0.1:6667
   docker_targets:
@@ -38,6 +44,11 @@ docker_launcher:
     group: vision
     location: local
     enabled: true
+    docker_model_root: ${DOCKER_MODEL_ROOT}
+  - name: YOLODocker
+    group: vision
+    location: local
+    enabled: false
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: FlowPoseDocker
     group: vision
