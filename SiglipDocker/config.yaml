@@ -12,9 +12,13 @@ model:
   # Multi-view (3-camera) settings -- used only when server.mode == multi.
   # Pooler hyper-params MUST match training.
   multi:
-    checkpoint: /workspace/model/model_siglip2_multiview_best_eval.pt
-    graph_info_file: /workspace/model/graph_info_multiview_best_eval.json
+    checkpoint: /workspace/model/siglip_gift_multi_m8_0625.pt
+    graph_info_file: /workspace/model/siglip_gift_multi_m8_0625.json
     num_views: 3
     num_query_tokens: 8
     pooler_num_layers: 2
     pooler_num_heads: 8
+# Similarity EMA smoothing across frames (applies to single & multi modes).
+ema:
+  enabled: true
+  beta: 0.7

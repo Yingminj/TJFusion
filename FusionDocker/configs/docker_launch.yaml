@@ -19,17 +19,14 @@ docker_launcher:
   # The two RealSense bridges are tagged with camera_mode; the launcher enables
   # whichever matches the top-level camera_mode and disables the other. The
   # `enabled` flags below are just defaults for when camera_mode is unset.
+  - name: RealSense Split Pipeline (Multi)
+    camera_mode: multi
+    enabled: true
+    config: configs/bridge.realsense_split_multi.yaml
   - name: RealSense Split Pipeline
     camera_mode: single
     enabled: false
     config: configs/bridge.realsense_split.yaml
-  - name: RealSense Split Pipeline (Multi)
-    camera_mode: multi
-    enabled: false
-    config: configs/bridge.realsense_split_multi.yaml
-  - name: Custom Bridge
-    enabled: false
-    config: configs/bridge.custom.yaml
   zmq_test:
     timeout_ms: 4000
     history_limit: 40

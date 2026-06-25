@@ -24,6 +24,7 @@ import os
 
 import numpy as np
 import torch
+import torch.nn as nn
 import yaml
 from PIL import Image
 from transformers import AutoModel, AutoProcessor
@@ -158,6 +159,107 @@ class SiglipStatusServer(BaseModelServer):
         )
 
 
+# =====================================================================
+# Multi-view model (inlined; previously imported from siglip2_trainer).
+#
+# Param names / shapes are an EXACT match to the trained multi-view
+# checkpoints (verified by a strict state_dict load: base_model.* +
+# pooler.* + view_pos_embed, no missing/unexpected keys).  The pooler is
+# the same CrossViewAttentionPooler used by the single-view server
+# (SiglipDocker/ZeroMQServerema.py); the multi-view wrapper adds a
+# per-view positional embedding and fuses the three views' patch tokens.
+# =====================================================================
+
+class CrossViewAttentionPooler(nn.Module):
+    """Learnable query tokens cross-attend over (multi-view) patch tokens.
+
+    Input:  [B, N_tokens, D]   Output: [B, D]
+    """
+
+    def __init__(self, embed_dim=1152, num_queries=8, num_heads=8,
+                 num_layers=2, dropout=0.0):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.num_queries = num_queries
+
+        self.query_tokens = nn.Parameter(torch.zeros(1, num_queries, embed_dim))
+
+        self.layers = nn.ModuleList()
+        for _ in range(num_layers):
+            self.layers.append(nn.ModuleDict({
+                'cross_attn': nn.MultiheadAttention(
+                    embed_dim=embed_dim, num_heads=num_heads,
+                    dropout=dropout, batch_first=True,
+                ),
+                'norm1': nn.LayerNorm(embed_dim),
+                'norm2': nn.LayerNorm(embed_dim),
+                'ffn': nn.Sequential(
+                    nn.Linear(embed_dim, embed_dim * 4),
+                    nn.GELU(),
+                    nn.Dropout(dropout),
+                    nn.Linear(embed_dim * 4, embed_dim),
+                    nn.Dropout(dropout),
+                ),
+            }))
+
+        self.output_ln = nn.LayerNorm(embed_dim)
+
+    def forward(self, x):
+        queries = self.query_tokens.expand(x.shape[0], -1, -1)
+        for layer in self.layers:
+            residual = queries
+            queries = layer['norm1'](queries)
+            queries = layer['cross_attn'](query=queries, key=x, value=x)[0] + residual
+
+            residual = queries
+            queries = layer['norm2'](queries)
+            queries = layer['ffn'](queries) + residual
+
+        return self.output_ln(queries.mean(dim=1))
+
+
+class MultiViewSigLIPModel(nn.Module):
+    """Frozen SigLIP2 base + per-view positional embedding + CrossViewAttentionPooler.
+
+    ``encode_views`` takes the V real-camera views of one sample stacked as a
+    natural batch ([V, C, H, W], or [B*V, ...] for B samples), runs each view
+    through the vision tower, tags each view's patch tokens with a learned
+    positional embedding, concatenates them into one token sequence and pools
+    them into a single L2-normalized feature ([B, D]).
+    """
+
+    def __init__(self, base_model, pooler, num_views=3, embed_dim=1152):
+        super().__init__()
+        self.base_model = base_model
+        self.pooler = pooler
+        self.num_views = num_views
+        self.embed_dim = embed_dim
+        self.config = base_model.config
+
+        # Per-view positional embedding, broadcast over the patch-token axis.
+        self.view_pos_embed = nn.Parameter(torch.zeros(num_views, 1, embed_dim))
+
+    def encode_views(self, pixel_values: torch.Tensor) -> torch.Tensor:
+        """[N=B*V, C, H, W] -> [B, D] (L2-normalized)."""
+        with torch.no_grad():
+            vision_outputs = self.base_model.vision_model(pixel_values=pixel_values)
+            patch_tokens = vision_outputs.last_hidden_state  # [N, P, D]
+
+        n, p, d = patch_tokens.shape
+        if n % self.num_views != 0:
+            raise ValueError(
+                f"view count {n} is not a multiple of num_views={self.num_views}")
+        b = n // self.num_views
+
+        patch_tokens = patch_tokens.view(b, self.num_views, p, d)
+        patch_tokens = patch_tokens + self.view_pos_embed.unsqueeze(0)  # [1,V,1,D]
+        tokens = patch_tokens.reshape(b, self.num_views * p, d)
+
+        fused = self.pooler(tokens)
+        fused = fused / (fused.norm(dim=-1, keepdim=True) + 1e-12)
+        return fused
+
+
 class MultiViewSiglipStatusServer(BaseModelServer):
     """Multi-view ``status`` server: classifies a 3-camera fused feature.
 
@@ -184,11 +286,20 @@ class MultiViewSiglipStatusServer(BaseModelServer):
         self.processor = None
         self.centers: dict[str, np.ndarray] = {}
         self.state_list: list[dict] = []
+        # Similarity EMA smoothing (ported from ZeroMQServerema.py). The REP loop
+        # is single-threaded, so this state safely accumulates across requests.
+        self.use_sim_ema = True
+        self.ema_beta = 0.7
+        self._ema_state: np.ndarray | None = None
 
     def load_model(self) -> None:
         cfg = _load_config(self.config_path)
         model_cfg = cfg["model"]
         multi_cfg = model_cfg.get("multi", {}) or {}
+
+        ema_cfg = cfg.get("ema", {}) or {}
+        self.use_sim_ema = bool(ema_cfg.get("enabled", True))
+        self.ema_beta = float(ema_cfg.get("beta", 0.7))
 
         base_model_path = model_cfg["path"]
         checkpoint_path = multi_cfg.get("checkpoint", model_cfg.get("checkpoint"))
@@ -202,13 +313,6 @@ class MultiViewSiglipStatusServer(BaseModelServer):
         num_query_tokens = int(multi_cfg.get("num_query_tokens", 8))
         pooler_num_layers = int(multi_cfg.get("pooler_num_layers", 2))
         pooler_num_heads = int(multi_cfg.get("pooler_num_heads", 8))
-
-        # Imported lazily so single-mode deployments don't need siglip2_trainer.
-        # NOTE: siglip2_trainer is added to the image / PYTHONPATH separately.
-        from siglip2_trainer.multiview_models import (  # type: ignore
-            CrossViewAttentionPooler,
-            MultiViewSigLIPModel,
-        )
 
         print(f"[status-multi] loading base model: {base_model_path}")
         base_model = AutoModel.from_pretrained(base_model_path)
@@ -235,7 +339,35 @@ class MultiViewSiglipStatusServer(BaseModelServer):
 
         self.model = model.to(DEVICE).eval()
         self.centers, self.state_list = _load_centers(graph_info_path)
+        if self.use_sim_ema:
+            print(f"[status-multi] similarity EMA smoothing on, beta={self.ema_beta}")
+        else:
+            print("[status-multi] similarity EMA smoothing off")
         print(f"[status-multi] multi-view SigLIP ready on {DEVICE}.")
+
+    def _similarity_with_ema(self, feat: np.ndarray):
+        """Cosine similarity to each category center, with optional EMA smoothing
+        across frames. Returns (best, topk) -- mirrors ZeroMQServerema.py."""
+        keys = list(self.centers.keys())
+        sim_vals = np.array(
+            [float(np.dot(feat, self.centers[k])) for k in keys], dtype=np.float32
+        )
+
+        if self.use_sim_ema:
+            if self._ema_state is None or self._ema_state.shape != sim_vals.shape:
+                self._ema_state = sim_vals.copy()
+            else:
+                self._ema_state = (
+                    self.ema_beta * self._ema_state + (1.0 - self.ema_beta) * sim_vals
+                )
+            smoothed = self._ema_state
+        else:
+            smoothed = sim_vals
+
+        sims = {k: float(smoothed[i]) for i, k in enumerate(keys)}
+        best = max(sims.items(), key=lambda x: x[1])
+        topk = sorted(sims.items(), key=lambda x: x[1], reverse=True)[:TOPK]
+        return best, topk
 
     @torch.inference_mode()
     def _encode_views(self, images: list[Image.Image]) -> np.ndarray:
@@ -254,9 +386,7 @@ class MultiViewSiglipStatusServer(BaseModelServer):
             images.append(Image.fromarray(np.ascontiguousarray(arr)).convert("RGB"))
 
         feat = self._encode_views(images)
-        sims = {k: float(np.dot(feat, v)) for k, v in self.centers.items()}
-        best = max(sims.items(), key=lambda x: x[1])
-        topk = sorted(sims.items(), key=lambda x: x[1], reverse=True)[:TOPK]
+        best, topk = self._similarity_with_ema(feat)
 
         return self.ok(
             request,
