@@ -6,11 +6,11 @@
 #             color_right from the two side cameras (soft-synchronised).
 #
 # The effective mode is resolved as:  CLI --mode  >  $TJFUSION_MODE  >  this file.
-mode: single            # single | multi
+mode: multi            # single | multi
 
 width: 640
 height: 480
-fps: 30
+fps: 15
 disable_emitter: 0
 enable_hw_depth: true   # only meaningful for the head camera
 
@@ -19,14 +19,14 @@ enable_hw_depth: true   # only meaningful for the head camera
 # In multi mode all three roles are opened; in single mode only `head` is used.
 cameras:
   - role: head
-    serial: ""          # head camera: color + IR stereo (+ hw depth)
+    serial: "935422071547"          # head camera: color + IR stereo (+ hw depth)
     enable_ir: true
     enable_depth: true
   - role: left
-    serial: ""
+    serial: "260322277082"
     enable_color_only: true
   - role: right
-    serial: ""
+    serial: "260322270977"
     enable_color_only: true
 
 server:

@@ -1,5 +1,11 @@
 docker_launcher:
   docker_model_root: ${DOCKER_MODEL_ROOT}
+  # ── Single switch for the whole camera pipeline (single | multi) ──────────
+  # Changing this ONE line is enough: the launcher injects it as
+  # $TJFUSION_MODE into every docker target (RealSense/SigLIP read it), and
+  # auto-enables the bridge tagged with the same camera_mode below. The `mode:`
+  # field in each docker's config.yaml is now only a standalone-run fallback.
+  camera_mode: multi
   tmux: true
   monitor: true
   replace_session: true
@@ -10,12 +16,15 @@ docker_launcher:
     port: 8765
     log_lines: 300
   bridges:
-  # Overall single/multi switch: enable exactly ONE of the two RealSense bridges
-  # (mirror it with TJFUSION_MODE / config `mode` on RealSenseDocker + SiglipDocker).
+  # The two RealSense bridges are tagged with camera_mode; the launcher enables
+  # whichever matches the top-level camera_mode and disables the other. The
+  # `enabled` flags below are just defaults for when camera_mode is unset.
   - name: RealSense Split Pipeline
-    enabled: true
+    camera_mode: single
+    enabled: false
     config: configs/bridge.realsense_split.yaml
   - name: RealSense Split Pipeline (Multi)
+    camera_mode: multi
     enabled: false
     config: configs/bridge.realsense_split_multi.yaml
   - name: Custom Bridge
@@ -58,7 +67,7 @@ docker_launcher:
   - name: SiglipDocker
     group: inference
     location: local
-    enabled: false
+    enabled: true
     docker_model_root: ${DOCKER_MODEL_ROOT}
   - name: MarvinDocker
     group: action
@@ -68,5 +77,5 @@ docker_launcher:
   - name: VlmDocker
     group: inference
     location: local
-    enabled: true
+    enabled: false
     docker_model_root: ${DOCKER_MODEL_ROOT}

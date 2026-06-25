@@ -609,12 +609,26 @@ def _maybe_build_visualizer(
         print_warning(f"Visualization unavailable: {exc}")
         return None
     nodes = [{"name": n.name, "data_type": n.data_type} for n in pipeline]
+    # Multi-camera mode is implied by any node consuming the side views
+    # (color_left/color_right) -- e.g. the multi-view SigLIP status node.
+    # In that case the RealSense source publishes the side frames, so show a
+    # tile for each; single-mode bridges never reference them and stay 1-tile.
+    # ``visualize_side_cameras`` lets the config force this on even when no node
+    # consumes the side views (e.g. SigLIP disabled but side cameras still run).
+    auto_side = any(
+        inp in ("color_left", "color_right")
+        for n in pipeline
+        for inp in getattr(n, "inputs", []) or []
+    )
+    cfg_side = getattr(config, "visualize_side_cameras", None)
+    show_side_cameras = bool(cfg_side) if cfg_side is not None else auto_side
     try:
         visualizer = PipelineVisualizer(
             window_name=getattr(config, "visualize_window", "TJFusion Pipeline"),
             scale=float(getattr(config, "visualize_scale", 1.0) or 1.0),
             save_path=getattr(config, "visualize_save_path", "") or "",
             nodes=nodes,
+            show_side_cameras=show_side_cameras,
         )
     except Exception as exc:  # noqa: BLE001
         print_warning(f"Visualization disabled: {exc}")

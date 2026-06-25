@@ -1129,6 +1129,35 @@ def _session_name_for_target(target: DockerRunTarget) -> str:
     return session_name or "docker_session"
 
 
+# Extra environment injected into every locally-launched docker target. The
+# launcher sets this from the active ``DockerLaunchConfig.camera_mode`` so every
+# run.sh (which forwards ``-e TJFUSION_MODE``) brings its container up in the
+# same mode -- one switch instead of editing each docker's config.yaml.
+_LAUNCH_ENV: dict[str, str] = {}
+
+
+def set_launch_env(camera_mode: str | None) -> None:
+    """Set/clear the env injected into subsequently launched docker targets."""
+    _LAUNCH_ENV.clear()
+    mode = (camera_mode or "").strip().lower()
+    if mode:
+        _LAUNCH_ENV["TJFUSION_MODE"] = mode
+
+
+def _subprocess_env() -> dict[str, str] | None:
+    """os.environ overlaid with the launch env, or None when nothing to add."""
+    if not _LAUNCH_ENV:
+        return None
+    return {**os.environ, **_LAUNCH_ENV}
+
+
+def _tmux_env_prefix() -> str:
+    """`VAR=value ` assignments to prepend to a tmux shell command (or '')."""
+    if not _LAUNCH_ENV:
+        return ""
+    return "".join(f"{key}={shlex.quote(value)} " for key, value in _LAUNCH_ENV.items())
+
+
 def _launch_once(
     match: DockerMatch,
     *,
@@ -1536,6 +1565,7 @@ def _launch_foreground(match: DockerMatch) -> DockerLaunchResult:
     process = subprocess.Popen(
         command,
         cwd=str(match.target.folder_path.resolve()),
+        env=_subprocess_env(),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -1570,6 +1600,7 @@ def _launch_detached(match: DockerMatch, log_dir: Path) -> DockerLaunchResult:
         process = subprocess.Popen(
             command,
             cwd=str(match.target.folder_path.resolve()),
+            env=_subprocess_env(),
             stdout=log_file,
             stderr=subprocess.STDOUT,
             text=True,
@@ -1636,7 +1667,7 @@ def _launch_tmux(match: DockerMatch, *, replace_session: bool) -> DockerLaunchRe
                 f"{kill_session.stderr.strip() or kill_session.stdout.strip()}"
             )
 
-    shell_command = " ".join(shlex.quote(part) for part in command)
+    shell_command = _tmux_env_prefix() + " ".join(shlex.quote(part) for part in command)
     new_session = subprocess.run(
         [
             tmux_path,

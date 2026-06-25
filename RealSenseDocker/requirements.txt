@@ -3,3 +3,4 @@ numpy
 pyzmq
 opencv-contrib-python-headless
 pyrealsense2
+pyyaml

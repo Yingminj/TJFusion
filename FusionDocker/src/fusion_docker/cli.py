@@ -37,6 +37,7 @@ from fusion_docker.docker_launcher import (
     match_requested_dockers,
     monitor_tmux_sessions,
     normalize_docker_name,
+    set_launch_env,
 )
 from fusion_docker.docker_port_config import read_docker_configured_port
 from fusion_docker.models import DockerTargetEntry
@@ -2014,7 +2015,11 @@ def _load_optional_launch_config(raw_path: str | None):
     resolved = _resolve_launch_config_path(raw_path)
     if resolved is not None:
         print_status("CONFIG", f"Using docker launch config: {resolved}", color="cyan")
-        return load_docker_launch_config(resolved)
+        config = load_docker_launch_config(resolved)
+        # Make camera_mode the single switch: inject it as $TJFUSION_MODE into
+        # every docker target launched from this config.
+        set_launch_env(config.camera_mode)
+        return config
     return None
 
 

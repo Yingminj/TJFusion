@@ -7,7 +7,9 @@ CONTAINER_NAME="realsense_tmp"
 
 DATA_PATH="$(pwd)"
 
-# Overall single/multi switch. Falls back to config.yaml's `mode` when empty.
+# Overall single/multi switch. Normally injected by the FusionDocker launcher
+# (docker_launcher camera_mode). Left blank here so a standalone ./run.sh falls
+# back to config.yaml's `mode`; export TJFUSION_MODE=multi to override manually.
 TJFUSION_MODE="${TJFUSION_MODE:-}"
 
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true

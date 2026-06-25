@@ -4,7 +4,7 @@ docker:
 server:
   host: 0.0.0.0
   port: 7777
-  mode: single
+  mode: multi
 model:
   path: /workspace/model/siglip2-so400m-patch14-224
   checkpoint: /workspace/model/model_siglip2_best_loss.pt

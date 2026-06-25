@@ -43,6 +43,7 @@ from fusion_docker.docker_launcher import (
     normalize_docker_name,
     read_result_logs,
     resolve_preferred_container,
+    set_launch_env,
     stop_launch_result,
     _list_docker_containers,
 )
@@ -1664,6 +1665,9 @@ class DashboardController:
         if launch_config is None:
             raise RuntimeError("Docker launcher config is missing, cannot reload dashboard state.")
 
+        # Keep the injected $TJFUSION_MODE in sync with the (possibly edited)
+        # camera_mode so dockers started after a reload come up in the new mode.
+        set_launch_env(launch_config.camera_mode)
         matches = self._resolve_matches_from_launch_config(launch_config)
         self._replace_matches_locked(matches)
         self._reconfigure_bridge_managers_locked(launch_config.bridge_entries)

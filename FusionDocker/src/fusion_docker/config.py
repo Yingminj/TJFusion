@@ -254,6 +254,9 @@ def load_bridge_config(path: str | Path) -> BridgeServiceConfig:
         visualize_window=str(bridge_raw.get("visualize_window", "TJFusion Pipeline")),
         visualize_scale=float(bridge_raw.get("visualize_scale", 1.0)),
         visualize_save_path=str(bridge_raw.get("visualize_save_path", "")),
+        visualize_side_cameras=_coerce_optional_bool(
+            bridge_raw.get("visualize_side_cameras")
+        ),
     )
 
 
@@ -396,6 +399,24 @@ def _coerce_optional_mapping(raw_value: Any, *, section_name: str) -> dict[str, 
     if not isinstance(raw_value, dict):
         raise ValueError(f"{section_name} config must be a mapping")
     return raw_value
+
+
+def _coerce_optional_bool(raw_value: Any) -> bool | None:
+    """Coerce a YAML value to an optional bool: ``None`` stays ``None``."""
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, bool):
+        return raw_value
+    if isinstance(raw_value, str):
+        low = raw_value.strip().lower()
+        if low in ("true", "yes", "1", "on"):
+            return True
+        if low in ("false", "no", "0", "off"):
+            return False
+        return None
+    if isinstance(raw_value, (int, float)):
+        return bool(raw_value)
+    return None
 
 
 def _coerce_mapping_keys(raw_value: Any, defaults: tuple[str, ...]) -> tuple[str, ...]:
@@ -550,19 +571,28 @@ def load_docker_launch_config(path: str | Path) -> DockerLaunchConfig:
         launch_raw.get("bridge_schema_check"),
         config_dir=config_dir,
     )
+    camera_mode = _normalize_camera_mode(launch_raw.get("camera_mode"))
     bridge_entries = _parse_bridge_entries(
         launch_raw,
         config_dir=config_dir,
         default_schema_check=bridge_schema_default,
     )
-    bridge_enabled = bridge_entries[0].enabled if bridge_entries else True
-    bridge_config_path = bridge_entries[0].config_path if bridge_entries else None
+    # camera_mode is the single switch: enable the matching split/split_multi
+    # bridge (and disable its sibling) without touching per-bridge `enabled`.
+    _apply_camera_mode_to_bridges(bridge_entries, camera_mode)
+    enabled_bridges = [entry for entry in bridge_entries if entry.enabled]
+    primary_bridge = enabled_bridges[0] if enabled_bridges else (
+        bridge_entries[0] if bridge_entries else None
+    )
+    bridge_enabled = primary_bridge.enabled if primary_bridge else True
+    bridge_config_path = primary_bridge.config_path if primary_bridge else None
 
     return DockerLaunchConfig(
         docker_model_root=docker_model_root,
         docker_names=docker_names,
         docker_groups=docker_groups,
         docker_targets=docker_targets,
+        camera_mode=camera_mode,
         remote_enabled=remote_enabled,
         remote_host=remote_host,
         remote_user=remote_user,
@@ -995,6 +1025,30 @@ def _parse_bridge_entries(
     return bridge_entries
 
 
+def _normalize_camera_mode(value: Any) -> str | None:
+    """Return 'single'/'multi' for a camera-mode value, else None."""
+    if value is None:
+        return None
+    mode = str(value).strip().lower()
+    return mode if mode in ("single", "multi") else None
+
+
+def _apply_camera_mode_to_bridges(
+    bridge_entries: list[BridgeLaunchEntry], camera_mode: str | None
+) -> None:
+    """Auto-toggle camera-mode-tagged bridges to match the active mode.
+
+    Bridges that declare ``camera_mode`` are enabled iff their tag equals
+    *camera_mode*; untagged bridges keep their explicit ``enabled`` flag. With
+    no active camera_mode nothing is overridden (back-compat with manual flags).
+    """
+    if not camera_mode:
+        return
+    for entry in bridge_entries:
+        if entry.camera_mode is not None:
+            entry.enabled = entry.camera_mode == camera_mode
+
+
 def _coerce_bridge_entry(
     raw_entry: Any,
     *,
@@ -1028,6 +1082,7 @@ def _coerce_bridge_entry(
         enabled=bool(raw_entry.get("enabled", True)),
         config_path=config_path,
         schema_check=schema_check,
+        camera_mode=_normalize_camera_mode(raw_entry.get("camera_mode")),
     )
 
 

@@ -127,6 +127,9 @@ class BridgeServiceConfig:
     visualize_window: str = "TJFusion Pipeline"
     visualize_scale: float = 1.0
     visualize_save_path: str = ""
+    # Force-show the side-camera tiles (color_left/color_right) in the visualizer.
+    # None -> auto: shown only when some pipeline node consumes a side view.
+    visualize_side_cameras: bool | None = None
 
     @property
     def downstream_server_addr(self) -> str:
@@ -198,6 +201,10 @@ class BridgeLaunchEntry:
     enabled: bool = True
     config_path: str | None = None
     schema_check: BridgeSchemaCheckConfig | None = None
+    # When set ("single"/"multi"), this bridge participates in the camera-mode
+    # switch: the launcher forces ``enabled`` on iff it matches the active
+    # ``DockerLaunchConfig.camera_mode``. Untagged bridges keep their own flag.
+    camera_mode: str | None = None
 
 
 @dataclass(slots=True)
@@ -220,6 +227,9 @@ class DockerLaunchConfig:
     docker_names: list[str] = field(default_factory=list)
     docker_groups: dict[str, list[str]] = field(default_factory=dict)
     docker_targets: list[DockerTargetEntry] = field(default_factory=list)
+    # Single source of truth for single|multi camera mode. Injected into every
+    # docker target as $TJFUSION_MODE and used to auto-select the matching bridge.
+    camera_mode: str | None = None
     remote_enabled: bool = False
     remote_host: str | None = None
     remote_user: str | None = None

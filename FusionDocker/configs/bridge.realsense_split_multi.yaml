@@ -21,6 +21,9 @@ bridge:
   visualize_window: TJFusion Pipeline (multi)
   visualize_scale: 1.0
   visualize_save_path: ""
+  # Force-show the side-camera tiles even when no pipeline node consumes
+  # color_left/color_right (e.g. the multi-view SigLIP node is disabled).
+  visualize_side_cameras: true
 
   prompts:
     - cup
@@ -83,24 +86,24 @@ bridge:
 
     # [3] 状态分类：多视角 SigLIP，吃三路真实相机 color（与上面并行）
     #     服务端需以 multi 模式启动 (TJFUSION_MODE=multi 或 config server.mode=multi)。
-    - name: siglip
-      kind: generic
-      data_type: status
-      endpoint: tcp://127.0.0.1:7777
-      timeout_ms: 10000
-      role: required
-      inputs:
-        - color
-        - color_left
-        - color_right
-      request_map:
-        color: $color
-        color_left: $color_left
-        color_right: $color_right
-      response_map:
-        best_category: best_category
-        best_similarity: best_similarity
-        state_list: state_list
+    # - name: siglip
+    #   kind: generic
+    #   data_type: status
+    #   endpoint: tcp://127.0.0.1:7777
+    #   timeout_ms: 10000
+    #   role: required
+    #   inputs:
+    #     - color
+    #     - color_left
+    #     - color_right
+    #   request_map:
+    #     color: $color
+    #     color_left: $color_left
+    #     color_right: $color_right
+    #   response_map:
+    #     best_category: best_category
+    #     best_similarity: best_similarity
+    #     state_list: state_list
 
     # [4] 位姿：FlowPose，依赖 depth([1]) + mask([2])
     - name: flowpose

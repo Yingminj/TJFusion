@@ -327,7 +327,12 @@ _DEFAULT_CONFIG_PATH = os.environ.get("REALSENSE_CONFIG", "/workspace/config.yam
 
 
 def _load_config(path: str) -> dict:
-    if not path or yaml is None or not os.path.exists(path):
+    if yaml is None:
+        print(f"[realsense] WARNING: pyyaml not installed -- ignoring config {path!r}; "
+              f"all camera serials default to (auto) and may collide.")
+        return {}
+    if not path or not os.path.exists(path):
+        print(f"[realsense] WARNING: config not found at {path!r}; using defaults.")
         return {}
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}

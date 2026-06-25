@@ -105,6 +105,7 @@ class PipelineVisualizer:
         save_path: str = "",
         nodes: list[dict[str, str]] | None = None,
         source_title: str = "RealSense (color)",
+        show_side_cameras: bool = False,
     ) -> None:
         if cv2 is None or np is None:
             raise RuntimeError(
@@ -119,6 +120,9 @@ class PipelineVisualizer:
         self._window_ready = False
         self._imshow_disabled = False
         self._save_hint_shown = False
+        # In multi-camera mode the RealSense source also publishes the two side
+        # views (color_left/color_right); show one tile each next to the head.
+        self._show_side_cameras = show_side_cameras
         # Build one panel per pipeline node (plus the always-on camera source),
         # so the layout reflects exactly the dockers that are running.
         self._panels: list[tuple[str, Any]] = self._build_panel_layout(
@@ -129,6 +133,13 @@ class PipelineVisualizer:
         self, nodes: list[dict[str, str]], source_title: str
     ) -> list[tuple[str, Any]]:
         panels: list[tuple[str, Any]] = [(source_title, self._panel_source)]
+        if self._show_side_cameras:
+            panels.append(
+                ("RealSense (left)", self._make_side_builder("color_left"))
+            )
+            panels.append(
+                ("RealSense (right)", self._make_side_builder("color_right"))
+            )
         for node in nodes:
             name = str(node.get("name", "") or "")
             data_type = str(node.get("data_type", "") or "")
@@ -163,6 +174,12 @@ class PipelineVisualizer:
         if "pose" in low or "flow" in low or "yomni" in low:
             return "pose"
         return ""
+
+    def _make_side_builder(self, key: str):
+        def _builder(store, _results):
+            return self._panel_side(store, key)
+
+        return _builder
 
     def _make_status_builder(self, node_name: str):
         def _builder(store, results):
@@ -244,6 +261,15 @@ class PipelineVisualizer:
         view = self._inset_thumbnails(view, thumbs)
         h, w = view.shape[:2]
         return view, f"{w}x{h}  ir={len(thumbs)}"
+
+    def _panel_side(self, store, key):
+        """Render one of the side cameras (color_left / color_right)."""
+        color = self._get_image(store, key)
+        if color is None:
+            return None, "no frame"
+        view = self._to_bgr(color)
+        h, w = view.shape[:2]
+        return view, f"{w}x{h}"
 
     def _panel_depth(self, store, _results):
         depth = self._get_image(store, "depth")
