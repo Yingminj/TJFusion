@@ -340,20 +340,20 @@ class PipelineVisualizer:
 
         img = self._blank()
         lines = [f"best: {best_cat or '-'}"]
-        if isinstance(best_sim, (int, float)):
-            lines.append(f"score: {float(best_sim):.3f}")
-        state_name = store.get("state_name") or store.get("name")
-        state_id = store.get("state_id")
-        if state_name or state_id is not None:
-            lines.append(f"state: {state_name or '-'} (#{state_id})")
-        if topk:
-            lines.append("top-k:")
-            for item in topk[:4]:
-                if isinstance(item, dict):
-                    cat = str(item.get("category", ""))
-                    sim = item.get("similarity")
-                    sim_txt = f" {float(sim):.2f}" if isinstance(sim, (int, float)) else ""
-                    lines.append(f"  - {cat}{sim_txt}")
+        # if isinstance(best_sim, (int, float)):
+        #     lines.append(f"score: {float(best_sim):.3f}")
+        # state_name = store.get("state_name") or store.get("name")
+        # state_id = store.get("state_id")
+        # if state_name or state_id is not None:
+        #     lines.append(f"state: {state_name or '-'} (#{state_id})")
+        # if topk:
+        #     lines.append("top-k:")
+        #     for item in topk[:4]:
+        #         if isinstance(item, dict):
+        #             cat = str(item.get("category", ""))
+        #             sim = item.get("similarity")
+        #             sim_txt = f" {float(sim):.2f}" if isinstance(sim, (int, float)) else ""
+        #             lines.append(f"  - {cat}{sim_txt}")
         self._draw_text_block(img, lines)
         return img, best_cat[:28]
 
@@ -533,13 +533,54 @@ class PipelineVisualizer:
                 )
 
     def _draw_text_block(self, img, lines) -> None:
-        y = 34
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.55
+        thickness = 1
+        max_w = img.shape[1] - 24  # 12px margin on each side
+        y = 52
         for line in lines:
-            cv2.putText(
-                img, line, (12, y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (235, 235, 235), 1, cv2.LINE_AA,
-            )
-            y += 26
+            for wrapped in self._wrap_text(line, font, scale, thickness, max_w):
+                cv2.putText(
+                    img, wrapped, (12, y),
+                    font, scale, (235, 235, 235), thickness, cv2.LINE_AA,
+                )
+                y += 26
+
+    @staticmethod
+    def _wrap_text(text, font, scale, thickness, max_w):
+        """Break ``text`` into lines whose rendered width fits within ``max_w``.
+
+        Wraps on whitespace where possible; a single token longer than
+        ``max_w`` is hard-split so it never runs off the panel edge.
+        """
+        def width(s: str) -> int:
+            return cv2.getTextSize(s, font, scale, thickness)[0][0]
+
+        lines: list[str] = []
+        for token in text.split(" "):
+            if not lines:
+                lines.append(token)
+                continue
+            candidate = f"{lines[-1]} {token}"
+            if width(candidate) <= max_w:
+                lines[-1] = candidate
+            else:
+                lines.append(token)
+        # Hard-split any line that is still too wide (long unbroken token).
+        result: list[str] = []
+        for line in lines:
+            while width(line) > max_w and len(line) > 1:
+                lo, hi = 1, len(line)
+                while lo < hi:
+                    mid = (lo + hi + 1) // 2
+                    if width(line[:mid]) <= max_w:
+                        lo = mid
+                    else:
+                        hi = mid - 1
+                result.append(line[:lo])
+                line = line[lo:]
+            result.append(line)
+        return result or [""]
 
     # ------------------------------------------------------------------
     # Image conversion helpers
