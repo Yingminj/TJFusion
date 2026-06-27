@@ -117,7 +117,7 @@ class RealSenseCamera:
             config.enable_stream(rs.stream.infrared, 1, self.width, self.height, rs.format.y8, self.fps)
             config.enable_stream(rs.stream.infrared, 2, self.width, self.height, rs.format.y8, self.fps)
         if self.enable_color:
-            config.enable_stream(rs.stream.color, self.width, self.height, rs.format.bgr8, self.fps)
+            config.enable_stream(rs.stream.color, self.width, self.height, rs.format.rgb8, self.fps)
         if self.enable_hw_depth:
             config.enable_stream(rs.stream.depth, self.width, self.height, rs.format.z16, self.fps)
 
@@ -173,12 +173,12 @@ class RealSenseCamera:
             left = frames.get_infrared_frame(1)
             if left:
                 gray = np.asanyarray(left.get_data())
-                out["ir_left"] = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) if cv2 else gray
+                out["ir_left"] = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB) if cv2 else gray
         if "ir_right" in want and self.enable_ir:
             right = frames.get_infrared_frame(2)
             if right:
                 gray = np.asanyarray(right.get_data())
-                out["ir_right"] = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) if cv2 else gray
+                out["ir_right"] = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB) if cv2 else gray
         if "hw_depth" in want and self.enable_hw_depth:
             depth_frame = frames.get_depth_frame()
             if depth_frame:
@@ -189,6 +189,7 @@ class RealSenseCamera:
 
     def camera_fields(self) -> dict[str, Any]:
         return {
+            "encoding": "rgb8",
             "ir_left_intrinsics": self.left_K.tolist() if self.left_K is not None else None,
             "color_intrinsics": self.color_K.tolist() if self.color_K is not None else None,
             "baseline_m": float(self.baseline_m) if self.baseline_m is not None else None,

@@ -1,7 +1,7 @@
 {
   "data_type": "rgb",
   "title": "RGB color image",
-  "description": "A single RGB/BGR color frame, optionally with camera intrinsics. Produced by a camera source (e.g. RealSenseDocker) and consumed by mask/status models.",
+  "description": "A single RGB color frame, optionally with camera intrinsics. Produced by a camera source (e.g. RealSenseDocker) and consumed by mask/status models. Channel order is RGB system-wide.",
   "request": {
     "fields": {},
     "arrays": {}
@@ -16,9 +16,9 @@
       "encoding": {
         "type": "string",
         "required": false,
-        "enum": ["bgr8", "rgb8"],
-        "default": "bgr8",
-        "description": "Channel order of the color array."
+        "enum": ["rgb8"],
+        "default": "rgb8",
+        "description": "Channel order of the color array. RGB is the system-wide standard; BGR is no longer used."
       }
     },
     "arrays": {

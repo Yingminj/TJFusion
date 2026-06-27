@@ -90,11 +90,15 @@ class YOLOStatusServer(BaseModelServer):
         rgb = np.ascontiguousarray(color)
         h, w = rgb.shape[:2]
 
+        # The wire format is RGB system-wide, but Ultralytics interprets a numpy
+        # array as BGR (cv2 convention). Flip channels only for the model input.
+        bgr = np.ascontiguousarray(rgb[:, :, ::-1])
+
         if self.model_task == "classify":
-            results = self.yolo.predict(rgb, verbose=False, conf=conf)
+            results = self.yolo.predict(bgr, verbose=False, conf=conf)
         else:
             results = self.yolo.track(
-                rgb, persist=persist, tracker=tracker, verbose=False, conf=conf,
+                bgr, persist=persist, tracker=tracker, verbose=False, conf=conf,
             )
         result0 = results[0] if results else None
 

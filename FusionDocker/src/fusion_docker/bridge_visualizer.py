@@ -596,8 +596,11 @@ class PipelineVisualizer:
             if arr.shape[2] == 1:
                 return cv2.cvtColor(self._to_uint8(arr[..., 0]), cv2.COLOR_GRAY2BGR)
             if arr.shape[2] == 4:
-                return cv2.cvtColor(self._to_uint8(arr), cv2.COLOR_BGRA2BGR)
-            return np.ascontiguousarray(self._to_uint8(arr)).copy()
+                return cv2.cvtColor(self._to_uint8(arr), cv2.COLOR_RGBA2BGR)
+            # Pipeline color frames are RGB; cv2 (imshow/imwrite) expects BGR, so
+            # swap only here at the rendering boundary. (Grayscale-derived 3-ch
+            # arrays have R=G=B, so the swap is a no-op for them.)
+            return cv2.cvtColor(self._to_uint8(np.ascontiguousarray(arr)), cv2.COLOR_RGB2BGR)
         return self._blank()
 
     def _to_uint8(self, arr):
