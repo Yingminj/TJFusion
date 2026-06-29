@@ -31,10 +31,11 @@ RealSenseDocker (camera source, ZMQ PUB :5551)
 2. [Repository layout](#2-repository-layout)
 3. [Installation](#3-installation)
    - [One-click install](#31-one-click-install)
-   - [Local fusion env (no clone / no reinstall)](#32-local-fusion-env-no-clone--no-reinstall)
-   - [Install into an existing env](#33-install-into-an-existing-env)
-   - [Distributed / multi-machine install](#34-distributed--multi-machine-install)
-   - [Model weights](#35-model-weights)
+   - [Shared Docker base images](#32-shared-docker-base-images)
+   - [Local fusion env (no clone / no reinstall)](#33-local-fusion-env-no-clone--no-reinstall)
+   - [Install into an existing env](#34-install-into-an-existing-env)
+   - [Distributed / multi-machine install](#35-distributed--multi-machine-install)
+   - [Model weights](#36-model-weights)
 4. [Usage](#4-usage)
 5. [Service reference](#5-service-reference)
 6. [Testing](#6-testing)
@@ -82,6 +83,7 @@ server; no bridge Python code changes needed.**
 | Path | Role |
 |---|---|
 | `protocol/` | Shared wire contract `tjfusion_protocol` (envelope, codec, schemas, `BaseModelServer`, `ModelClient`) + the repo's test suite |
+| `docker/` | Shared Docker base images (`Dockerfile.base`, `Dockerfile.gpu-base`, `build-base.sh`) — built once, reused by all model dockers |
 | `RealSenseDocker/` | Intel RealSense camera source → `rgb` (+ hardware `depth`). REP `:5550`, PUB `:5551` |
 | `Fast-FoundationSteroDocker/` | FoundationStereo stereo → `depth` (`:4444`) |
 | `Sam3Docker/` | SAM3 promptable segmentation → `mask` (`:5562`) |
@@ -107,8 +109,9 @@ server; no bridge Python code changes needed.**
 ### 3.1 One-click install
 
 Installs base tooling, (optionally) clones the repo, creates a venv, installs
-`FusionDocker` dependencies, and installs a global `tjfusion` launcher with
-bash/zsh completion:
+`FusionDocker` dependencies, installs a global `tjfusion` launcher with
+bash/zsh completion, **and builds the shared Docker base images**
+(`tjfusion-base` + `tjfusion-gpu-base`) so subsequent `build.sh` runs are fast:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yangzhaofeng496/TJFusion/main/install.sh | bash
@@ -129,7 +132,32 @@ Then point the launcher at your checkout:
 export DOCKER_MODEL_ROOT=/path/to/TJFusion
 ```
 
-### 3.2 Local fusion env (no clone / no reinstall)
+### 3.2 Shared Docker base images
+
+The 6 GPU model dockers (Fast-FoundationStero, FlowPose, Sam3, Siglip, Vlm,
+YOLO) share a single base image — `tjfusion-gpu-base` — that bundles the
+common system libraries, **torch 2.9.0 (cu128)**, numpy/opencv-python/pyzmq,
+and the `tjfusion_protocol` package. RealSenseDocker uses the lighter
+`tjfusion-base` (same deps minus torch/CUDA). This means the ~2.5 GB torch
+download happens **once** instead of six times.
+
+`install.sh` builds both bases automatically. To build them manually (or
+rebuild after changing `protocol/`):
+
+```bash
+./docker/build-base.sh                  # build both if missing
+./docker/build-base.sh --rebuild        # force rebuild (no cache)
+./docker/build-base.sh --gpu-only       # only the GPU base
+```
+
+Each model docker's `Dockerfile` starts with `FROM tjfusion-gpu-base:latest`
+and only adds its own unique dependencies, so `cd <SomeDocker> && ./build.sh`
+is fast after the bases exist.
+
+> If you skip the base build during `install.sh` (`--skip-docker-base`), the
+> individual `build.sh` scripts will fail until you run `./docker/build-base.sh`.
+
+### 3.3 Local fusion env (no clone / no reinstall)
 
 If the code and Docker images are already prepared locally, build just the
 Fusion runtime env in this repo:
@@ -144,7 +172,7 @@ This script creates/reuses `.venv-tjfusion`, editable-installs the shared
 `protocol/` package, creates the `./tjfusion-local` launcher, and does **not**
 git clone/pull or install system packages.
 
-### 3.3 Install into an existing env
+### 3.4 Install into an existing env
 
 If you already have a venv/conda env and only need the Python packages, install
 both editable (so repo edits take effect without reinstalling):
@@ -159,15 +187,16 @@ pip install -e FusionDocker    # fusion_docker orchestrator / CLI
 > `setup_fusion_env.sh`, `FusionDocker/run.sh` (which adds `protocol/` to
 > `PYTHONPATH`), and the editable install above each resolve it.
 
-### 3.4 Distributed / multi-machine install
+### 3.5 Distributed / multi-machine install
 
 The orchestrator can manage Docker services that live on **other hosts** over
 SSH — e.g. run the camera + vision models on a GPU box and the robot
 (`MarvinDocker`) on the robot's onboard computer.
 
 1. On **each** machine: clone the repo (or copy the relevant `*Docker/`
-   directories) and set `DOCKER_MODEL_ROOT`. Build the images that machine will
-   run (`./build.sh` per docker). The host running the orchestrator needs SSH
+   directories) and set `DOCKER_MODEL_ROOT`. Run `./docker/build-base.sh` first
+   (one-time shared layer), then build the images that machine will run
+   (`./build.sh` per docker). The host running the orchestrator needs SSH
    access (key or password) to every remote host.
 2. In `FusionDocker/configs/docker_launch.yaml`, mark a target `location: remote`
    and give it a `remote:` block. The orchestrator then builds/starts/stops that
@@ -195,7 +224,7 @@ Because all services talk over ZMQ on `--net=host`, make sure the configured
 host/IP and ports are reachable across machines (a flat robot LAN is assumed —
 there is no auth on the ZMQ sockets).
 
-### 3.5 Model weights
+### 3.6 Model weights
 
 Weights are **not committed**. Each model docker fetches them with a
 `model/download.sh` / `download_models.py`, or mounts them at runtime:
@@ -293,6 +322,8 @@ tjfusion listen-zmq --port 8899 --topic /siglip2/result --limit 3   # tap ZMQ tr
 
 > Build any single docker standalone with `cd <SomeDocker> && ./build.sh && ./run.sh`.
 > `build.sh` always uses the repo root as the Docker context so `protocol/` is bundled in.
+> The shared base images (`tjfusion-base` / `tjfusion-gpu-base`) must exist first —
+> run `./docker/build-base.sh` once if you skipped it during `install.sh`.
 
 ## 6. Testing
 

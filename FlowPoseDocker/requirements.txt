@@ -1,7 +1,6 @@
-numpy==1.26.3
-opencv-python==4.9.0.80
+# FlowPose-specific pip deps.
+# numpy / opencv-python / pyzmq are provided by tjfusion-gpu-base.
 scikit-learn==1.7.2
 webdataset==1.0.2
-zmq
 ipdb
 tensorboardX

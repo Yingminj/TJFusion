@@ -7,66 +7,16 @@
 #
 #   docker build -f Fast-FoundationSteroDocker/Dockerfile.depth -t ffs-depth:latest .
 #
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
+# Built on tjfusion-gpu-base (torch 2.9.0 cu128 + common deps + protocol).
+FROM tjfusion-gpu-base:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
 
-# Tsinghua mirror for apt
-RUN sed -i 's@http://archive.ubuntu.com/ubuntu/@https://mirrors.tuna.tsinghua.edu.cn/ubuntu/@g' /etc/apt/sources.list && \
-    sed -i 's@http://security.ubuntu.com/ubuntu/@https://mirrors.tuna.tsinghua.edu.cn/ubuntu/@g' /etc/apt/sources.list
-
-# Tsinghua mirror for pip
-RUN mkdir -p /root/.pip && \
-    printf "[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntrusted-host = pypi.tuna.tsinghua.edu.cn\n" > /root/.pip/pip.conf
-
-# System dependencies (no libusb — no camera here)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    git \
-    ca-certificates \
-    wget \
-    curl \
-    python3 \
-    python3-dev \
-    python3-pip \
-    python3-setuptools \
-    python3-wheel \
-    python3-pkg-resources \
-    libgl1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    libxcb1 \
-    libzmq3-dev \
-    pkg-config \
-    tmux \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV CUDA_HOME=/usr/local/cuda
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
-
-RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
-
-# PyTorch (CUDA 12.8)
-RUN python3 -m pip install --no-cache-dir \
-    torch==2.8.0 \
-    torchvision==0.23.0 \
-    torchaudio==2.8.0 \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-# Shared protocol package (from repo root build context).
-COPY protocol /opt/tjfusion_protocol
-RUN python3 -m pip install --no-cache-dir /opt/tjfusion_protocol
-
-# Depth-only deps (no pyrealsense2)
+# Depth-only deps (no pyrealsense2). numpy/pyzmq/pyyaml/opencv-python come from the base.
 COPY Fast-FoundationSteroDocker/requirements.depth.txt /workspace/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /workspace/requirements.txt
 
-# Model source tree + the new standard-protocol server
+# Model source tree + the standard-protocol server
 COPY Fast-FoundationSteroDocker/Fast-FoundationStereo-master /workspace/Fast-FoundationStereo-master
 COPY Fast-FoundationSteroDocker/Server /workspace/Server
 

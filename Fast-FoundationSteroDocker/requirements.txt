@@ -1,21 +1,11 @@
-# === Model & inference ===
+# Fast-FoundationStero legacy (camera + depth combined).
+# The active build uses requirements.depth.txt (see Dockerfile.depth).
+# numpy / pyzmq / pyyaml / opencv-python are provided by tjfusion-gpu-base.
 timm
 einops
 omegaconf
 scipy
-numpy
 scikit-image
-opencv-contrib-python
 imageio
-pyyaml
 open3d
-zmq
 pyrealsense2
-
-# === TensorRT (optional — uncomment if needed) ===
-# onnx
-# onnxruntime-gpu
-# tensorrt-cu12
-# tensorrt-lean-cu12
-# tensorrt-dispatch-cu12
-# nvidia-modelopt[torch]

@@ -1,7 +1,4 @@
+# YOLO-specific deps. numpy / opencv-python / pyzmq / pyyaml / pillow come
+# from tjfusion-gpu-base.
 ultralytics
-opencv-python-headless
-numpy
-Pillow
-PyYAML
-pyzmq
 lap>=0.5.12

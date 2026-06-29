@@ -1,0 +1,82 @@
+# tjfusion-gpu-base: shared GPU base for the 6 model dockers
+# (Fast-FoundationSteroDocker, FlowPoseDocker, Sam3Docker, SiglipDocker,
+#  VlmDocker, YOLODocker).
+#
+# Build context MUST be the repo root so the shared protocol/ package is bundled:
+#   docker build -f docker/Dockerfile.gpu-base -t tjfusion-gpu-base:latest .
+#
+# Contains everything in tjfusion-base PLUS:
+#   - CUDA 12.8 runtime (from the nvidia/cuda base image)
+#   - unified torch==2.9.0 / torchvision==0.24.0 / torchaudio==2.9.0 (cu128)
+#   - build-essential + libgtk2.0-dev for repos that compile CUDA extensions
+#
+# Per-docker Dockerfiles then only add their OWN unique deps on top of this.
+FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /workspace
+
+# Tsinghua mirror for apt
+RUN sed -i 's@http://archive.ubuntu.com/ubuntu/@https://mirrors.tuna.tsinghua.edu.cn/ubuntu/@g' /etc/apt/sources.list && \
+    sed -i 's@http://security.ubuntu.com/ubuntu/@https://mirrors.tuna.tsinghua.edu.cn/ubuntu/@g' /etc/apt/sources.list
+
+# Tsinghua mirror for pip
+RUN mkdir -p /root/.pip && \
+    printf "[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\ntrusted-host = pypi.tuna.tsinghua.edu.cn\n" > /root/.pip/pip.conf
+
+# Common system packages (superset of tjfusion-base + build tools for CUDA compilation).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    git \
+    wget \
+    python3 \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    python3-pkg-resources \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libxcb1 \
+    libusb-1.0-0 \
+    libzmq3-dev \
+    libgtk2.0-dev \
+    pkg-config \
+    tmux \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+
+RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
+
+# Make `python` available (some dockers like YOLO call `python` not `python3`).
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+# Unified PyTorch stack (CUDA 12.8). All GPU dockers share this single layer.
+RUN python3 -m pip install --no-cache-dir \
+    torch==2.9.0 \
+    torchvision==0.24.0 \
+    torchaudio==2.9.0 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# Common Python deps. numpy<2 keeps compatibility with sam3 (numpy>=1.26,<2).
+RUN python3 -m pip install --no-cache-dir \
+    "numpy>=1.26,<2" \
+    pyzmq \
+    pyyaml \
+    opencv-python \
+    pillow
+
+# Shared standard-protocol package (build context = repo root).
+COPY protocol /opt/tjfusion_protocol
+RUN python3 -m pip install --no-cache-dir "/opt/tjfusion_protocol[zmq]"
+
+CMD ["/bin/bash"]

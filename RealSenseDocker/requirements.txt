@@ -1,6 +1,3 @@
-# RealSense source server — runtime deps (no torch, no CUDA needed)
-numpy
-pyzmq
-opencv-contrib-python-headless
+# RealSense source server — runtime deps unique to this docker.
+# numpy / pyzmq / pyyaml / opencv-python are provided by tjfusion-base.
 pyrealsense2
-pyyaml

@@ -38,11 +38,12 @@ REPO_URL="https://github.com/yangzhaofeng496/TJFusion.git"
 CLONE_DIR="$PWD"
 SKIP_CLONE="0"
 SKIP_ENV_INSTALL="0"
+SKIP_DOCKER_BASE="0"
 VERBOSE="0"
 CONDA_MODE="on"           # auto | on | off
 LOG_FILE="/tmp/tjfusion-install-$(date +%Y%m%d-%H%M%S).log"
 STEP_INDEX=0
-STEP_TOTAL=8
+STEP_TOTAL=9
 
 log_step() {
   STEP_INDEX=$((STEP_INDEX + 1))
@@ -135,6 +136,7 @@ for arg in "$@"; do
     --verbose) VERBOSE="1" ;;
     --skip-clone) SKIP_CLONE="1" ;;
     --skip-env-install) SKIP_ENV_INSTALL="1" ;;
+    --skip-docker-base) SKIP_DOCKER_BASE="1" ;;
     --repo-url=*) REPO_URL="${arg#*=}" ;;
     --clone-dir=*) CLONE_DIR="${arg#*=}" ;;
     --conda=on) CONDA_MODE="on" ;;
@@ -153,6 +155,7 @@ Options:
   --clone-dir=<path>      Where to clone repository (default: current directory)
   --skip-clone            Skip git clone/pull step
   --skip-env-install      Skip system package auto-install step
+  --skip-docker-base      Skip building shared Docker base images
   --conda=auto|on|off     Conda policy: default is on (always keep active conda)
   -h, --help              Show this help
 USAGE
@@ -740,6 +743,42 @@ list_git_repos() {
   fi
 }
 
+build_docker_base_images() {
+  [[ "$SKIP_DOCKER_BASE" == "1" ]] && return 0
+  if ! has_cmd docker; then
+    log_warn "[install] Docker not found — skipping shared base image build."
+    log_warn "[install] Run ./docker/build-base.sh later after installing Docker."
+    return 0
+  fi
+  local repo_root="$1"
+  local build_script="${repo_root}/docker/build-base.sh"
+  if [[ ! -f "$build_script" ]]; then
+    log_warn "[install] docker/build-base.sh not found — skipping base image build."
+    return 0
+  fi
+
+  local need_build=0
+  if ! docker image inspect tjfusion-base:latest >/dev/null 2>&1; then
+    need_build=1
+  fi
+  if ! docker image inspect tjfusion-gpu-base:latest >/dev/null 2>&1; then
+    need_build=1
+  fi
+  if [[ "$need_build" -eq 0 ]]; then
+    log_ok "[install] Shared Docker base images already present (tjfusion-base, tjfusion-gpu-base)."
+    return 0
+  fi
+
+  log_info "[install] Building shared Docker base images (one-time, ~2.5 GB torch download)..."
+  log_info "[install] This lets the 6 GPU dockers share one torch layer instead of each downloading it."
+  if bash "$build_script"; then
+    log_ok "[install] Shared Docker base images built successfully."
+  else
+    log_warn "[install] Base image build failed — you can retry later with: ./docker/build-base.sh"
+    log_warn "[install] Individual docker build.sh scripts will fail until the bases exist."
+  fi
+}
+
 main() {
   : > "$LOG_FILE"
   [[ "$VERBOSE" == "1" ]] && log_info "[install] Verbose mode enabled."
@@ -780,6 +819,9 @@ main() {
   log_step "Installing shell completions"
   install_bash_completion
   install_zsh_completion
+
+  log_step "Building shared Docker base images"
+  build_docker_base_images "$repo_root"
 
   log_step "Running environment checks"
   log_ok "[install] Done"
